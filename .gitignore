@@ -8,3 +8,4 @@ dist-mvp-web/
 .env.*
 coverage/
 *.tgz
+.npmrc

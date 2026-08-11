@@ -1,0 +1,10 @@
+node_modules/
+dist/
+dist-test/
+dist-mvp-web/
+*.log
+.DS_Store
+.env
+.env.*
+coverage/
+*.tgz

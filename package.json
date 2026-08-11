@@ -1,0 +1,59 @@
+{
+  "name": "@alphafoxai/cli",
+  "version": "0.1.0",
+  "description": "Alphafox CLI — Agent/Human entry for the public Application API.",
+  "type": "commonjs",
+  "bin": {
+    "alphafox": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "skills",
+    "README.md",
+    "docs",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node scripts/postbuild.cjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node scripts/build-mvp-web-bundle.mjs && tsc -p tsconfig.test.json && node --test dist-test/**/*.test.js",
+    "test:mvp": "node scripts/build-mvp-web-bundle.mjs && tsc -p tsconfig.test.json && node --test dist-test/tests/mvp-oauth-web-handlers.test.js",
+    "alphafox": "node dist/cli.js",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alphafoxai/alphafox-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alphafoxai/alphafox-cli/issues"
+  },
+  "homepage": "https://github.com/alphafoxai/alphafox-cli#readme",
+  "keywords": [
+    "alphafox",
+    "cli",
+    "trading",
+    "agent",
+    "oauth",
+    "device-flow"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "license": "MIT",
+  "packageManager": "pnpm@10.33.0",
+  "dependencies": {
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.1",
+    "tsx": "^4.23.12",
+    "typescript": "^6.0.2"
+  }
+}

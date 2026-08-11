@@ -1,4 +1,4 @@
-# @alphafox/cli
+# alphafox-cli
 
 Alphafox CLI (`alphafox`) — Agent and human entry for the versioned Public Application API on alphafox-web.
 
@@ -7,7 +7,7 @@ Alphafox CLI (`alphafox`) — Agent and human entry for the versioned Public App
 ```bash
 npm install -g @alphafox/cli
 # or
-npx @alphafox/cli version
+npx alphafox-cli version
 ```
 
 ## Quick start

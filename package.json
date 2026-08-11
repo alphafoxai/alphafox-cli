@@ -1,14 +1,15 @@
 {
   "name": "@alphafoxai/cli",
   "version": "0.1.0",
-  "description": "Alphafox CLI — Agent/Human entry for the public Application API.",
+  "description": "Alphafox CLI \u2014 Agent/Human entry for the public Application API.",
   "type": "commonjs",
   "bin": {
-    "alphafox": "./dist/cli.js"
+    "alphafox": "bin/alphafox.js"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
+    "bin",
     "dist",
     "skills",
     "README.md",

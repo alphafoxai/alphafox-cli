@@ -37,7 +37,8 @@ export async function apiRequest(
   env: NodeJS.ProcessEnv = process.env,
   fetchImpl: typeof fetch = fetch
 ): Promise<ApiResponse> {
-  const path = normalizeApiPath(options.path);
+  // Keep query string for endpoints like /traders/performance?ids=...
+  const { path, query } = splitPathAndQuery(options.path);
   if (isInternalDisallowedPath(path)) {
     throw Object.assign(new Error(`Path is internal and not allowed: ${path}`), {
       status: 403,
@@ -69,12 +70,12 @@ export async function apiRequest(
   let url: string;
   if (path.startsWith("/api/v1")) {
     const origin = base.replace(/\/api\/v1$/, "");
-    url = `${origin}${path}`;
+    url = `${origin}${path}${query}`;
   } else if (path.startsWith("/api/auth")) {
     const origin = base.replace(/\/api\/v1$/, "");
-    url = `${origin}${path}`;
+    url = `${origin}${path}${query}`;
   } else {
-    url = `${base}${path.startsWith("/") ? path : `/${path}`}`;
+    url = `${base}${path.startsWith("/") ? path : `/${path}`}${query}`;
   }
 
   const headers: Record<string, string> = {
@@ -264,4 +265,20 @@ function sameAuthSite(
   } catch {
     return false;
   }
+}
+
+/** Split raw path so allowlist uses path-only while fetch keeps query. */
+function splitPathAndQuery(raw: string): {
+  readonly path: string;
+  readonly query: string;
+} {
+  const trimmed = raw.trim();
+  const q = trimmed.indexOf("?");
+  if (q < 0) {
+    return { path: normalizeApiPath(trimmed), query: "" };
+  }
+  return {
+    path: normalizeApiPath(trimmed.slice(0, q)),
+    query: trimmed.slice(q),
+  };
 }

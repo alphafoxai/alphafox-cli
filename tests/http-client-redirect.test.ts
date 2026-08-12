@@ -68,6 +68,35 @@ test("apiRequest re-attaches Authorization across apex→www redirects", async (
   assert.equal(seen[1]?.authorization, "Bearer test-access-token");
 });
 
+test("apiRequest preserves query string on the request URL", async () => {
+  const seen: string[] = [];
+  const fetchImpl: typeof fetch = async (input) => {
+    seen.push(String(input));
+    return new Response(JSON.stringify({ items: [{ traderId: "t1" }] }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+  const env = {
+    ALPHAFOX_TEST_ACCESS_TOKEN: "test-access-token",
+    ALPHAFOX_TEST_AUDIENCE: profile.audience,
+  };
+  const res = await apiRequest(
+    {
+      method: "GET",
+      path: "/api/v1/trading/traders/performance?ids=t1,t2&window=7d&fields=list",
+      profile,
+    },
+    env,
+    fetchImpl
+  );
+  assert.equal(res.status, 200);
+  assert.equal(
+    seen[0],
+    "https://alphafox.app/api/v1/trading/traders/performance?ids=t1,t2&window=7d&fields=list"
+  );
+});
+
 test("apiRequest refuses true cross-site token use", async () => {
   const env = {
     ALPHAFOX_TEST_ACCESS_TOKEN: "test-access-token",

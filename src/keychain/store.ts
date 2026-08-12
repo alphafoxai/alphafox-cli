@@ -57,10 +57,14 @@ export function loadTokens(
 ): StoredTokens | null {
   // Controlled test injection — never document as prod automation.
   if (env.ALPHAFOX_TEST_ACCESS_TOKEN?.trim()) {
+    const expiresAtRaw = env.ALPHAFOX_TEST_EXPIRES_AT?.trim();
+    const expiresAt = expiresAtRaw
+      ? Number(expiresAtRaw)
+      : Date.now() + 3600_000;
     return {
       accessToken: env.ALPHAFOX_TEST_ACCESS_TOKEN.trim(),
       refreshToken: env.ALPHAFOX_TEST_REFRESH_TOKEN?.trim() ?? "",
-      expiresAt: Date.now() + 3600_000,
+      expiresAt: Number.isFinite(expiresAt) ? expiresAt : Date.now() + 3600_000,
       environment: profile,
       issuer: env.ALPHAFOX_TEST_ISSUER ?? "",
       audience: env.ALPHAFOX_TEST_AUDIENCE ?? "",

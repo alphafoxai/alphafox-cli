@@ -1,5 +1,9 @@
 import { newRequestId } from "../envelope";
 import type { ProfileConfig } from "../config/profiles";
+import {
+  accessTokenNeedsRefresh,
+  refreshStoredTokens,
+} from "../auth/refresh";
 import { loadTokens } from "../keychain/store";
 import {
   isFacadeAllowlistedPath,
@@ -16,6 +20,8 @@ export interface ApiRequestOptions {
   readonly requestId?: string;
   readonly skipAuth?: boolean;
   readonly idempotencyKey?: string;
+  /** Internal: already attempted one silent refresh+retry for this call. */
+  readonly _refreshRetried?: boolean;
 }
 
 export interface ApiResponse {
@@ -80,7 +86,19 @@ export async function apiRequest(
   };
 
   if (!options.skipAuth) {
-    const tokens = loadTokens(options.profile.name, env);
+    let tokens = loadTokens(options.profile.name, env);
+    // Proactive refresh before the access token expires (or once already expired).
+    if (tokens && accessTokenNeedsRefresh(tokens)) {
+      const renewed = await refreshStoredTokens(
+        options.profile,
+        env,
+        fetchImpl,
+        { force: true }
+      );
+      if (renewed) {
+        tokens = renewed;
+      }
+    }
     if (tokens) {
       // Never send tokens to a different site than the profile audience.
       // Apex/www (and trailing host variants) of the same registrable domain
@@ -136,6 +154,31 @@ export async function apiRequest(
     response.headers.get("x-request-id") ??
     response.headers.get("X-Request-Id") ??
     requestId;
+
+  // Reactive: one silent refresh+retry on 401 for authenticated product calls.
+  if (
+    response.status === 401 &&
+    !options.skipAuth &&
+    !options._refreshRetried &&
+    !isOAuthAsPath
+  ) {
+    const tokens = loadTokens(options.profile.name, env);
+    if (tokens?.refreshToken?.trim()) {
+      const renewed = await refreshStoredTokens(
+        options.profile,
+        env,
+        fetchImpl,
+        { force: true }
+      );
+      if (renewed) {
+        return apiRequest(
+          { ...options, requestId, _refreshRetried: true },
+          env,
+          fetchImpl
+        );
+      }
+    }
+  }
 
   return {
     status: response.status,

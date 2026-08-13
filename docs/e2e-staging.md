@@ -66,6 +66,26 @@ Reused staging Device Flow session `userId=019f3073-307f-76e9-adf1-0203af9ab22b`
 - **Backtest vertical slice:** cannot `create → stream → cancel` until a chat has an integer `strategyId`, and until the facade body matches contracts (`backtestSettings`) or the catalog is updated to `{chatId, strategyId}`.
 - Parent Feishu task and t101364 (production publish / npm `latest` / production OAuth) stay **todo**. Do not merge web PR 448 to production `main` from this evidence.
 
+## Evidence (2026-08-13) — gapfix retest (idempotency + backtests.create)
+
+Anonymous `GET https://staging.alphafox.app/api/v1/meta` → **HTTP 200**, `environment=staging`, `contractVersion=2026-08-13`, `commitSha=fba21ef4b2c3909c51a5a19e2d2a45b30d1d598c`, `x-request-id=8702a21b-a749-4007-82eb-76ca1dd0caaf`. No SSO redirect. Device Flow `test@local.com`: approve `requestId=77293035-ebfd-4b03-b0e1-0779dce81fdd`, token `requestId=9dcc28c1-c1cc-49fc-9435-687dfdb591c2`, `whoami` `userId=019f3073-307f-76e9-adf1-0203af9ab22b` `requestId=1473f107-d742-42eb-99e7-b60c6b583928`. CLI local `92c8610250b30e7881f79a2fde60b00fe50b4628`, catalog `contractsSha=d1f184e3d72581f155497978880d9ab3029ff858`. Staging llm-gateway image `0a10d8e3a1304b04eff2f21c503922a5b7c11491` (workflow `31683345740` failed after the container was healthy: `/opt/alphafox/images/alphafox-llm-gateway.env` permission denied). Do not merge web PR 448 to production `main`.
+
+| Step | Result | Evidence |
+|------|--------|----------|
+| 5. `POST /api/v1/chats` create | **pass** | HTTP **201** `chatId=8d1a569a-e19e-44f6-84e3-4f5f28f8e1e6`, `x-request-id=6cfe0cdc-db13-455b-87a7-7ddcc56aa30f`. CLI create `chatId=6ca09650-b259-4343-95fb-dc5891dd81a4`, `requestId=d647b1aa-2a07-4d42-80bc-b88384f6c8b5` |
+| 5. same `Idempotency-Key` replay | **pass** | HTTP **200** same `chatId=8d1a569a-e19e-44f6-84e3-4f5f28f8e1e6`, `x-request-id=eaea63ac-07ff-49b9-b049-ff8c402a8fb6`. CLI replay same `chatId=6ca09650-b259-4343-95fb-dc5891dd81a4`, `requestId=3e9d6246-3f6c-4be3-a804-1de5d8abf772`. Same key + different title → HTTP **409** `IDEMPOTENCY_CONFLICT`, `x-request-id=f18d8aaf-16b2-4784-a42e-b2a088a586d3` |
+| 6. `POST /api/v1/backtests` `{}` | **pass** (honest 400) | HTTP **400** `chatId is required`, `code=validation_error`, `x-request-id=811c9938-337e-4364-85c6-1a5e34f8427f`. CLI `requestId=2bd9e4c8-c33c-4123-84fa-ff999c1a2bed` |
+| 6. `POST /api/v1/backtests` `{backtestSettings:{}}` | **pass** (honest 400) | HTTP **400** `chatId is required` (no longer `unknown request keys: backtestSettings`), `x-request-id=6ee3856f-73da-4888-b23d-f3981f8bec22`. CLI `requestId=1b26087b-73ea-4422-98d8-9050a403322e` |
+| 6. `POST /api/v1/backtests` `{chatId, strategyId:1}` on empty chat | **pass** (honest 404) | HTTP **404** `STRATEGY_NOT_FOUND` (not `JOB_NOT_FOUND`), `x-request-id=1c58acd7-ed0f-40d3-9d71-618adbf634b5`, chat `88497dc2-1f86-4edc-ae08-f11e8ded57f8` |
+| 6. `POST /api/v1/backtests` `{chatId}` omit strategyId | **pass** (honest 422) | HTTP **422** `CHAT_HAS_NO_COMPILED_STRATEGY`, `x-request-id=011c1b47-df76-4a5e-b045-799666eac304`. CLI `requestId=16e44bcc-8780-4146-8f72-8383bc415e07` |
+| 6. create → stream → cancel (live job) | **fail** (blocked) | `test@local.com` has no compiled `strategyId`. Chat stream `x-request-id=2e26667b-0cfd-4bfe-9a75-25971120f1ab` ended `finishReason=tool-calls` (`modifyBacktestSettings`) without `save_strategy`. Follow-up create still **422** `x-request-id=37198479-fbd1-462f-8d5a-3a0d1d8f49bb` |
+
+### Remaining blockers after this retest
+
+- Live `backtests.create` → GET stream → POST cancel still needs a chat with a compiled `strategyId`. Generating one is the multi-step chat tool loop, not this facade fix.
+- llm-gateway staging deploy workflow `31683345740` is red on a post-start file permission; the new image is serving (replay evidence above). Do not merge gateway `feat/chats-create-idempotency` to `main`.
+- Parent Feishu task and t101364 stay **todo**. Do not enable production OAuth or npm `latest`.
+
 ## Policy
 
 - Capture the real HTTP status, redirect, and request-id. Never fabricate staging success.

@@ -1,20 +1,22 @@
 ---
 name: alphafox-shared
 description: Shared Alphafox CLI rules for Agents — auth, profiles, envelopes, risk gates, and public operationIds only.
-version: 0.1.0
+version: 0.1.5
 ---
 
 # Alphafox shared Agent contract
 
+Co-versioned with `@alphafox/cli`. Query compatibility with `alphafox version --format json` (`version`, `contractVersion`, `catalogVersion`) and `alphafox catalog`.
+
 ## Install / identity
 
 ```bash
-npx @alphafoxai/cli version
-npx @alphafoxai/cli doctor
+npx @alphafox/cli version --format json --no-input
+npx @alphafox/cli doctor --format json --no-input
 ```
 
 - Default profile: `production`. Use `--profile staging|local` explicitly.
-- Tokens: OS keychain only. Never pass `--token`. Never read tokens from config JSON.
+- Tokens: OS keychain only (macOS Keychain, Linux Secret Service, Windows Credential Manager). Never pass `--token`. Never read tokens from config JSON.
 - Automation tokens are **not supported in v1** (interactive Device Flow / PKCE only).
 
 ## Output
@@ -25,17 +27,23 @@ Always use:
 alphafox … --format json --no-input
 ```
 
-Parse the JSON envelope: `ok === true` for success. Errors land on **stderr** with `ok: false` and may include HTTP `status` + `requestId`.
+Optional: `--jq '<filter>'` requires the `jq` binary; missing jq fails closed (does not print the unfiltered envelope).
+
+Parse the JSON envelope: `ok === true` for success. Errors land on **stderr** with `ok: false` and may include HTTP `status` + `requestId`. Stream watch uses JSONL. Do not parse human tables.
 
 ## Auth
 
 ```bash
-alphafox auth login --no-wait
-# show verification_uri to the user, then:
-alphafox auth login --device-code <device_code>
-alphafox auth status --verify
-alphafox whoami
+alphafox auth login --no-wait --format json --no-input
+# show verification_uri / user_code to the human, then:
+alphafox auth login --device-code <device_code> --format json --no-input
+alphafox auth status --verify --format json --no-input
+alphafox whoami --format json --no-input
 ```
+
+Local browser: `alphafox auth login --browser --format json --no-input` (loopback 127.0.0.1). If the browser cannot open, copy `authorizeUrl` from the error; do not invent a Device Flow retry unless the operator is headless.
+
+Wrong environment / missing permission / missing `--yes`: stop. Do not retry with a different profile.
 
 ## Commands
 
@@ -43,16 +51,17 @@ alphafox whoami
 2. Raw escape hatch only for allowlisted facade:
 
 ```bash
-alphafox api GET /api/v1/me
+alphafox api GET /api/v1/me --format json --no-input
 ```
 
-Forbidden: `/backend`, `/control-plane`, `/signal-center`, internal secrets, non-`/api/v1` product routes.
+Forbidden: `/backend`, `/control-plane`, `/signal-center`, internal secrets, non-`/api/v1` product routes, `--token`.
 
 ## Risk
 
-- `high-risk-write` requires `--yes` (exit code `10` if missing).
+- `high-risk-write` and uncataloged mutations (`unknown`) require `--yes` (exit code `10` if missing).
 - Prefer `--dry-run` first for trader start/stop, withdrawals, admin writes.
 - Never auto-retry unknown write outcomes.
+- CLI `--yes` is UX only; the server still enforces role, ownership, and scopes.
 
 ## Public operationIds only
 

@@ -4,6 +4,8 @@
  * Sources are copied from alphafox-web (not reimplemented). Only:
  * - `@/` imports rewritten to relative paths
  * - client.ts / session.ts cookie stubs (bearer path is the real code)
+ * - BFF route stubs (v1 routes re-export BFF in prod; tests force MVP mode)
+ * - prisma stub (memory OAuth store is used; prisma module must resolve)
  */
 import { spawnSync } from "node:child_process";
 import {
@@ -44,6 +46,20 @@ function walkTs(dir, acc = []) {
   return acc;
 }
 
+function writeStubBffRoute(relPath, exports) {
+  const dest = join(compileRoot, "app/api", relPath, "route.ts");
+  ensureDir(dirname(dest));
+  const lines = [
+    `/** Stub: BFF not bundled for MVP OAuth tests; production v1 routes use real BFF. */`,
+    ...exports.map(
+      (name) =>
+        `export async function ${name}(_request: Request, _ctx?: unknown): Promise<Response> {\n  return new Response(JSON.stringify({ error: "bff_not_in_mvp_bundle" }), { status: 501, headers: { "content-type": "application/json" } });\n}`
+    ),
+    "",
+  ];
+  writeFileSync(dest, lines.join("\n"));
+}
+
 rmSync(outRoot, { recursive: true, force: true });
 ensureDir(compileRoot);
 
@@ -65,11 +81,50 @@ copyFile(
   join(webRoot, "server/public-api/mvp-handlers.ts"),
   join(compileRoot, "server/public-api/mvp-handlers.ts")
 );
+copyFile(
+  join(webRoot, "server/public-api/mode.ts"),
+  join(compileRoot, "server/public-api/mode.ts")
+);
 cpSync(
   join(webRoot, "app/api/auth/oauth"),
   join(compileRoot, "app/api/auth/oauth"),
   { recursive: true }
 );
+
+// Prisma is only needed for non-memory OAuth path; stub so compile succeeds.
+// Typed as any so shipped persistence.ts typechecks without @alphafox/db.
+writeFileSync(
+  join(compileRoot, "lib/prisma.ts"),
+  `/** Stub: MVP bundle tests use ALPHAFOX_OAUTH_USE_MEMORY=1 (no DB). */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const prisma: any = new Proxy(
+  {},
+  {
+    get() {
+      throw new Error(
+        "Prisma is not available in the MVP web test bundle. Set ALPHAFOX_OAUTH_USE_MEMORY=1."
+      );
+    },
+  }
+);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const Prisma: any = {};
+`
+);
+
+// BFF routes imported by v1 facades (static imports must resolve even in MVP mode)
+const bffStubs = [
+  ["trading/traders", ["GET", "POST"]],
+  ["trading/strategy-definitions", ["GET"]],
+  ["exchange-connectors", ["GET", "POST"]],
+  ["chats", ["GET", "POST"]],
+  ["backtests", ["POST"]],
+  ["backtests/[backtestId]", ["GET"]],
+  ["backtests/[backtestId]/cancel", ["POST"]],
+];
+for (const [rel, names] of bffStubs) {
+  writeStubBffRoute(rel, names);
+}
 
 const v1Paths = [
   "me",
@@ -83,6 +138,10 @@ const v1Paths = [
 ];
 for (const p of v1Paths) {
   const src = join(webRoot, "app/api/v1", p, "route.ts");
+  if (!existsSync(src)) {
+    console.error("missing v1 route:", src);
+    process.exit(1);
+  }
   const dest = join(compileRoot, "app/api/v1", p, "route.ts");
   copyFile(src, dest);
 }

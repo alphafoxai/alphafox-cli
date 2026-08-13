@@ -1,6 +1,8 @@
 /**
- * Silent access-token renewal via refresh_token grant.
+ * Access-token renewal via refresh_token grant.
  * Access tokens are short-lived (~10m); refresh tokens last ~30d (web ADR).
+ *
+ * Outcomes are explicit: callers must not treat a failed refresh as a healthy session.
  */
 
 import type { ProfileConfig } from "../config/profiles";
@@ -13,8 +15,28 @@ import {
 /** Refresh when access token expires within this window. */
 export const ACCESS_TOKEN_REFRESH_SKEW_MS = 60_000;
 
+export type RefreshOutcome =
+  | {
+      readonly status: "refreshed";
+      readonly tokens: StoredTokens;
+    }
+  | {
+      readonly status: "unchanged";
+      readonly tokens: StoredTokens;
+    }
+  | {
+      readonly status: "failed";
+      readonly reason: string;
+      readonly tokens: StoredTokens | null;
+    }
+  | {
+      readonly status: "no_session";
+      readonly reason: string;
+      readonly tokens: null;
+    };
+
 /** In-flight refresh promises so concurrent API calls share one rotation. */
-const inflightByProfile = new Map<string, Promise<StoredTokens | null>>();
+const inflightByProfile = new Map<string, Promise<RefreshOutcome>>();
 
 export function accessTokenNeedsRefresh(
   tokens: StoredTokens,
@@ -28,7 +50,7 @@ export function accessTokenNeedsRefresh(
 
 /**
  * Exchange refresh_token for a new AT/RT pair and persist to keychain.
- * Returns null if no tokens, no refresh token, or the AS rejects renewal.
+ * Returns a discriminated outcome — never a bare success token on failure.
  */
 export async function refreshStoredTokens(
   profile: ProfileConfig,
@@ -38,16 +60,20 @@ export async function refreshStoredTokens(
     readonly now?: number;
     readonly force?: boolean;
   } = {}
-): Promise<StoredTokens | null> {
+): Promise<RefreshOutcome> {
   const existing = loadTokens(profile.name, env);
   if (!existing?.refreshToken?.trim()) {
-    return null;
+    return {
+      status: "no_session",
+      reason: "no_refresh_token",
+      tokens: null,
+    };
   }
   if (
     !options.force &&
     !accessTokenNeedsRefresh(existing, options.now ?? Date.now())
   ) {
-    return existing;
+    return { status: "unchanged", tokens: existing };
   }
 
   const key = profile.name;
@@ -63,12 +89,32 @@ export async function refreshStoredTokens(
   return work;
 }
 
+/**
+ * Convenience for callers that only need tokens on successful refresh/unchanged.
+ * Returns null for no_session and failed — never pretends failure is success.
+ */
+export async function refreshStoredTokensOrNull(
+  profile: ProfileConfig,
+  env: NodeJS.ProcessEnv = process.env,
+  fetchImpl: typeof fetch = fetch,
+  options: {
+    readonly now?: number;
+    readonly force?: boolean;
+  } = {}
+): Promise<StoredTokens | null> {
+  const outcome = await refreshStoredTokens(profile, env, fetchImpl, options);
+  if (outcome.status === "refreshed" || outcome.status === "unchanged") {
+    return outcome.tokens;
+  }
+  return null;
+}
+
 async function performRefresh(
   profile: ProfileConfig,
   existing: StoredTokens,
   env: NodeJS.ProcessEnv,
   fetchImpl: typeof fetch
-): Promise<StoredTokens | null> {
+): Promise<RefreshOutcome> {
   const origin = profile.apiBaseUrl.replace(/\/$/, "").replace(/\/api\/v1$/, "");
   const url = `${origin}/api/auth/oauth/token`;
   const body = {
@@ -90,22 +136,38 @@ async function performRefresh(
       body: JSON.stringify(body),
       redirect: "manual",
     });
-  } catch {
-    return null;
+  } catch (err) {
+    return {
+      status: "failed",
+      reason: err instanceof Error ? err.message : "network_error",
+      tokens: existing,
+    };
   }
 
   if (response.status >= 400) {
-    return null;
+    return {
+      status: "failed",
+      reason: `http_${response.status}`,
+      tokens: existing,
+    };
   }
 
   let json: unknown;
   try {
     json = await response.json();
   } catch {
-    return null;
+    return {
+      status: "failed",
+      reason: "invalid_json",
+      tokens: existing,
+    };
   }
   if (!json || typeof json !== "object") {
-    return null;
+    return {
+      status: "failed",
+      reason: "invalid_body",
+      tokens: existing,
+    };
   }
   const o = json as Record<string, unknown>;
   const access =
@@ -121,7 +183,11 @@ async function performRefresh(
         ? o.refreshToken
         : null;
   if (!access || !refresh) {
-    return null;
+    return {
+      status: "failed",
+      reason: "missing_tokens",
+      tokens: existing,
+    };
   }
   const expiresIn =
     typeof o.expires_in === "number"
@@ -130,9 +196,7 @@ async function performRefresh(
         ? o.expiresIn
         : 600;
   const scopeRaw =
-    typeof o.scope === "string"
-      ? o.scope
-      : existing.scopes.join(" ");
+    typeof o.scope === "string" ? o.scope : existing.scopes.join(" ");
 
   const next: StoredTokens = {
     accessToken: access,
@@ -145,7 +209,7 @@ async function performRefresh(
     scopes: scopeRaw.split(/\s+/).filter(Boolean),
   };
   saveTokens(profile.name, next, env);
-  return next;
+  return { status: "refreshed", tokens: next };
 }
 
 const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);

@@ -23,6 +23,11 @@ import {
   writeError,
   writeSuccess,
 } from "../envelope";
+import {
+  browserLoginTimeoutMs,
+  resolveOpenBrowser,
+  runBrowserPkceLogin,
+} from "../auth/browser-login";
 import { apiRequest } from "../http/client";
 import {
   deleteTokens,
@@ -30,7 +35,10 @@ import {
   saveTokens,
   tokenFingerprint,
 } from "../keychain/store";
-import { assertHighRiskConfirmation } from "../safety/confirmation";
+import {
+  assertHighRiskConfirmation,
+  inferRawApiRisk,
+} from "../safety/confirmation";
 import {
   CLI_CONTRACT_VERSION,
   CLI_NAME,
@@ -327,9 +335,10 @@ async function cmdAuth(
 
   if (sub === "logout") {
     const tokens = loadTokens(profile.name, env);
+    let remoteRevoke: "ok" | "failed" | "skipped" = "skipped";
     if (tokens?.refreshToken) {
       try {
-        await apiRequest(
+        const res = await apiRequest(
           {
             method: "POST",
             path: "/api/auth/oauth/revoke",
@@ -342,16 +351,28 @@ async function cmdAuth(
           },
           env
         );
+        remoteRevoke =
+          res.status >= 200 && res.status < 300 ? "ok" : "failed";
       } catch {
-        // still clear local
+        remoteRevoke = "failed";
       }
     }
     deleteTokens(profile.name, env);
+    const localCleared = true;
+    const fullyLoggedOut = remoteRevoke !== "failed";
+    // Never claim a clean remote logout when revoke failed while an RT was present.
     writeSuccess(
-      { loggedOut: true, profile: profile.name },
+      {
+        localCleared,
+        remoteRevoke,
+        fullyLoggedOut,
+        // retained for compatibility; false when remote revoke failed
+        loggedOut: fullyLoggedOut,
+        profile: profile.name,
+      },
       { format: flags.format }
     );
-    return 0;
+    return fullyLoggedOut ? 0 : 1;
   }
 
   if (sub === "login") {
@@ -616,39 +637,36 @@ async function cmdAuthLogin(
     });
   }
 
-  // Browser Authorization Code + PKCE (RFC 7636 S256)
+  // Browser Authorization Code + PKCE with loopback callback (RFC 8252).
   if (browser || args.includes("--pkce")) {
-    const { createHash, randomBytes } = await import("node:crypto");
-    const state = randomUUID();
-    const codeVerifier = randomBytes(32).toString("base64url");
-    const codeChallenge = createHash("sha256")
-      .update(codeVerifier, "utf8")
-      .digest("base64url");
-    const redirectUri = redirectUriArg;
-    const authorize = new URL(`${profile.issuer}/oauth/authorize`);
-    authorize.searchParams.set("response_type", "code");
-    authorize.searchParams.set("client_id", profile.clientId);
-    authorize.searchParams.set("redirect_uri", redirectUri);
-    authorize.searchParams.set("code_challenge", codeChallenge);
-    authorize.searchParams.set("code_challenge_method", "S256");
-    authorize.searchParams.set("state", state);
-    authorize.searchParams.set("scope", "openid profile offline_access");
-
+    const result = await runBrowserPkceLogin({
+      profile,
+      env,
+      timeoutMs: browserLoginTimeoutMs(env),
+      openBrowser: resolveOpenBrowser(env),
+    });
+    if (result.status !== "authenticated") {
+      writeError({
+        type: "auth",
+        subtype: result.reason,
+        message: result.message,
+        details: result.authorizeUrl
+          ? { authorizeUrl: result.authorizeUrl }
+          : undefined,
+        hint: result.authorizeUrl
+          ? "Copy authorizeUrl into a browser, or use Device Flow: alphafox auth login --no-wait"
+          : undefined,
+      });
+    }
     writeSuccess(
       {
+        authenticated: true,
         flow: "authorization_code_pkce",
         profile: profile.name,
-        authorizeUrl: authorize.toString(),
-        redirect_uri: redirectUri,
-        state,
-        code_challenge: codeChallenge,
-        code_challenge_method: "S256",
-        // Required for the follow-up exchange; store securely (not in config).
-        code_verifier: codeVerifier,
-        next: `After browser redirect: alphafox auth login --code <code> --code-verifier ${codeVerifier} --redirect-uri ${redirectUri}`,
-        note: "Sign in at authorizeUrl if prompted. Prefer Device Flow for headless agents.",
+        accessTokenFingerprint: result.accessTokenFingerprint,
+        expiresIn: result.expiresIn,
       },
-      { format: flags.format }
+      { format: flags.format, requestId: result.requestId }
     );
     return 0;
   }
@@ -778,21 +796,20 @@ async function cmdApi(
     unsafeCustomEndpoint: flags.unsafeCustomEndpoint,
   });
 
-  // Infer risk from catalog if possible
+  // Infer risk from catalog; uncataloged mutations are treated as high-risk.
   const catalogHit = CATALOG_OPERATIONS.find(
     (o) => o.method === method && pathMatches(o.path, path)
   );
-  if (catalogHit) {
-    const gate = assertHighRiskConfirmation({
-      risk: catalogHit.risk,
-      yes: flags.yes,
-      dryRun: flags.dryRun,
-      action: `api ${method} ${path}`,
-    });
-    if (!gate.allowed && gate.error) {
-      process.stderr.write(`${JSON.stringify(errorEnvelope(gate.error))}\n`);
-      return 10;
-    }
+  const risk = inferRawApiRisk(method, catalogHit?.risk);
+  const gate = assertHighRiskConfirmation({
+    risk,
+    yes: flags.yes,
+    dryRun: flags.dryRun,
+    action: `api ${method} ${path}`,
+  });
+  if (!gate.allowed && gate.error) {
+    process.stderr.write(`${JSON.stringify(errorEnvelope(gate.error))}\n`);
+    return 10;
   }
 
   if (flags.dryRun) {
@@ -802,7 +819,7 @@ async function cmdApi(
         method,
         path,
         profile: profile.name,
-        risk: catalogHit?.risk ?? "unknown",
+        risk,
       },
       { format: flags.format }
     );

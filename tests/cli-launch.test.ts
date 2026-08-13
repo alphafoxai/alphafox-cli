@@ -6,10 +6,14 @@ import { join } from "node:path";
 // Works from both source (tests/) and compiled (dist-test/tests/) layouts.
 const cliPath = join(__dirname, "..", "..", "dist", "cli.js");
 
-function run(args: string[]) {
+function run(args: string[], extraEnv: NodeJS.ProcessEnv = {}) {
   return spawnSync(process.execPath, [cliPath, ...args], {
     encoding: "utf8",
-    env: { ...process.env, ALPHAFOX_FORCE_FILE_KEYCHAIN: "1" },
+    env: {
+      ...process.env,
+      ALPHAFOX_FORCE_FILE_KEYCHAIN: "1",
+      ...extraEnv,
+    },
   });
 }
 
@@ -56,6 +60,41 @@ describe("cli launch", () => {
     );
   });
 
+  it("raw api rejects unknown /api/v1 paths", () => {
+    const r = run(["api", "GET", "/api/v1/totally-unknown-endpoint"]);
+    assert.notEqual(r.status, 0);
+    const err = JSON.parse(r.stderr || r.stdout);
+    assert.equal(err.ok, false);
+    assert.ok(
+      String(err.error?.subtype ?? "").includes("facade") ||
+        String(err.error?.message ?? "")
+          .toLowerCase()
+          .includes("facade")
+    );
+  });
+
+  it("raw api rejects path-traversal smuggle via facility prefix", () => {
+    for (const path of [
+      "/api/v1/me/../totally-unknown-endpoint",
+      "/api/v1/me/../../totally-unknown",
+      "/api/v1/me/%2e%2e/totally-unknown-endpoint",
+    ]) {
+      const r = run(["api", "GET", path, "--dry-run"]);
+      assert.notEqual(r.status, 0, path);
+      assert.equal(r.status, 77, path);
+      const err = JSON.parse(r.stderr || r.stdout);
+      assert.equal(err.ok, false, path);
+      assert.ok(
+        String(err.error?.subtype ?? "").includes("facade") ||
+          String(err.error?.type ?? "").includes("authorization") ||
+          String(err.error?.message ?? "")
+            .toLowerCase()
+            .includes("facade"),
+        path + " " + (r.stderr || r.stdout)
+      );
+    }
+  });
+
   it("high-risk operation without --yes returns confirmation gate", () => {
     const r = run([
       "api",
@@ -68,5 +107,57 @@ describe("cli launch", () => {
     const err = JSON.parse(r.stderr);
     assert.equal(err.ok, false);
     assert.equal(err.error.type, "confirmation");
+  });
+
+  it("uncataloged mutating raw api without --yes is blocked", () => {
+    // POST /api/v1/trading/traders is facility-allowed but has no catalog write
+    // operation (catalog lists GET only) → unknown risk → confirmation required.
+    const r = run([
+      "api",
+      "POST",
+      "/api/v1/trading/traders",
+      "--body",
+      "{}",
+    ]);
+    assert.equal(r.status, 10, r.stderr + r.stdout);
+    const err = JSON.parse(r.stderr);
+    assert.equal(err.ok, false);
+    assert.equal(err.error.type, "confirmation");
+  });
+
+  it("auth login --browser fails closed without leaking a verifier", () => {
+    const r = run(["auth", "login", "--browser", "--profile", "local"], {
+      ALPHAFOX_TEST_BROWSER_OPEN: "fail",
+      ALPHAFOX_BROWSER_LOGIN_TIMEOUT_MS: "2000",
+    });
+    assert.notEqual(r.status, 0, r.stdout + r.stderr);
+    const blob = `${r.stdout}${r.stderr}`;
+    assert.equal(blob.includes("code_verifier"), false);
+    assert.equal(blob.toLowerCase().includes("refresh_token"), false);
+    const err = JSON.parse(r.stderr);
+    assert.equal(err.ok, false);
+    assert.equal(err.error.subtype, "browser_open_failed");
+    assert.equal(typeof err.error.details?.authorizeUrl, "string");
+    assert.match(
+      err.error.details.authorizeUrl,
+      /^http:\/\/127\.0\.0\.1:3000\/api\/auth\/oauth\/authorize\?/
+    );
+  });
+
+  it("uncataloged mutation with --yes passes confirmation (dry-run)", () => {
+    const r = run([
+      "api",
+      "POST",
+      "/api/v1/trading/traders",
+      "--body",
+      "{}",
+      "--yes",
+      "--dry-run",
+    ]);
+    assert.equal(r.status, 0, r.stderr + r.stdout);
+    const json = JSON.parse(r.stdout);
+    assert.equal(json.ok, true);
+    assert.equal(json.data.dryRun, true);
+    assert.equal(json.data.risk, "unknown");
   });
 });

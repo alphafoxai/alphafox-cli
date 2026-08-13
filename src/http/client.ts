@@ -48,20 +48,18 @@ export async function apiRequest(
   }
   // Product raw API: /api/v1 only. Auth AS paths under /api/auth/oauth are allowed.
   const isOAuthAsPath = path.startsWith("/api/auth/oauth");
-  if (
-    !isOAuthAsPath &&
-    !isFacadeAllowlistedPath(path) &&
-    path.startsWith("/api/") &&
-    !path.startsWith("/api/v1")
-  ) {
-    throw Object.assign(
-      new Error(`Path is outside Public API facade: ${path}`),
-      {
-        status: 403,
-        type: "authorization",
-        subtype: "facade_only",
-      }
-    );
+  if (!isOAuthAsPath && path.startsWith("/api/")) {
+    // Unknown /api/v1/* is denied (finite facility/catalog allowlist).
+    if (!isFacadeAllowlistedPath(path)) {
+      throw Object.assign(
+        new Error(`Path is outside Public API facade: ${path}`),
+        {
+          status: 403,
+          type: "authorization",
+          subtype: "facade_only",
+        }
+      );
+    }
   }
 
   const requestId = options.requestId ?? newRequestId();
@@ -90,15 +88,17 @@ export async function apiRequest(
     let tokens = loadTokens(options.profile.name, env);
     // Proactive refresh before the access token expires (or once already expired).
     if (tokens && accessTokenNeedsRefresh(tokens)) {
-      const renewed = await refreshStoredTokens(
+      const outcome = await refreshStoredTokens(
         options.profile,
         env,
         fetchImpl,
         { force: true }
       );
-      if (renewed) {
-        tokens = renewed;
+      if (outcome.status === "refreshed" || outcome.status === "unchanged") {
+        tokens = outcome.tokens;
       }
+      // On failed refresh keep prior tokens only for the request; do not treat
+      // failure as a successful renewal.
     }
     if (tokens) {
       // Never send tokens to a different site than the profile audience.
@@ -165,13 +165,13 @@ export async function apiRequest(
   ) {
     const tokens = loadTokens(options.profile.name, env);
     if (tokens?.refreshToken?.trim()) {
-      const renewed = await refreshStoredTokens(
+      const outcome = await refreshStoredTokens(
         options.profile,
         env,
         fetchImpl,
         { force: true }
       );
-      if (renewed) {
+      if (outcome.status === "refreshed") {
         return apiRequest(
           { ...options, requestId, _refreshRetried: true },
           env,

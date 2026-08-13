@@ -1,4 +1,6 @@
-export type RiskLevel = "read" | "write" | "high-risk-write";
+export type RiskLevel = "read" | "write" | "high-risk-write" | "unknown";
+
+const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 export interface ConfirmationGateResult {
   readonly allowed: boolean;
@@ -13,7 +15,31 @@ export interface ConfirmationGateResult {
 }
 
 /**
- * High-risk writes require explicit --yes (or equivalent confirmation token).
+ * Infer risk for raw `api METHOD PATH` calls.
+ * Catalog-matched risks win; uncataloged mutations are treated as high-risk
+ * so they cannot skip the `--yes` gate.
+ */
+export function inferRawApiRisk(
+  method: string,
+  catalogRisk: string | undefined
+): RiskLevel | string {
+  if (catalogRisk) {
+    return catalogRisk;
+  }
+  if (MUTATING_METHODS.has(method.toUpperCase())) {
+    return "unknown";
+  }
+  return "read";
+}
+
+export function requiresHighRiskConfirmation(
+  risk: RiskLevel | string
+): boolean {
+  return risk === "high-risk-write" || risk === "unknown";
+}
+
+/**
+ * High-risk writes (and uncataloged/unknown mutations) require explicit --yes.
  * Server still enforces scopes/roles; this is CLI UX only.
  */
 export function assertHighRiskConfirmation(input: {
@@ -22,7 +48,7 @@ export function assertHighRiskConfirmation(input: {
   readonly action: string;
   readonly dryRun?: boolean;
 }): ConfirmationGateResult {
-  if (input.risk !== "high-risk-write") {
+  if (!requiresHighRiskConfirmation(input.risk)) {
     return { allowed: true };
   }
   if (input.dryRun) {

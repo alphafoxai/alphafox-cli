@@ -17,13 +17,26 @@ export {
   loadTokens,
   deleteTokens,
   tokenFingerprint,
+  getLastTokenSaveResult,
 } from "./keychain/store";
 export {
   isFacadeAllowlistedPath,
   isInternalDisallowedPath,
   normalizeApiPath,
+  pathTemplateMatches,
 } from "./catalog/allowlist";
-export { assertHighRiskConfirmation } from "./safety/confirmation";
+export {
+  assertHighRiskConfirmation,
+  inferRawApiRisk,
+  requiresHighRiskConfirmation,
+} from "./safety/confirmation";
+export {
+  refreshStoredTokens,
+  refreshStoredTokensOrNull,
+  accessTokenNeedsRefresh,
+} from "./auth/refresh";
+export { runBrowserPkceLogin } from "./auth/browser-login";
+export { startLoopbackCallbackServer } from "./auth/loopback-callback";
 export {
   CATALOG_OPERATIONS,
   findCatalogOperation,

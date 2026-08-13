@@ -5,7 +5,13 @@
  */
 
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
@@ -19,6 +25,23 @@ export interface StoredTokens {
   readonly audience: string;
   readonly clientId: string;
   readonly scopes: readonly string[];
+}
+
+export type TokenStorageBackend = "keychain" | "file" | "test-injection";
+
+export interface TokenStorageResult {
+  readonly backend: TokenStorageBackend;
+  /** Absolute path when backend is file. */
+  readonly path?: string;
+  /** True when OS keychain failed/unavailable and file fallback was used. */
+  readonly degraded: boolean;
+}
+
+/** Last save outcome — callers/tests can observe silent-fallback without stderr parsing. */
+let lastSaveResult: TokenStorageResult | null = null;
+
+export function getLastTokenSaveResult(): TokenStorageResult | null {
+  return lastSaveResult;
 }
 
 function serviceName(profile: string): string {
@@ -41,14 +64,33 @@ export function saveTokens(
   profile: string,
   tokens: StoredTokens,
   env: NodeJS.ProcessEnv = process.env
-): void {
+): TokenStorageResult {
   const payload = JSON.stringify(tokens);
   if (tryKeychainWrite(profile, payload, env)) {
-    return;
+    lastSaveResult = { backend: "keychain", degraded: false };
+    return lastSaveResult;
   }
   const path = fileFallbackPath(profile, env);
   mkdirSync(join(path, ".."), { recursive: true });
   writeFileSync(path, payload, { mode: 0o600 });
+  const intentionalFile = env.ALPHAFOX_FORCE_FILE_KEYCHAIN === "1";
+  lastSaveResult = {
+    backend: "file",
+    path,
+    // Intentional file mode is not a silent degrade.
+    degraded: !intentionalFile,
+  };
+  // Observable signal when OS keychain failed unexpectedly (not force-file).
+  if (!intentionalFile) {
+    process.emitWarning(
+      `OS keychain unavailable for profile "${profile}"; tokens stored in file ${path} (mode 0600). Set ALPHAFOX_FORCE_FILE_KEYCHAIN=1 when file storage is intentional.`,
+      {
+        code: "ALPHAFOX_KEYCHAIN_FILE_FALLBACK",
+        detail: path,
+      }
+    );
+  }
+  return lastSaveResult;
 }
 
 export function loadTokens(

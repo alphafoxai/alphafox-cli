@@ -1,7 +1,7 @@
 ---
 name: alphafox-exchange
 description: Exchange connectors list and connection management via Public API.
-version: 0.1.5
+version: 0.2.0
 ---
 
 # Exchange connectors

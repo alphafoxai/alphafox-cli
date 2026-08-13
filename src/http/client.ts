@@ -1,5 +1,6 @@
 import { newRequestId } from "../envelope";
 import type { ProfileConfig } from "../config/profiles";
+import { CLI_VERSION } from "../version";
 import {
   accessTokenNeedsRefresh,
   refreshStoredTokens,
@@ -80,7 +81,7 @@ export async function apiRequest(
     Accept: "application/json",
     "X-Request-Id": requestId,
     "X-Alphafox-Client": "alphafox-cli",
-    "X-Alphafox-Client-Version": env.ALPHAFOX_CLI_VERSION ?? "0.1.0",
+    "X-Alphafox-Client-Version": env.ALPHAFOX_CLI_VERSION ?? CLI_VERSION,
     ...(options.headers ?? {}),
   };
 

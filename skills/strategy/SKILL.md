@@ -1,7 +1,7 @@
 ---
 name: alphafox-strategy
 description: Strategy definitions, chats, and backtests via public operationIds.
-version: 0.1.5
+version: 0.2.0
 ---
 
 # Strategy / Chat / Backtest

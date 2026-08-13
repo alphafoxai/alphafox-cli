@@ -1,0 +1,76 @@
+# Publish @alphafox/cli from a protected v* tag using npm trusted publishing (OIDC).
+# Do not set NODE_AUTH_TOKEN / NPM_TOKEN — that short-circuits OIDC.
+# Bind the trusted publisher once (requires a 2FA npm owner session):
+#   npm trust github @alphafox/cli --file publish.yml --repo alphafoxai/alphafox-cli -y
+name: publish
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          # Do not set registry-url: setup-node writes an empty _authToken that
+          # blocks trusted publishing.
+
+      - name: Require npm CLI that supports trusted publishing
+        run: npm install -g npm@^11.10.0
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Test
+        run: pnpm test
+
+      - name: SBOM
+        run: npm sbom --omit=dev > sbom.json
+
+      - name: Audit runtime (critical)
+        run: npm audit --omit=dev --audit-level=critical
+
+      - name: Verify tag matches package.json
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match package.json ${PKG}"
+            exit 1
+          fi
+
+      - name: Publish
+        env:
+          NPM_CONFIG_PROVENANCE: "true"
+        run: |
+          set -euo pipefail
+          NAME="$(node -p "require('./package.json').name")"
+          VER="$(node -p "require('./package.json').version")"
+          if npm view "${NAME}@${VER}" version >/dev/null 2>&1; then
+            echo "Already on npmjs: ${NAME}@${VER} — skipping (idempotent)."
+            exit 0
+          fi
+          npm publish --access public
+
+      - name: Upload SBOM
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json

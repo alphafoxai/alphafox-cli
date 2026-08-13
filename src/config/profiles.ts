@@ -33,7 +33,7 @@ const DEFAULTS: Record<ProfileName, ProfileConfig> = {
     issuer: "https://alphafox.app/api/auth",
     audience: "https://alphafox.app/api/v1",
     clientId: "alphafox-cli-prod",
-    contractVersion: "2026-08-11",
+    contractVersion: "2026-08-13",
   },
   staging: {
     name: "staging",
@@ -41,7 +41,7 @@ const DEFAULTS: Record<ProfileName, ProfileConfig> = {
     issuer: "https://staging.alphafox.app/api/auth",
     audience: "https://staging.alphafox.app/api/v1",
     clientId: "alphafox-cli-staging",
-    contractVersion: "2026-08-11",
+    contractVersion: "2026-08-13",
   },
   local: {
     name: "local",
@@ -50,7 +50,7 @@ const DEFAULTS: Record<ProfileName, ProfileConfig> = {
     audience: "http://127.0.0.1:3000/api/v1",
     clientId: "alphafox-cli-local",
     localOrigin: "http://127.0.0.1:3000",
-    contractVersion: "2026-08-11",
+    contractVersion: "2026-08-13",
   },
 };
 

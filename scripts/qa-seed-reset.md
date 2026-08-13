@@ -1,30 +1,29 @@
 # QA seed/reset (t101373)
 
-Implementations run only against staging with secret-manager credentials. Production users, production trading, and real funds are forbidden.
+Implementations run only against staging. Production users, production trading, and real funds are forbidden.
 
-## Current blocker (2026-08-13)
+## Staging identities (2026-08-13)
 
-GCP project `ddddao-dev` has many `alphafox-staging-backend-*` secrets and **no** `cli-e2e-user` / `cli-e2e-admin` (or similarly named) identities. `staging.alphafox.app` is not publicly reachable (Vercel SSO 302). Seed/reset scripts are therefore **not implemented** and must not pretend to succeed.
+| Identity | Role | How to sign in |
+|----------|------|----------------|
+| `test@local.com` | ordinary user | password `localtest` via `POST https://staging.alphafox.app/api/auth/sign-in/email` |
+| `cli-e2e-user` (GCP `ddddao-dev`) | pointer secret | email/role only; password is the documented pair, not stored in the secret |
+| `cli-e2e-admin` | not provisioned | still missing |
 
-When those secrets exist and public staging is up:
+Gate is `ALPHAFOX_DEPLOY_ENV=staging` on the Vercel Custom Environment. Production is fail-closed.
+
+Device Flow without a browser click:
 
 ```bash
-export RUN_ID="$(uuidgen)"
-node scripts/qa/seed-cli-e2e.mjs --run-id "$RUN_ID" --profile staging
-# … MVP / E2E …
-node scripts/qa/reset-cli-e2e.mjs --run-id "$RUN_ID" --profile staging
+alphafox --profile staging auth login --no-wait --format json --no-input
+node scripts/e2e-staging-device-approve.mjs --user-code <user_code>
+alphafox --profile staging auth login --device-code <device_code> --format json --no-input
 ```
 
-Credentials stay in staging secret manager. Never commit tokens.
+Per-run seed/reset scripts (`qa/seed-cli-e2e.mjs`) are still not implemented. Do not pretend they succeed.
 
 ## Contract (do not weaken)
 
-| Identity | Role | Storage |
-|----------|------|---------|
-| `cli-e2e-user` | normal user, no admin | staging secret manager |
-| `cli-e2e-admin` | admin | staging secret manager |
-
 - Prefer vendor sandbox/testnet for exchange, wallet, LLM, ASR, mail/Telegram.
 - Unavailable dependency → fail with real error + request-id. No mock success.
-- Each run has a unique `run_id`. Reset must stop traders, delete temp connectors, cancel open backtests, and drop bind tokens for that run.
-- Missing credentials → **non-zero exit**. Do not skip-success.
+- Missing admin fixture → do not invent production admin credentials.

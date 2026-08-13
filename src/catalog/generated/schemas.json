@@ -971,7 +971,7 @@
     "file": false,
     "contractStatus": "shared",
     "webZodContract": "",
-    "sharedContractRef": "backtestUserBacktestInputSchema",
+    "sharedContractRef": "createBacktestRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-13",
       "registryVersion": "1.1.0",
@@ -989,10 +989,19 @@
       },
       "query": null,
       "body": {
-        "title": "backtestUserBacktestInputSchema",
+        "title": "createBacktestRequestSchema",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
+          "chatId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "strategyId": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
           "backtestSettings": {
             "type": "object",
             "propertyNames": {
@@ -1003,7 +1012,7 @@
           }
         },
         "required": [
-          "backtestSettings"
+          "chatId"
         ],
         "additionalProperties": false
       },
@@ -1478,7 +1487,7 @@
       "profile",
       "chats:write"
     ],
-    "idempotent": false,
+    "idempotent": true,
     "pagination": false,
     "stream": false,
     "file": false,

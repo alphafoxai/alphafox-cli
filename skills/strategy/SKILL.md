@@ -26,11 +26,13 @@ Requires auth. Sends `Idempotency-Key` when available. Duplicate key → `409`; 
 ## Long-running backtest
 
 ```bash
-alphafox api POST /api/v1/backtests --body '{...}' --format json --no-input
+alphafox api POST /api/v1/backtests --body '{"chatId":"<chat-id>"}' --format json --no-input
 alphafox api GET /api/v1/backtests/{backtestId} --format json --no-input
 alphafox api GET /api/v1/backtests/{backtestId}/stream --format jsonl --no-input
 alphafox api POST /api/v1/backtests/{backtestId}/cancel --body '{}' --format json --no-input
 ```
+
+`backtests.create` requires `chatId`. `strategyId` is optional: the facade resolves a compiled strategy on that chat. A chat with no compiled strategy returns `CHAT_HAS_NO_COMPILED_STRATEGY` (not `JOB_NOT_FOUND`). Optional `backtestSettings` overlays chat settings when it is a settingsJson object.
 
 If the stream drops, `GET` the backtest by id — do not assume success. Cancel is explicit; interruption must remain queryable.
 

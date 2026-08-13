@@ -18,3 +18,4 @@ If a path is not allowlisted, stop with the structured error. Do not call notifi
 ## operationIds
 
 - `notification.channels.list`
+- `notification.subscriptions.list`

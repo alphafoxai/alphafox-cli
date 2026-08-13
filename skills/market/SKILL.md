@@ -10,10 +10,10 @@ Always `--format json --no-input`. Prefer readonly scopes. No mock success if up
 
 ```bash
 alphafox api GET /api/v1/spread-radar/pairs --format json --no-input
+alphafox api GET /api/v1/market/symbols --format json --no-input
 ```
-
-`GET /api/v1/market/symbols` is only valid if it is on the current catalog/allowlist; otherwise the CLI fails closed with `facade_only`. Do not fall back to internal market APIs.
 
 ## operationIds
 
-- `spread_radar.pairs.list` when present in `alphafox catalog`
+- `spread_radar.pairs.list`
+- `market.symbols.list`

@@ -18,8 +18,10 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json && node scripts/postbuild.cjs",
+    "generate:catalog": "node scripts/generate-catalog.mjs",
+    "check:catalog-drift": "node scripts/generate-catalog.mjs --check",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "npm run build && node scripts/build-mvp-web-bundle.mjs && tsc -p tsconfig.test.json && node --test dist-test/**/*.test.js",
+    "test": "npm run check:catalog-drift && npm run build && node scripts/build-mvp-web-bundle.mjs && tsc -p tsconfig.test.json && node --test dist-test/**/*.test.js",
     "test:mvp": "node scripts/build-mvp-web-bundle.mjs && tsc -p tsconfig.test.json && node --test dist-test/tests/mvp-oauth-web-handlers.test.js",
     "alphafox": "node dist/cli.js",
     "prepublishOnly": "npm run build"

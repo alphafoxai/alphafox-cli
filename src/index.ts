@@ -37,6 +37,12 @@ export {
   pathTemplateMatches,
 } from "./catalog/allowlist";
 export {
+  checkCliCompatibility,
+  type CompatibilityRange,
+  type CompatibilityResult,
+} from "./catalog/compatibility";
+export { resolveTypedCommand } from "./catalog/command-tree";
+export {
   assertHighRiskConfirmation,
   inferRawApiRisk,
   requiresHighRiskConfirmation,
@@ -50,7 +56,13 @@ export { runBrowserPkceLogin } from "./auth/browser-login";
 export { startLoopbackCallbackServer } from "./auth/loopback-callback";
 export {
   CATALOG_OPERATIONS,
+  CATALOG_SOURCE,
+  CATALOG_VERSION,
+  COMPATIBILITY_RANGE,
   findCatalogOperation,
+  findCatalogOperationByRoute,
+  getOperationSchemaDocument,
   buildCapabilityManifest,
+  checkGeneratedCatalogCompatibility,
 } from "./catalog/operations";
 export { CLI_VERSION, CLI_PACKAGE, CLI_CONTRACT_VERSION } from "./version";

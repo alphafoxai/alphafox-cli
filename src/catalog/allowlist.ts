@@ -1,8 +1,7 @@
 /**
- * Raw API allowlist + internal path rejection.
- * Only facility prefixes and catalog-derived paths pass the facade gate.
- * Paths are segment-resolved (`.` / `..` / percent-encoded dots) before matching
- * so facility prefix checks cannot be bypassed via path traversal.
+ * Raw API allowlist from the generated Operation Registry.
+ * Finite set: infra catalog paths + CLI-included operation facade paths.
+ * Unknown `/api/v1/*` paths are denied — raw API cannot bypass the catalog.
  */
 
 import { CATALOG_OPERATIONS } from "./operations";
@@ -16,17 +15,15 @@ const INTERNAL_PREFIXES = [
   "/api/signal-center",
 ] as const;
 
-/** MVP + core facade path prefixes always allowed (exact or nested under). */
+/**
+ * Infra paths always allowed (exact, except `/api/v1/operations/*`).
+ * Product routes must match a registry facadePath — no prefix smuggling.
+ */
 export const FACILITY_ALWAYS_ALLOW = [
   "/api/v1/meta",
-  "/api/v1/me",
-  "/api/v1/operations",
   "/api/v1/openapi.json",
-  "/api/v1/trading/strategy-definitions",
-  "/api/v1/exchange-connectors",
-  "/api/v1/trading/traders",
-  "/api/v1/chats",
-  "/api/v1/backtests",
+  "/api/v1/openapi",
+  "/api/v1/operations",
 ] as const;
 
 /**
@@ -78,7 +75,6 @@ export function normalizeApiPath(path: string): string {
       }
       continue;
     }
-    // Reject backslash or null-byte style smuggling in a segment
     if (seg.includes("\0") || seg.includes("\\")) {
       return "/";
     }
@@ -97,10 +93,20 @@ export function isInternalDisallowedPath(path: string): boolean {
 /** Match OpenAPI-style templates: /api/v1/backtests/{backtestId}/cancel */
 export function pathTemplateMatches(
   template: string,
-  actual: string
+  actual: string,
+  catchAll = false
 ): boolean {
   const t = normalizeApiPath(template).split("/").filter(Boolean);
   const a = normalizeApiPath(actual).split("/").filter(Boolean);
+  if (catchAll) {
+    if (a.length < t.length) return false;
+    for (let i = 0; i < t.length; i += 1) {
+      const seg = t[i]!;
+      if (seg.startsWith("{") && seg.endsWith("}")) continue;
+      if (seg !== a[i]) return false;
+    }
+    return true;
+  }
   if (t.length !== a.length) return false;
   for (let i = 0; i < t.length; i += 1) {
     const seg = t[i]!;
@@ -110,18 +116,31 @@ export function pathTemplateMatches(
   return true;
 }
 
-function isFacilityPrefixMatch(n: string, allow: readonly string[]): boolean {
-  for (const a of allow) {
-    if (n === a || n.startsWith(`${a}/`)) {
-      return true;
-    }
+function isInfraAllowlisted(n: string): boolean {
+  if (
+    n === "/api/v1/meta" ||
+    n === "/api/v1/openapi.json" ||
+    n === "/api/v1/openapi" ||
+    n === "/api/v1/operations" ||
+    n.startsWith("/api/v1/operations/")
+  ) {
+    return true;
   }
   return false;
 }
 
 function isCatalogPathMatch(n: string): boolean {
   for (const op of CATALOG_OPERATIONS) {
-    if (pathTemplateMatches(op.path, n)) {
+    if (pathTemplateMatches(op.path, n, Boolean(op.catchAll))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function isExtraAllowMatch(n: string, extraAllow: readonly string[]): boolean {
+  for (const a of extraAllow) {
+    if (n === a || n.startsWith(`${a}/`) || pathTemplateMatches(a, n)) {
       return true;
     }
   }
@@ -129,8 +148,8 @@ function isCatalogPathMatch(n: string): boolean {
 }
 
 /**
- * Finite allow set: facility prefixes + catalog operation paths (+ optional extras).
- * Unknown `/api/v1/*` paths are denied — raw API cannot bypass the catalog facade.
+ * Finite allow set: infra catalog paths + generated operation facade paths.
+ * Unknown `/api/v1/*` paths are denied.
  * Matching always uses the segment-resolved path (no `..` prefix smuggling).
  */
 export function isFacadeAllowlistedPath(
@@ -141,12 +160,13 @@ export function isFacadeAllowlistedPath(
   if (isInternalDisallowedPath(n)) {
     return false;
   }
-  // Must remain under /api/v1 after resolution (blocks /api/v1/../backend, etc.)
   if (n !== "/api/v1" && !n.startsWith("/api/v1/")) {
     return false;
   }
-  const allow = [...FACILITY_ALWAYS_ALLOW, ...extraAllow];
-  if (isFacilityPrefixMatch(n, allow)) {
+  if (isInfraAllowlisted(n)) {
+    return true;
+  }
+  if (isExtraAllowMatch(n, extraAllow)) {
     return true;
   }
   if (isCatalogPathMatch(n)) {

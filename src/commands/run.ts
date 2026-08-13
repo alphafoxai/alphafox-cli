@@ -1,14 +1,22 @@
 import { randomUUID } from "node:crypto";
 import {
   CATALOG_OPERATIONS,
+  CATALOG_SOURCE,
   CATALOG_VERSION,
+  COMPATIBILITY_RANGE,
   buildCapabilityManifest,
+  checkGeneratedCatalogCompatibility,
+  extractPathParamNames,
   findCatalogOperation,
+  findCatalogOperationByRoute,
+  getOperationSchemaDocument,
   resolveOperationPath,
 } from "../catalog/operations";
+import { resolveTypedCommand, typedCommandExample } from "../catalog/command-tree";
 import {
   isFacadeAllowlistedPath,
   isInternalDisallowedPath,
+  normalizeApiPath,
 } from "../catalog/allowlist";
 import {
   loadConfigFile,
@@ -128,6 +136,7 @@ export async function runCli(
           "alphafox whoami",
           "alphafox profile list|use <name>",
           "alphafox schema [operationId]",
+          "alphafox catalog",
           "alphafox api METHOD PATH [--body JSON]",
           "alphafox <domain> <resource> <action> [flags]",
         ],
@@ -138,6 +147,9 @@ export async function runCli(
   }
 
   try {
+    if (cmd !== "version") {
+      assertCatalogCompatible();
+    }
     switch (cmd) {
       case "version":
         return cmdVersion(flags);
@@ -183,7 +195,19 @@ export async function runCli(
   }
 }
 
+function assertCatalogCompatible(): void {
+  const result = checkGeneratedCatalogCompatibility(CLI_VERSION);
+  if (result.ok) return;
+  writeError({
+    type: "compatibility",
+    subtype: result.code,
+    message: result.message,
+    hint: "Upgrade or pin @alphafox/cli to the catalog minCliVersion/maxCliVersion range.",
+  });
+}
+
 function cmdVersion(flags: GlobalFlags): number {
+  const compatibility = checkGeneratedCatalogCompatibility(CLI_VERSION);
   writeSuccess(
     {
       name: CLI_NAME,
@@ -191,13 +215,19 @@ function cmdVersion(flags: GlobalFlags): number {
       version: CLI_VERSION,
       contractVersion: CLI_CONTRACT_VERSION,
       catalogVersion: CATALOG_VERSION,
+      registryVersion: COMPATIBILITY_RANGE.registryVersion,
+      minCliVersion: COMPATIBILITY_RANGE.minCliVersion,
+      maxCliVersion: COMPATIBILITY_RANGE.maxCliVersion,
+      openapi: COMPATIBILITY_RANGE.openapi,
+      contractsSha: CATALOG_SOURCE.contractsSha,
+      compatibility,
       node: process.version,
       platform: process.platform,
       arch: process.arch,
     },
     { format: flags.format, jq: flags.jq }
   );
-  return 0;
+  return compatibility.ok ? 0 : 1;
 }
 
 function cmdDoctor(flags: GlobalFlags, env: NodeJS.ProcessEnv): number {
@@ -252,6 +282,11 @@ function cmdDoctor(flags: GlobalFlags, env: NodeJS.ProcessEnv): number {
       name: "automation",
       ok: true,
       detail: "v1 deferred (interactive login only)",
+    },
+    {
+      name: "catalogCompatibility",
+      ok: checkGeneratedCatalogCompatibility(CLI_VERSION).ok,
+      detail: `${CLI_VERSION} in [${COMPATIBILITY_RANGE.minCliVersion}, ${COMPATIBILITY_RANGE.maxCliVersion}] contract ${COMPATIBILITY_RANGE.contractVersion}`,
     },
   ];
   const ok = checks.every((c) => c.ok);
@@ -737,6 +772,10 @@ function cmdSchema(args: string[], flags: GlobalFlags): number {
     writeSuccess(
       {
         contractVersion: CATALOG_VERSION,
+        registryVersion: COMPATIBILITY_RANGE.registryVersion,
+        openapi: COMPATIBILITY_RANGE.openapi,
+        minCliVersion: COMPATIBILITY_RANGE.minCliVersion,
+        maxCliVersion: COMPATIBILITY_RANGE.maxCliVersion,
         operations: CATALOG_OPERATIONS.map((o) => o.operationId),
       },
       { format: flags.format, jq: flags.jq }
@@ -744,7 +783,8 @@ function cmdSchema(args: string[], flags: GlobalFlags): number {
     return 0;
   }
   const op = findCatalogOperation(operationId);
-  if (!op) {
+  const schema = getOperationSchemaDocument(operationId);
+  if (!op || !schema) {
     writeError({
       type: "not_found",
       message: `Unknown operationId: ${operationId}`,
@@ -753,21 +793,8 @@ function cmdSchema(args: string[], flags: GlobalFlags): number {
   }
   writeSuccess(
     {
-      operationId: op.operationId,
-      method: op.method,
-      path: op.path,
-      role: op.role,
-      risk: op.risk,
-      scopes: op.scopes,
-      stream: op.stream ?? false,
-      mvp: op.mvp ?? false,
-      description: op.description,
-      input: {
-        type: "object",
-        note: "See OpenAPI at GET /api/v1/openapi.json and alphafox-contracts Zod schemas",
-      },
-      output: { type: "object" },
-      errors: ["401", "403", "404", "409", "422", "429", "5xx"],
+      ...schema,
+      examples: typedCommandExample(op),
     },
     { format: flags.format, jq: flags.jq }
   );
@@ -815,9 +842,7 @@ async function cmdApi(
   });
 
   // Infer risk from catalog; uncataloged mutations are treated as high-risk.
-  const catalogHit = CATALOG_OPERATIONS.find(
-    (o) => o.method === method && pathMatches(o.path, path)
-  );
+  const catalogHit = findCatalogOperationByRoute(method, normalizeApiPath(path));
   const risk = inferRawApiRisk(method, catalogHit?.risk);
   const gate = assertHighRiskConfirmation({
     risk,
@@ -876,49 +901,51 @@ async function cmdTyped(
   flags: GlobalFlags,
   env: NodeJS.ProcessEnv
 ): Promise<number> {
-  // alphafox trading traders list
-  // alphafox chats create --body ...
-  const resource = args[0];
-  const action = args[1];
-  if (!resource || !action) {
-    // try domain as operationId
-    const asOp = findCatalogOperation(domain);
-    if (asOp) {
-      return await invokeOperation(asOp.operationId, args, flags, env);
-    }
+  const resolved = resolveTypedCommand([domain, ...args]);
+  if (resolved.kind === "help") {
+    writeSuccess(
+      {
+        prefix: resolved.prefix,
+        operations: resolved.operations.map((op) => ({
+          operationId: op.operationId,
+          method: op.method,
+          path: op.path,
+          risk: op.risk,
+          scopes: op.scopes,
+          stream: Boolean(op.stream),
+          file: Boolean(op.file),
+          pagination: Boolean(op.pagination),
+          examples: typedCommandExample(op),
+        })),
+      },
+      { format: flags.format, jq: flags.jq }
+    );
+    return 0;
+  }
+  if (resolved.kind === "ambiguous") {
     writeError({
       type: "usage",
-      message: `Unknown command "${domain}". Try alphafox schema or alphafox catalog.`,
+      message: `Ambiguous command "${resolved.prefix}"`,
+      hint: `Matches: ${resolved.candidates.join(", ")}`,
     });
   }
-  const candidates = CATALOG_OPERATIONS.filter((o) => {
-    const parts = o.operationId.split(".");
-    return (
-      parts[0]?.replace(/_/g, "-") === domain.replace(/_/g, "-") ||
-      o.operationId.startsWith(domain.replace(/-/g, "_"))
-    );
-  });
-  const op =
-    candidates.find(
-      (o) =>
-        o.operationId.endsWith(`.${action}`) ||
-        o.operationId.includes(`.${resource}.`) &&
-          o.operationId.endsWith(action)
-    ) ||
-    findCatalogOperation(`${domain}.${resource}.${action}`) ||
-    findCatalogOperation(
-      `${domain.replace(/-/g, "_")}.${resource.replace(/-/g, "_")}.${action}`
-    );
-
-  if (!op) {
+  if (resolved.kind === "missing") {
     writeError({
       type: "not_found",
-      message: `No catalog operation for ${domain} ${resource} ${action}`,
+      message: `No catalog operation for ${resolved.prefix || domain}`,
       status: 404,
       hint: "Run alphafox schema for operationIds",
     });
   }
-  return await invokeOperation(op.operationId, args.slice(2), flags, env);
+  if (resolved.help) {
+    return cmdSchema([resolved.operation.operationId], flags);
+  }
+  return await invokeOperation(
+    resolved.operation.operationId,
+    resolved.flagArgs,
+    flags,
+    env
+  );
 }
 
 async function invokeOperation(
@@ -947,11 +974,21 @@ async function invokeOperation(
   }
 
   const params: Record<string, string> = {};
+  const extra: Record<string, string> = {};
+  const pathParamNames = new Set(
+    getOperationSchemaDocument(operationId)?.request.pathParamNames ??
+      extractPathParamNames(op.path)
+  );
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i]!;
     if (a.startsWith("--") && a !== "--body") {
       const key = a.slice(2);
-      params[key] = args[++i] ?? "";
+      const value = args[++i] ?? "";
+      if (pathParamNames.has(key)) {
+        params[key] = value;
+      } else {
+        extra[key] = value;
+      }
     }
   }
   let body: unknown;
@@ -960,7 +997,14 @@ async function invokeOperation(
     body = JSON.parse(args[bodyIdx + 1] ?? "{}");
   }
 
-  const path = resolveOperationPath(op.path, params);
+  let path = resolveOperationPath(op.path, params);
+  if (
+    (op.method === "GET" || op.method === "HEAD") &&
+    Object.keys(extra).length > 0
+  ) {
+    const query = new URLSearchParams(extra).toString();
+    path = `${path}?${query}`;
+  }
   const profile = resolveProfile(flags.profile, env, {
     unsafeCustomEndpoint: flags.unsafeCustomEndpoint,
   });
@@ -1072,17 +1116,6 @@ function extractErrorCode(json: unknown): string | number | undefined {
     }
   }
   return undefined;
-}
-
-function pathMatches(template: string, actual: string): boolean {
-  const t = template.split("/").filter(Boolean);
-  const a = actual.split("/").filter(Boolean);
-  if (t.length !== a.length) return false;
-  for (let i = 0; i < t.length; i += 1) {
-    if (t[i]!.startsWith("{") && t[i]!.endsWith("}")) continue;
-    if (t[i] !== a[i]) return false;
-  }
-  return true;
 }
 
 function sleep(ms: number): Promise<void> {

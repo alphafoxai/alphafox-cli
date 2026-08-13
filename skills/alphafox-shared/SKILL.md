@@ -65,4 +65,4 @@ Forbidden: `/backend`, `/control-plane`, `/signal-center`, internal secrets, non
 
 ## Public operationIds only
 
-Skills must reference registry `operationId`s (see `alphafox schema` / `alphafox catalog`). Do not hardcode internal service URLs.
+Skills must reference registry `operationId`s (see `alphafox schema` / `alphafox catalog`). Shortcuts may only compose those operationIds. Do not hardcode internal service URLs or invent a second catalog.

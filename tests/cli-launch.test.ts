@@ -44,6 +44,32 @@ describe("cli launch", () => {
     const json = JSON.parse(r.stdout);
     assert.equal(json.ok, true);
     assert.ok(json.data.operations.includes("me.whoami"));
+    assert.ok(json.data.operations.length > 24);
+    assert.equal(json.data.contractVersion, "2026-08-13");
+  });
+
+  it("schema for an operation includes registry input/output contracts", () => {
+    const r = run(["schema", "chats.create"]);
+    assert.equal(r.status, 0, r.stderr);
+    const json = JSON.parse(r.stdout);
+    assert.equal(json.ok, true);
+    assert.equal(json.data.operationId, "chats.create");
+    assert.equal(json.data.request.contentType, "application/json");
+    assert.equal(json.data.error.contentType, "application/problem+json");
+    assert.ok(json.data.request.body);
+    assert.ok(json.data.response.success);
+    assert.ok(String(json.data.examples?.typed ?? "").includes("chats create"));
+  });
+
+  it("typed command tree resolves registry operationIds", () => {
+    const r = run(["trading", "traders", "list", "--dry-run"]);
+    assert.equal(r.status, 0, r.stderr + r.stdout);
+    const json = JSON.parse(r.stdout);
+    assert.equal(json.ok, true);
+    assert.equal(json.data.dryRun, true);
+    assert.equal(json.data.operationId, "trading.traders.list");
+    assert.equal(json.data.method, "GET");
+    assert.equal(json.data.path, "/api/v1/trading/traders");
   });
 
   it("raw api rejects internal paths without contacting network", () => {
@@ -110,15 +136,9 @@ describe("cli launch", () => {
   });
 
   it("uncataloged mutating raw api without --yes is blocked", () => {
-    // POST /api/v1/trading/traders is facility-allowed but has no catalog write
-    // operation (catalog lists GET only) → unknown risk → confirmation required.
-    const r = run([
-      "api",
-      "POST",
-      "/api/v1/trading/traders",
-      "--body",
-      "{}",
-    ]);
+    // POST /api/v1/me is allowlisted (GET me.whoami) but has no catalog write
+    // operation → unknown risk → confirmation required.
+    const r = run(["api", "POST", "/api/v1/me", "--body", "{}"]);
     assert.equal(r.status, 10, r.stderr + r.stdout);
     const err = JSON.parse(r.stderr);
     assert.equal(err.ok, false);
@@ -148,7 +168,7 @@ describe("cli launch", () => {
     const r = run([
       "api",
       "POST",
-      "/api/v1/trading/traders",
+      "/api/v1/me",
       "--body",
       "{}",
       "--yes",

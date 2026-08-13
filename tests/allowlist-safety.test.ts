@@ -27,6 +27,18 @@ describe("raw API allowlist", () => {
     assert.equal(isFacadeAllowlistedPath("/api/v1/chats"), true);
   });
 
+  it("rejects unknown nested paths that used to match facility prefixes", () => {
+    assert.equal(
+      isFacadeAllowlistedPath("/api/v1/chats/foo/not-a-real-action"),
+      false
+    );
+    assert.equal(
+      isFacadeAllowlistedPath("/api/v1/trading/traders/t1/not-a-real-action"),
+      false
+    );
+    assert.equal(isFacadeAllowlistedPath("/api/v1/market/symbols"), true);
+  });
+
   it("allows known facility and catalog paths", () => {
     assert.equal(isFacadeAllowlistedPath("/api/v1/meta"), true);
     assert.equal(isFacadeAllowlistedPath("/api/v1/me"), true);

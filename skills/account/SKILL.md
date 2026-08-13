@@ -17,7 +17,7 @@ alphafox api GET /api/v1/managed-wallets --format json --no-input
 
 ## operationIds
 
-- `wallet.get` (facade `GET /api/v1/wallet`; registry may list `wallet.list`)
+- `wallet.get`
 - `account.exchange_uids.list`
 - `subscriptions.me.get` (facade `GET /api/v1/subscriptions/me`)
 - `managed_wallets.list`

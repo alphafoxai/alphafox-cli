@@ -5,6 +5,7 @@ export {
   parseJsonEnvelope,
   writeSuccess,
   writeError,
+  applyJqFilter,
 } from "./envelope";
 export {
   resolveProfile,
@@ -18,7 +19,17 @@ export {
   deleteTokens,
   tokenFingerprint,
   getLastTokenSaveResult,
+  probeOsKeychain,
+  keychainPlatform,
 } from "./keychain/store";
+export {
+  linuxSecretServiceArgs,
+  linuxSecretToolBin,
+} from "./keychain/linux-secret-service";
+export {
+  windowsCredentialTarget,
+  WINDOWS_CRED_MAX_BYTES,
+} from "./keychain/windows-credential";
 export {
   isFacadeAllowlistedPath,
   isInternalDisallowedPath,

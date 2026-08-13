@@ -9,7 +9,7 @@ export interface ConfirmationGateResult {
     readonly subtype: "confirmation_required";
     readonly message: string;
     readonly hint: string;
-    readonly risk: "high-risk-write";
+    readonly risk: "high-risk-write" | "unknown";
     readonly action: string;
   };
 }
@@ -57,14 +57,17 @@ export function assertHighRiskConfirmation(input: {
   if (input.yes) {
     return { allowed: true };
   }
+  const unknown = input.risk === "unknown";
   return {
     allowed: false,
     error: {
       type: "confirmation",
       subtype: "confirmation_required",
       message: `${input.action} requires confirmation`,
-      hint: "add --yes to confirm",
-      risk: "high-risk-write",
+      hint: unknown
+        ? "uncataloged mutation treated as high-risk; add --yes to confirm"
+        : "add --yes to confirm",
+      risk: unknown ? "unknown" : "high-risk-write",
       action: input.action,
     },
   };

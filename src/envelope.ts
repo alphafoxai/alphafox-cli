@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { spawnSync, type SpawnSyncReturns } from "node:child_process";
 
 export type ExitCode =
   | 0
@@ -75,14 +76,68 @@ export function writeSuccess(
     readonly meta?: Record<string, unknown>;
     readonly requestId?: string;
     readonly format?: "json" | "jsonl" | "text";
+    readonly jq?: string;
   } = {}
 ): void {
   const envelope = successEnvelope(data, options.meta, options.requestId);
-  if (options.format === "text" && data && typeof data === "object") {
-    process.stdout.write(`${JSON.stringify(envelope, null, 2)}\n`);
+  const rendered =
+    options.format === "text" && data && typeof data === "object"
+      ? `${JSON.stringify(envelope, null, 2)}\n`
+      : `${JSON.stringify(envelope)}\n`;
+  if (options.jq?.trim()) {
+    const filtered = applyJqFilter(envelope, options.jq.trim());
+    process.stdout.write(filtered.endsWith("\n") ? filtered : `${filtered}\n`);
     return;
   }
-  process.stdout.write(`${JSON.stringify(envelope)}\n`);
+  process.stdout.write(rendered);
+}
+
+export function applyJqFilter(
+  value: unknown,
+  filter: string,
+  spawn: typeof spawnSync = spawnSync
+): string {
+  if (!filter.trim()) {
+    throw Object.assign(new Error("--jq filter must be non-empty"), {
+      type: "usage",
+      subtype: "jq_empty",
+      status: 64,
+    });
+  }
+  const result: SpawnSyncReturns<string> = spawn(
+    process.env.ALPHAFOX_JQ?.trim() || "jq",
+    ["-c", filter],
+    {
+      input: JSON.stringify(value),
+      encoding: "utf8",
+      timeout: 10_000,
+    }
+  );
+  if (result.error) {
+    const code = (result.error as NodeJS.ErrnoException).code;
+    if (code === "ENOENT") {
+      throw Object.assign(
+        new Error(
+          "jq is not installed; --jq requires the jq binary on PATH"
+        ),
+        { type: "usage", subtype: "jq_not_installed", status: 64 }
+      );
+    }
+    throw Object.assign(new Error(result.error.message), {
+      type: "usage",
+      subtype: "jq_failed",
+      status: 64,
+    });
+  }
+  if (result.status !== 0) {
+    const errText = (result.stderr || "jq filter failed").trim();
+    throw Object.assign(new Error(errText), {
+      type: "usage",
+      subtype: "jq_failed",
+      status: 64,
+    });
+  }
+  return result.stdout;
 }
 
 export function writeError(

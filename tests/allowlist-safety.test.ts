@@ -179,6 +179,8 @@ describe("high-risk confirmation gate", () => {
     });
     assert.equal(blocked.allowed, false);
     assert.equal(blocked.error?.subtype, "confirmation_required");
+    assert.equal(blocked.error?.risk, "unknown");
+    assert.match(blocked.error?.hint ?? "", /uncataloged/);
 
     assert.equal(
       assertHighRiskConfirmation({

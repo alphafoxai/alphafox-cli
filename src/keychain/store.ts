@@ -15,6 +15,18 @@ import {
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
+import {
+  linuxSecretServiceAvailable,
+  linuxSecretServiceDelete,
+  linuxSecretServiceRead,
+  linuxSecretServiceWrite,
+} from "./linux-secret-service";
+import {
+  windowsCredentialAvailable,
+  windowsCredentialDelete,
+  windowsCredentialRead,
+  windowsCredentialWrite,
+} from "./windows-credential";
 
 export interface StoredTokens {
   readonly accessToken: string;
@@ -29,8 +41,15 @@ export interface StoredTokens {
 
 export type TokenStorageBackend = "keychain" | "file" | "test-injection";
 
+export type OsKeychainKind =
+  | "macos-security"
+  | "linux-secret-service"
+  | "windows-credential-manager"
+  | "none";
+
 export interface TokenStorageResult {
   readonly backend: TokenStorageBackend;
+  readonly kind?: OsKeychainKind;
   /** Absolute path when backend is file. */
   readonly path?: string;
   /** True when OS keychain failed/unavailable and file fallback was used. */
@@ -44,12 +63,53 @@ export function getLastTokenSaveResult(): TokenStorageResult | null {
   return lastSaveResult;
 }
 
-function serviceName(profile: string): string {
+export function keychainServiceName(profile: string): string {
   return `alphafox-cli.${profile}`;
 }
 
-function accountName(): string {
+export function keychainAccountName(): string {
   return "oauth-tokens";
+}
+
+function serviceName(profile: string): string {
+  return keychainServiceName(profile);
+}
+
+function accountName(): string {
+  return keychainAccountName();
+}
+
+/** Test-only override. Production code uses process.platform. */
+export function keychainPlatform(
+  env: NodeJS.ProcessEnv = process.env
+): NodeJS.Platform {
+  const raw = env.ALPHAFOX_KEYCHAIN_PLATFORM?.trim();
+  if (raw === "darwin" || raw === "linux" || raw === "win32") {
+    return raw;
+  }
+  return process.platform;
+}
+
+export function probeOsKeychain(
+  env: NodeJS.ProcessEnv = process.env
+): { readonly kind: OsKeychainKind; readonly available: boolean } {
+  const platform = keychainPlatform(env);
+  if (platform === "darwin") {
+    return { kind: "macos-security", available: true };
+  }
+  if (platform === "linux") {
+    return {
+      kind: "linux-secret-service",
+      available: linuxSecretServiceAvailable(env),
+    };
+  }
+  if (platform === "win32") {
+    return {
+      kind: "windows-credential-manager",
+      available: windowsCredentialAvailable(env),
+    };
+  }
+  return { kind: "none", available: false };
 }
 
 /** File fallback under secure mode 0600 when OS keychain is unavailable (CI/Linux headless). */
@@ -67,7 +127,11 @@ export function saveTokens(
 ): TokenStorageResult {
   const payload = JSON.stringify(tokens);
   if (tryKeychainWrite(profile, payload, env)) {
-    lastSaveResult = { backend: "keychain", degraded: false };
+    lastSaveResult = {
+      backend: "keychain",
+      kind: probeOsKeychain(env).kind,
+      degraded: false,
+    };
     return lastSaveResult;
   }
   const path = fileFallbackPath(profile, env);
@@ -149,7 +213,19 @@ function tryKeychainWrite(
   if (env.ALPHAFOX_FORCE_FILE_KEYCHAIN === "1") {
     return false;
   }
-  if (process.platform === "darwin") {
+  const platform = keychainPlatform(env);
+  if (platform === "linux") {
+    return linuxSecretServiceWrite(
+      serviceName(profile),
+      accountName(),
+      payload,
+      env
+    );
+  }
+  if (platform === "win32") {
+    return windowsCredentialWrite(profile, payload, env);
+  }
+  if (platform === "darwin") {
     try {
       // delete existing silently
       try {
@@ -196,7 +272,14 @@ function tryKeychainRead(
   if (env.ALPHAFOX_FORCE_FILE_KEYCHAIN === "1") {
     return null;
   }
-  if (process.platform === "darwin") {
+  const platform = keychainPlatform(env);
+  if (platform === "linux") {
+    return linuxSecretServiceRead(serviceName(profile), accountName(), env);
+  }
+  if (platform === "win32") {
+    return windowsCredentialRead(profile, env);
+  }
+  if (platform === "darwin") {
     try {
       const out = execFileSync(
         "security",
@@ -222,7 +305,16 @@ function tryKeychainDelete(profile: string, env: NodeJS.ProcessEnv): void {
   if (env.ALPHAFOX_FORCE_FILE_KEYCHAIN === "1") {
     return;
   }
-  if (process.platform === "darwin") {
+  const platform = keychainPlatform(env);
+  if (platform === "linux") {
+    linuxSecretServiceDelete(serviceName(profile), accountName(), env);
+    return;
+  }
+  if (platform === "win32") {
+    windowsCredentialDelete(profile, env);
+    return;
+  }
+  if (platform === "darwin") {
     try {
       execFileSync(
         "security",

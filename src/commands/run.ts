@@ -32,6 +32,7 @@ import { apiRequest } from "../http/client";
 import {
   deleteTokens,
   loadTokens,
+  probeOsKeychain,
   saveTokens,
   tokenFingerprint,
 } from "../keychain/store";
@@ -102,6 +103,15 @@ export async function runCli(
   argv: string[],
   env: NodeJS.ProcessEnv = process.env
 ): Promise<number> {
+  if (argv.some((a) => a === "--token" || a.startsWith("--token="))) {
+    writeError({
+      type: "usage",
+      subtype: "token_argv_forbidden",
+      message:
+        "Refusing --token on argv. Store credentials in the OS keychain via alphafox auth login.",
+      hint: "Automation tokens are not supported in v1. Do not copy refresh tokens into CI.",
+    });
+  }
   const { flags, rest } = parseGlobalFlags(argv);
   const [cmd, ...args] = rest;
 
@@ -122,7 +132,7 @@ export async function runCli(
           "alphafox <domain> <resource> <action> [flags]",
         ],
       },
-      { format: flags.format }
+      { format: flags.format, jq: flags.jq }
     );
     return 0;
   }
@@ -185,7 +195,7 @@ function cmdVersion(flags: GlobalFlags): number {
       platform: process.platform,
       arch: process.arch,
     },
-    { format: flags.format }
+    { format: flags.format, jq: flags.jq }
   );
   return 0;
 }
@@ -197,6 +207,7 @@ function cmdDoctor(flags: GlobalFlags, env: NodeJS.ProcessEnv): number {
   // Avoid macOS `security` stderr noise when no item exists; file keychain is fine for doctor.
   const doctorEnv = { ...env, ALPHAFOX_FORCE_FILE_KEYCHAIN: env.ALPHAFOX_FORCE_FILE_KEYCHAIN ?? "1" };
   const tokens = loadTokens(profile.name, doctorEnv);
+  const probe = probeOsKeychain(env);
   const checks = [
     {
       name: "node",
@@ -226,6 +237,13 @@ function cmdDoctor(flags: GlobalFlags, env: NodeJS.ProcessEnv): number {
         : "no tokens stored",
     },
     {
+      name: "osKeychain",
+      ok: true,
+      detail: probe.available
+        ? probe.kind
+        : `${probe.kind} unavailable; file fallback (0600) if tokens are saved`,
+    },
+    {
       name: "configHasNoTokens",
       ok: true,
       detail: "enforced",
@@ -239,7 +257,7 @@ function cmdDoctor(flags: GlobalFlags, env: NodeJS.ProcessEnv): number {
   const ok = checks.every((c) => c.ok);
   writeSuccess(
     { ok, profile: profile.name, checks },
-    { format: flags.format }
+    { format: flags.format, jq: flags.jq }
   );
   return ok ? 0 : 1;
 }
@@ -272,7 +290,7 @@ async function cmdWhoami(
       { requestId: res.requestId, exitCode: res.status === 401 ? 77 : 1 }
     );
   }
-  writeSuccess(res.json, { requestId: res.requestId, format: flags.format });
+  writeSuccess(res.json, { requestId: res.requestId, format: flags.format, jq: flags.jq });
   return 0;
 }
 
@@ -296,7 +314,7 @@ async function cmdAuth(
           profile: profile.name,
           verified: false,
         },
-        { format: flags.format }
+        { format: flags.format, jq: flags.jq }
       );
       return 0;
     }
@@ -328,7 +346,7 @@ async function cmdAuth(
         verified,
         whoami,
       },
-      { format: flags.format }
+      { format: flags.format, jq: flags.jq }
     );
     return 0;
   }
@@ -370,7 +388,7 @@ async function cmdAuth(
         loggedOut: fullyLoggedOut,
         profile: profile.name,
       },
-      { format: flags.format }
+      { format: flags.format, jq: flags.jq }
     );
     return fullyLoggedOut ? 0 : 1;
   }
@@ -465,7 +483,7 @@ async function cmdAuthLogin(
         accessTokenFingerprint: tokenFingerprint(tokens.access_token),
         expiresIn: tokens.expires_in,
       },
-      { format: flags.format, requestId: res.requestId }
+      { format: flags.format, jq: flags.jq, requestId: res.requestId }
     );
     return 0;
   }
@@ -491,7 +509,7 @@ async function cmdAuthLogin(
           status: "authorization_pending",
           profile: profile.name,
         },
-        { format: flags.format, requestId: res.requestId }
+        { format: flags.format, jq: flags.jq, requestId: res.requestId }
       );
       return 0;
     }
@@ -523,7 +541,7 @@ async function cmdAuthLogin(
         accessTokenFingerprint: tokenFingerprint(tokens.access_token),
         expiresIn: tokens.expires_in,
       },
-      { format: flags.format, requestId: res.requestId }
+      { format: flags.format, jq: flags.jq, requestId: res.requestId }
     );
     return 0;
   }
@@ -567,7 +585,7 @@ async function cmdAuthLogin(
         next:
           "Open verification_uri, approve, then: alphafox auth login --device-code <device_code>",
       },
-      { format: flags.format, requestId: res.requestId }
+      { format: flags.format, jq: flags.jq, requestId: res.requestId }
     );
     if (noWait) {
       return 0;
@@ -626,7 +644,7 @@ async function cmdAuthLogin(
           profile: profile.name,
           accessTokenFingerprint: tokenFingerprint(tokens.access_token),
         },
-        { format: flags.format, requestId: poll.requestId }
+        { format: flags.format, jq: flags.jq, requestId: poll.requestId }
       );
       return 0;
     }
@@ -666,7 +684,7 @@ async function cmdAuthLogin(
         accessTokenFingerprint: result.accessTokenFingerprint,
         expiresIn: result.expiresIn,
       },
-      { format: flags.format, requestId: result.requestId }
+      { format: flags.format, jq: flags.jq, requestId: result.requestId }
     );
     return 0;
   }
@@ -693,7 +711,7 @@ function cmdProfile(
           resolveProfile(name, env)
         ),
       },
-      { format: flags.format }
+      { format: flags.format, jq: flags.jq }
     );
     return 0;
   }
@@ -707,7 +725,7 @@ function cmdProfile(
     }
     const file = loadConfigFile(env);
     saveConfigFile({ ...file, activeProfile: name }, env);
-    writeSuccess({ activeProfile: name }, { format: flags.format });
+    writeSuccess({ activeProfile: name }, { format: flags.format, jq: flags.jq });
     return 0;
   }
   writeError({ type: "usage", message: "Usage: alphafox profile list|use" });
@@ -721,7 +739,7 @@ function cmdSchema(args: string[], flags: GlobalFlags): number {
         contractVersion: CATALOG_VERSION,
         operations: CATALOG_OPERATIONS.map((o) => o.operationId),
       },
-      { format: flags.format }
+      { format: flags.format, jq: flags.jq }
     );
     return 0;
   }
@@ -751,13 +769,13 @@ function cmdSchema(args: string[], flags: GlobalFlags): number {
       output: { type: "object" },
       errors: ["401", "403", "404", "409", "422", "429", "5xx"],
     },
-    { format: flags.format }
+    { format: flags.format, jq: flags.jq }
   );
   return 0;
 }
 
 function cmdCatalog(flags: GlobalFlags): number {
-  writeSuccess(buildCapabilityManifest(), { format: flags.format });
+  writeSuccess(buildCapabilityManifest(), { format: flags.format, jq: flags.jq });
   return 0;
 }
 
@@ -821,7 +839,7 @@ async function cmdApi(
         profile: profile.name,
         risk,
       },
-      { format: flags.format }
+      { format: flags.format, jq: flags.jq }
     );
     return 0;
   }
@@ -848,7 +866,7 @@ async function cmdApi(
       { requestId: res.requestId, exitCode: res.status === 401 ? 77 : 1 }
     );
   }
-  writeSuccess(res.json, { requestId: res.requestId, format: flags.format });
+  writeSuccess(res.json, { requestId: res.requestId, format: flags.format, jq: flags.jq });
   return 0;
 }
 
@@ -957,7 +975,7 @@ async function invokeOperation(
         risk: op.risk,
         profile: profile.name,
       },
-      { format: flags.format }
+      { format: flags.format, jq: flags.jq }
     );
     return 0;
   }
@@ -986,7 +1004,7 @@ async function invokeOperation(
   }
   writeSuccess(res.json, {
     requestId: res.requestId,
-    format: flags.format,
+    format: flags.format, jq: flags.jq,
     meta: { operationId },
   });
   return 0;

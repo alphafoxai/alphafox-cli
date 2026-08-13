@@ -1,5 +1,7 @@
 # Staging E2E checklist (t101364 / t101369)
 
+Run only against the stable public facade `https://staging.alphafox.app`. Do not use Preview URLs, internal service tokens, or production.
+
 ## Scenarios
 
 1. Install CLI → `version` / `doctor`
@@ -12,13 +14,17 @@
 8. Logout / revoke
 9. Cross-env token rejection (prod token on staging)
 
-## Evidence policy
+## Evidence (2026-08-13) — blocked
 
-If staging domain/secrets are unavailable in the runner, capture provisioning failure to evidence logs and rely on:
+Anonymous `GET https://staging.alphafox.app/api/v1/meta` → **HTTP 302** `https://vercel.com/sso-api` (Vercel Deployment Protection). CLI cannot complete Device Flow / whoami against a URL that challenges Vercel SSO before Better Auth.
 
-- local unit/integration tests of envelope, allowlist, token model, confirmation
-- structural presence of deploy workflow + runbooks
+Authenticated `vercel curl` of the same path returns `environment=staging` for SHA `b4063b79…`. That proves the app identity plane, not public CLI reachability. **Do not record that as E2E pass.**
 
-**Never fabricate staging success.**
+Also missing: staging QA identities / seed-reset credentials (see `scripts/qa-seed-reset.md`). No `cli-e2e-*` secrets in GCP Secret Manager on `ddddao-dev`.
 
-Parent Feishu task stays `todo` until human acceptance of staging evidence.
+## Policy
+
+- Capture the real HTTP status, redirect, and request-id. Never fabricate staging success.
+- External dependency outage → fail the test. No mock success, no silent skip.
+- Parent Feishu task stays `todo` until a human accepts **public** staging evidence.
+- Do not enable production OAuth client or npm latest while this checklist is blocked.

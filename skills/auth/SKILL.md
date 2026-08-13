@@ -19,6 +19,13 @@ User needs to sign in, verify session, switch profile, or revoke tokens.
 3. After approval: `alphafox auth login --device-code <device_code>`
 4. `alphafox whoami` / `alphafox auth status --verify`
 
+### Browser loopback (human, local machine)
+
+1. `alphafox auth login --browser --format json`
+2. CLI binds `127.0.0.1` and opens the system browser. Do not copy codes or verifiers.
+3. After the localhost callback, `alphafox whoami` / `alphafox auth status --verify`
+4. If the browser cannot open, the error includes a copyable `authorizeUrl`. Do not retry as Device Flow unless the human is headless.
+
 ### Status / logout
 
 - `alphafox auth status --verify`

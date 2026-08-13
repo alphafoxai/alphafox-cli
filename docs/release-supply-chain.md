@@ -82,7 +82,7 @@ OIDC-provenance release.
 |----------|---------|--------|-----------|---------|
 | macOS | `npm install -g @alphafox/cli` or `npx @alphafox/cli` | `npm update -g @alphafox/cli` or pin `@<version>` | `npm uninstall -g @alphafox/cli` | Keychain Access |
 | Linux | same | same | same | Secret Service, or file fallback mode `0600` |
-| Windows | same | same | same | Credential Manager (file fallback until implemented) |
+| Windows | same | same | same | Credential Manager (`CredWrite`/`CredRead`); file fallback mode `0600` if unavailable |
 
 Fresh-machine acceptance (release checklist, not optional):
 

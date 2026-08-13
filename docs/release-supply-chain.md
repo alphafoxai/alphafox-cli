@@ -1,49 +1,122 @@
 # Release: npm, Skills, supply chain (t101375)
 
+**Status:** Frozen (G0)  
+**Date:** 2026-08-13  
+**Canonical package:** `@alphafox/cli` on the public npmjs.org registry.
+
+This document freezes distribution policy. It supersedes the earlier draft that
+named `@alphafoxai/cli` (that name was never published; npmjs returns 404).
+
 ## Package
 
-| Field | Value |
-|-------|--------|
-| Name | `@alphafoxai/cli` |
-| Binary | `alphafox` |
-| Visibility | public npm (org `@alphafoxai`) |
-| Node | LTS ≥ 20 |
-| OS | macOS, Linux, Windows |
+| Field | Frozen value |
+|-------|----------------|
+| Name | `@alphafox/cli` |
+| Binary | `alphafox` (`bin/alphafox.js`) |
+| Registry | `https://registry.npmjs.org/` |
+| Visibility | **public** (`publishConfig.access=public`) |
+| npm org / owner | `@alphafox` scope; maintainer `alphafox <joe@alphafox.app>` |
+| License | MIT |
+| Node | LTS **≥ 20** (`engines.node`) |
+| OS | macOS, Linux, Windows (npm install; no standalone native binary in v1) |
+| Package contents | `bin/`, `dist/`, `skills/`, `README.md`, `docs/`, `LICENSE` |
 
-## Publish rules
+v1 does **not** ship independent GitHub Release binaries, so there is no extra
+binary signing/checksum channel. Integrity is npm pack integrity plus
+provenance (below).
 
-- Publish **only** from CI on protected tags (`v*`)
-- Prefer npm **trusted publishing / OIDC provenance** — no long-lived npm tokens
-- 2FA required for org owners
-- Package contents: `dist/`, `skills/`, README, docs — **no** secrets, fixtures, private endpoints, or `.env`
+Do **not** republish under `@alphafoxai/cli` without a new ADR. Skills and docs
+that still mention that name are stale and must follow this freeze.
+
+## Publish rules (normative)
+
+1. Publish **only** from CI on a protected git tag matching `v*` (example:
+   `v0.2.0`). Humans must not `npm publish` from a laptop for any release
+   after this freeze, except an explicit incident rollback documented in the
+   change ticket.
+2. CI MUST use npm **trusted publishing / OIDC provenance**. Long-lived npm
+   tokens are forbidden for publish.
+3. npm org owners MUST have 2FA. Publish permission is CI identity plus owners;
+   no shared user tokens in git or chat.
+4. Package tarball MUST NOT contain secrets, test fixtures with credentials,
+   `.env`, private endpoints, or internal-only hostnames.
+5. `prepublishOnly` builds from the tagged SHA. The published `CLI_VERSION`
+   (or equivalent) MUST equal the npm version.
+
+### Grandfathered 0.1.x
+
+npmjs currently has `@alphafox/cli@0.1.0`–`0.1.5` (latest `0.1.5`). Those
+tarballs have registry signatures and **no** provenance attestations
+(`dist.attestations` is empty). They were published by the human npm user
+`alphafox`. They remain installable but are **not** the compliance target.
+The next minor/patch that this policy covers MUST be the first
+OIDC-provenance release.
 
 ## Skills distribution
 
-- Co-versioned inside the npm package under `skills/`
-- Compatibility: Skills major aligns with CLI major; `contractVersion` must match API or CLI fails closed
+- Skills ship **inside** the same npm tarball under `skills/` (co-versioned).
+- Skills major aligns with CLI major. There is no separate Skills registry
+  in v1 and no silent download of a different Skills version at runtime.
+- `contractVersion` on the CLI profile MUST match the Public API
+  `contractVersion` (or the documented compatible range). Mismatch → fail
+  closed; do not download an older contract or degrade quietly.
 
-## Support matrix
+## Compatibility / channels / deprecation
 
-| Platform | Install | Keychain |
-|----------|---------|----------|
-| macOS | npm global / npx | Keychain Access |
-| Linux | npm global / npx | Secret Service or file fallback 0600 |
-| Windows | npm global / npx | Credential Manager (file fallback until implemented) |
+| Channel | npm dist-tag | Meaning |
+|---------|--------------|---------|
+| stable | `latest` | Supported release |
+| prerelease | `next` | Opt-in only |
 
-## Channels
+- Breaking API/contract/minCLI/maxCLI changes: announce ≥ **30 days** before
+  `latest` moves; keep the previous compatible CLI installable on npm.
+- Incompatible CLI ↔ API ↔ contract: CLI exits non-zero with a machine-readable
+  error. No silent skip, no automatic down-version.
+- Emergency unpublish is a last resort (npm unpublish window). Preferred:
+  `npm deprecate @alphafox/cli@<bad> "<reason>; use <good>"` and tell
+  operators to install the last good version.
 
-- `latest` — stable
-- `next` — prerelease
-- Deprecation window: ≥ 30 days for breaking contract changes
+## Support matrix (install / update / uninstall)
+
+| Platform | Install | Update | Uninstall | Secrets |
+|----------|---------|--------|-----------|---------|
+| macOS | `npm install -g @alphafox/cli` or `npx @alphafox/cli` | `npm update -g @alphafox/cli` or pin `@<version>` | `npm uninstall -g @alphafox/cli` | Keychain Access |
+| Linux | same | same | same | Secret Service, or file fallback mode `0600` |
+| Windows | same | same | same | Credential Manager (file fallback until implemented) |
+
+Fresh-machine acceptance (release checklist, not optional):
+
+```bash
+npm install -g @alphafox/cli@<version>
+npm view @alphafox/cli@<version> --json   # attestations present after first OIDC release
+alphafox version
+alphafox doctor
+alphafox schema me.whoami
+```
 
 ## Rollback
 
 ```bash
-npm install -g @alphafoxai/cli@<previous>
+npm install -g @alphafox/cli@<previous-compatible>
 alphafox version
 alphafox doctor
 ```
 
+Failed install leaves the previous global binary in place (npm does not
+half-replace). If `doctor` fails after a successful install, roll back with
+the command above. Do not point the CLI at a different environment to “make
+it work”.
+
 ## SBOM / audit
 
-CI should generate SBOM (e.g. `cyclonedx` / `npm sbom`) and fail on critical vulns in runtime deps.
+CI MUST emit an SBOM (`npm sbom` or CycloneDX) from the tagged SHA and fail
+the release job on **critical** vulnerabilities in **runtime** dependencies.
+Dev-only advisories do not block publish. SBOM is an artifact of the release
+workflow, not a file committed to `main` by default.
+
+## Out of scope (v1)
+
+- Private npm / GitHub Packages as the user install path
+- Homebrew / scoop / standalone signed binaries
+- Separate Skills marketplace
+- Automation-token distribution (ADR 0004)

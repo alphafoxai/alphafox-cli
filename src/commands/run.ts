@@ -54,6 +54,7 @@ import {
   CLI_PACKAGE,
   CLI_VERSION,
 } from "../version";
+import { cmdEngineBacktest } from "../engine-backtest/run-command";
 
 export interface GlobalFlags {
   profile?: string;
@@ -138,6 +139,7 @@ export async function runCli(
           "alphafox schema [operationId]",
           "alphafox catalog",
           "alphafox api METHOD PATH [--body JSON]",
+          "alphafox engine-backtest run --experiment <uuid> --definition <id> --config @file --exchange <id> --range FROM..TO --initial-equity N",
           "alphafox <domain> <resource> <action> [flags]",
         ],
       },
@@ -167,6 +169,21 @@ export async function runCli(
         return await cmdApi(args, flags, env);
       case "catalog":
         return cmdCatalog(flags);
+      case "engine-backtest": {
+        const sub = args[0];
+        if (
+          !sub ||
+          sub === "run" ||
+          sub === "help" ||
+          sub === "--help" ||
+          sub === "-h"
+        ) {
+          return await cmdEngineBacktest(args, flags, env);
+        }
+        // Hyphen built-in only owns `run`. Underscore/hyphen catalog CRUD
+        // (engine_backtest.experiments.*) still goes through the typed tree.
+        return await cmdTyped(cmd, args, flags, env);
+      }
       default:
         return await cmdTyped(cmd, args, flags, env);
     }

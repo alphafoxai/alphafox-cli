@@ -24,12 +24,15 @@ alphafox schema engine_backtest.experiments.create --format json --no-input
 
 ## Local run
 
-Requires `@alphafoxai/backtest-wasm` and `@alphafoxai/backtest-runner` on disk (lazy-loaded; not CLI dependencies). Resolve each package independently:
+The tape runner ships inside the CLI (plus `ccxt` for public-market pulls). The wasm / Node host is downloaded from the public Vercel Blob manifest (`engine-backtest/latest.json`) into `~/.cache/alphafox/engine-backtest/<hash>/` on first run.
 
-1. Node `require.resolve`
-2. `ALPHAFOX_BACKTEST_WASM_DIR` / `ALPHAFOX_BACKTEST_RUNNER_DIR`
-3. `ALPHAFOX_ENGINE_ROOT` + `/npm/backtest-wasm` or `/npm/backtest-runner`
-4. Sibling `../alphafox-engine/npm/...` relative to the CLI repo root
+Local overrides, in order:
+
+1. `ALPHAFOX_BACKTEST_WASM_DIR` / `ALPHAFOX_BACKTEST_RUNNER_DIR`
+2. `ALPHAFOX_ENGINE_ROOT` + `/npm/backtest-wasm` or `/npm/backtest-runner`
+3. Sibling `../alphafox-engine/npm/...` only when `ALPHAFOX_USE_LOCAL_BACKTEST=1`
+
+Do not install `@alphafoxai/backtest-wasm` or `@alphafoxai/backtest-runner` from GitHub Packages.
 
 ```bash
 alphafox engine-backtest run \

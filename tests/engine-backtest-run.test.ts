@@ -19,6 +19,9 @@ import {
   SNAPSHOT_SCHEMA_VERSION,
 } from "../src/engine-backtest/persist";
 import {
+  parseEngineBacktestBlobManifest,
+} from "../src/engine-backtest/fetch-runtime";
+import {
   resolveBacktestPackagePath,
 } from "../src/engine-backtest/resolve-packages";
 import {
@@ -345,13 +348,10 @@ describe("engine-backtest persist", () => {
 });
 
 describe("engine-backtest resolve-packages", () => {
-  it("returns a clear error envelope when nothing resolves", () => {
+  it("returns a clear error envelope when nothing local resolves", () => {
     assert.throws(
       () =>
         resolveBacktestPackagePath("wasm", {}, {
-          requireResolve: () => {
-            throw new Error("not installed");
-          },
           exists: () => false,
           cliRoot: join(tmpdir(), "alphafox-cli-missing-root"),
           callerFilename: join(tmpdir(), "no-such-cli", "src", "x.js"),
@@ -377,9 +377,6 @@ describe("engine-backtest resolve-packages", () => {
           "wasm",
           { ALPHAFOX_BACKTEST_WASM_DIR: empty },
           {
-            requireResolve: () => {
-              throw new Error("not installed");
-            },
             exists: (p) => p === empty,
           }
         ),
@@ -429,23 +426,117 @@ describe("engine-backtest resolve-packages", () => {
     const builtResolver = require(
       join(__dirname, "..", "..", "dist", "engine-backtest", "resolve-packages.js")
     ) as typeof import("../src/engine-backtest/resolve-packages");
-    const hooks = {
-      requireResolve: () => {
-        throw new Error("force env package directories");
-      },
-    };
-    const runner = await builtResolver.loadBacktestRunner(
-      { ALPHAFOX_BACKTEST_RUNNER_DIR: runnerDir },
-      hooks
-    );
-    const wasm = await builtResolver.loadBacktestWasm(
-      { ALPHAFOX_BACKTEST_WASM_DIR: wasmDir },
-      hooks
-    );
+    const runner = await builtResolver.loadBacktestRunner({
+      ALPHAFOX_BACKTEST_RUNNER_DIR: runnerDir,
+    });
+    const wasm = await builtResolver.loadBacktestWasm({
+      ALPHAFOX_BACKTEST_WASM_DIR: wasmDir,
+    });
 
     assert.equal(typeof runner.module.loadTape, "function");
     assert.equal(runner.module.DEFAULT_EXECUTION_MODEL.pricePath, "close_only");
+    assert.equal(runner.resolved.source, "env_dir");
     assert.equal(typeof wasm.module.createNodeBacktestClient, "function");
+    assert.equal(wasm.resolved.source, "env_dir");
+  });
+
+  it("loads the vendored runner without a private npm package", async () => {
+    const builtResolver = require(
+      join(__dirname, "..", "..", "dist", "engine-backtest", "resolve-packages.js")
+    ) as typeof import("../src/engine-backtest/resolve-packages");
+    const runner = await builtResolver.loadBacktestRunner({});
+    assert.equal(runner.resolved.source, "vendor");
+    assert.equal(typeof runner.module.loadTape, "function");
+    assert.ok(runner.module.DEFAULT_EXECUTION_MODEL);
+  });
+
+  it("downloads the Node runtime from the Blob manifest", async () => {
+    const cacheDir = mkdtempSync(join(tmpdir(), "alphafox-blob-runtime-"));
+    const manifest = {
+      version: "0.1.1148",
+      hash: "testhash",
+      protocol: 1,
+      wasm: "https://example.test/tradingfox-backtest.wasm",
+      wasmExec: "https://example.test/wasm_exec.js",
+      worker: "https://example.test/worker.mjs",
+      client: "https://example.test/index.mjs",
+      node: "https://example.test/node.mjs",
+      nodeWorker: "https://example.test/worker-node.mjs",
+      nodeWorkerPath: "https://example.test/worker-node-path.mjs",
+    };
+    const bodies: Record<string, string> = {
+      "https://example.test/latest.json": JSON.stringify(manifest),
+      "https://example.test/tradingfox-backtest.wasm": "wasm",
+      "https://example.test/wasm_exec.js": "exec",
+      "https://example.test/worker.mjs": "worker",
+      "https://example.test/index.mjs": "client",
+      "https://example.test/node.mjs":
+        "export function createNodeBacktestClient() { return { from: 'blob' }; }\n",
+      "https://example.test/worker-node.mjs": "node-worker",
+      "https://example.test/worker-node-path.mjs": "node-worker-path",
+    };
+    const fetchImpl = (async (url: string | URL) => {
+      const href = String(url);
+      const body = bodies[href];
+      if (!body) {
+        return new Response("missing", { status: 404 });
+      }
+      return new Response(body, { status: 200 });
+    }) as typeof fetch;
+
+    const builtResolver = require(
+      join(__dirname, "..", "..", "dist", "engine-backtest", "resolve-packages.js")
+    ) as typeof import("../src/engine-backtest/resolve-packages");
+    const wasm = await builtResolver.loadBacktestWasm(
+      { ALPHAFOX_BACKTEST_WASM_MANIFEST_URL: "https://example.test/latest.json" },
+      { fetch: fetchImpl, cacheDir }
+    );
+    assert.equal(wasm.resolved.source, "blob");
+    assert.equal(
+      (wasm.module.createNodeBacktestClient() as unknown as { from: string }).from,
+      "blob"
+    );
+  });
+});
+
+describe("engine-backtest fetch-runtime", () => {
+  const validManifest = {
+    version: "0.1.1148",
+    hash: "323e65c3d57eb8c0",
+    protocol: 1,
+    wasm: "https://example.test/tradingfox-backtest.wasm",
+    wasmExec: "https://example.test/wasm_exec.js",
+    worker: "https://example.test/worker.mjs",
+    client: "https://example.test/index.mjs",
+    node: "https://example.test/node.mjs",
+    nodeWorker: "https://example.test/worker-node.mjs",
+    nodeWorkerPath: "https://example.test/worker-node-path.mjs",
+  };
+
+  it("accepts a protocol-1 Node runtime manifest", () => {
+    const parsed = parseEngineBacktestBlobManifest(validManifest);
+    assert.equal(parsed.protocol, 1);
+    assert.equal(parsed.hash, "323e65c3d57eb8c0");
+    assert.equal(parsed.node, validManifest.node);
+  });
+
+  it("refuses a protocol mismatch or missing Node host URL", () => {
+    assert.throws(
+      () => parseEngineBacktestBlobManifest({ ...validManifest, protocol: 2 }),
+      (err: unknown) => {
+        assert.ok(err instanceof EngineBacktestError);
+        assert.equal(err.subtype, "runtime_protocol_mismatch");
+        return true;
+      }
+    );
+    assert.throws(
+      () => parseEngineBacktestBlobManifest({ ...validManifest, node: "" }),
+      (err: unknown) => {
+        assert.ok(err instanceof EngineBacktestError);
+        assert.equal(err.subtype, "runtime_manifest_invalid");
+        return true;
+      }
+    );
   });
 });
 
@@ -903,12 +994,12 @@ describe("engine-backtest orchestration", () => {
             "--no-persist",
           ]),
           FLAGS,
-          { ALPHAFOX_CONFIG_DIR: mkdtempSync(join(tmpdir(), "alphafox-cfg-")) },
+          {
+            ALPHAFOX_CONFIG_DIR: mkdtempSync(join(tmpdir(), "alphafox-cfg-")),
+            ALPHAFOX_USE_LOCAL_BACKTEST: "1",
+          },
           {
             resolveHooks: {
-              requireResolve: () => {
-                throw new Error("not installed");
-              },
               exists: () => false,
               cliRoot: join(tmpdir(), "alphafox-cli-missing-root"),
               callerFilename: join(tmpdir(), "no-such-cli", "src", "x.js"),

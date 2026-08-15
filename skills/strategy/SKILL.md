@@ -23,6 +23,8 @@ alphafox api POST /api/v1/chats --body '{"strategyGenerationMode":"simple"}' --f
 
 Requires auth. Sends `Idempotency-Key` when available. Duplicate key → `409`; do not invent a new key unless the operator asks to create another chat.
 
+Engine strategy backtest (WASM tape + persist) is `skills/engine-backtest` (`alphafox engine-backtest run`). Do not treat `/api/v1/backtests` as the Engine WASM runner — that stub is the chat backtest job below.
+
 ## Long-running backtest
 
 ```bash

@@ -1,7 +1,7 @@
 {
   "name": "@alphafox/cli",
   "version": "0.2.0",
-  "description": "Alphafox CLI \u2014 Agent/Human entry for the public Application API.",
+  "description": "Alphafox CLI — Agent/Human entry for the public Application API.",
   "type": "commonjs",
   "bin": {
     "alphafox": "bin/alphafox.js"
@@ -12,6 +12,7 @@
     "bin",
     "dist",
     "skills",
+    "vendor",
     "README.md",
     "docs",
     "LICENSE"
@@ -52,6 +53,7 @@
   "license": "MIT",
   "packageManager": "pnpm@10.33.0",
   "dependencies": {
+    "ccxt": "^4.5.73",
     "zod": "^4.3.6"
   },
   "devDependencies": {

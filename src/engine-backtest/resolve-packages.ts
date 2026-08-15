@@ -4,6 +4,7 @@ import { dirname, isAbsolute, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { EngineBacktestError } from "./errors";
+import { ensureBlobRuntime, type FetchRuntimeHooks } from "./fetch-runtime";
 import { importNativeModule } from "./native-import";
 import type { BacktestRunnerModule, BacktestWasmModule } from "./types";
 
@@ -33,7 +34,7 @@ const PACKAGE_DESCRIPTORS: Record<PackageKind, PackageDescriptor> = {
     useMainFallback: false,
     entryCandidates: ["node.mjs", "node.js", "node.cjs"],
     installHint:
-      "Install @alphafoxai/backtest-wasm, or set ALPHAFOX_BACKTEST_WASM_DIR / ALPHAFOX_ENGINE_ROOT.",
+      "Set ALPHAFOX_BACKTEST_WASM_DIR / ALPHAFOX_ENGINE_ROOT, or ALPHAFOX_USE_LOCAL_BACKTEST=1 with a sibling Engine build. Otherwise the CLI downloads the Node runtime from Vercel Blob.",
   },
   runner: {
     specifier: RUNNER_SPEC,
@@ -43,7 +44,7 @@ const PACKAGE_DESCRIPTORS: Record<PackageKind, PackageDescriptor> = {
     useMainFallback: true,
     entryCandidates: ["index.mjs", "index.js", "index.cjs"],
     installHint:
-      "Install @alphafoxai/backtest-runner, or set ALPHAFOX_BACKTEST_RUNNER_DIR / ALPHAFOX_ENGINE_ROOT.",
+      "The tape runner is bundled with the CLI. Override with ALPHAFOX_BACKTEST_RUNNER_DIR / ALPHAFOX_ENGINE_ROOT.",
   },
 };
 
@@ -51,10 +52,10 @@ export interface ResolvedPackagePath {
   readonly kind: PackageKind;
   readonly specifier: string;
   readonly filePath: string;
-  readonly source: "node_modules" | "env_dir" | "engine_root" | "sibling";
+  readonly source: "env_dir" | "engine_root" | "sibling" | "vendor" | "blob";
 }
 
-export interface ResolvePackageHooks {
+export interface ResolvePackageHooks extends FetchRuntimeHooks {
   readonly requireResolve?: (specifier: string) => string;
   readonly importModule?: (fileUrl: string) => Promise<unknown>;
   readonly exists?: (path: string) => boolean;
@@ -76,38 +77,6 @@ function readText(path: string, hooks: ResolvePackageHooks | undefined): string 
 
 function callerFilename(hooks?: ResolvePackageHooks): string {
   return hooks?.callerFilename ?? __filename;
-}
-
-/**
- * Node resolve via import.meta (when present) or createRequire(__filename).
- * Compiled CLI is CommonJS; import.meta is probed without a static reference.
- */
-function nodeResolve(
-  specifier: string,
-  hooks?: ResolvePackageHooks
-): string | undefined {
-  if (hooks?.requireResolve) {
-    try {
-      return hooks.requireResolve(specifier);
-    } catch {
-      return undefined;
-    }
-  }
-  const filename = callerFilename(hooks);
-  try {
-    return createRequire(filename).resolve(specifier);
-  } catch {
-    // fall through to import.meta when the host is ESM
-  }
-  try {
-    const meta = Function("return import.meta")() as { url?: string } | undefined;
-    if (meta?.url) {
-      return createRequire(meta.url).resolve(specifier);
-    }
-  } catch {
-    // CJS host — import.meta is unavailable
-  }
-  return undefined;
 }
 
 export function findCliRoot(
@@ -185,6 +154,21 @@ function toAbsDir(raw: string): string {
   return isAbsolute(raw) ? raw : join(process.cwd(), raw);
 }
 
+function shouldUseLocalOverride(env: NodeJS.ProcessEnv): boolean {
+  return env.ALPHAFOX_USE_LOCAL_BACKTEST === "1";
+}
+
+function hasExplicitLocalDir(
+  kind: PackageKind,
+  env: NodeJS.ProcessEnv
+): boolean {
+  return Boolean(
+    env[PACKAGE_DESCRIPTORS[kind].envKey]?.trim() ||
+      env.ALPHAFOX_ENGINE_ROOT?.trim() ||
+      shouldUseLocalOverride(env)
+  );
+}
+
 export function resolveBacktestPackagePath(
   kind: PackageKind,
   env: NodeJS.ProcessEnv = process.env,
@@ -193,17 +177,6 @@ export function resolveBacktestPackagePath(
   const descriptor = PACKAGE_DESCRIPTORS[kind];
   const { specifier, envKey, npmName } = descriptor;
   const tried: string[] = [];
-
-  const fromNode = nodeResolve(specifier, hooks);
-  if (fromNode) {
-    return {
-      kind,
-      specifier,
-      filePath: fromNode,
-      source: "node_modules",
-    };
-  }
-  tried.push(`node_modules:${specifier}`);
 
   const envDir = env[envKey]?.trim();
   if (envDir) {
@@ -239,16 +212,20 @@ export function resolveBacktestPackagePath(
   }
   tried.push("ALPHAFOX_ENGINE_ROOT:(unset)");
 
-  const cliRoot = findCliRoot(dirname(callerFilename(hooks)), hooks);
-  if (cliRoot) {
-    const dir = join(cliRoot, "..", "alphafox-engine", "npm", npmName);
-    const entry = entryFromPackageDir(dir, kind, hooks);
-    if (entry) {
-      return { kind, specifier, filePath: entry, source: "sibling" };
+  if (shouldUseLocalOverride(env)) {
+    const cliRoot = findCliRoot(dirname(callerFilename(hooks)), hooks);
+    if (cliRoot) {
+      const dir = join(cliRoot, "..", "alphafox-engine", "npm", npmName);
+      const entry = entryFromPackageDir(dir, kind, hooks);
+      if (entry) {
+        return { kind, specifier, filePath: entry, source: "sibling" };
+      }
+      tried.push(`sibling:${dir}`);
+    } else {
+      tried.push("sibling:(cli root not found)");
     }
-    tried.push(`sibling:${dir}`);
   } else {
-    tried.push("sibling:(cli root not found)");
+    tried.push("sibling:(requires ALPHAFOX_USE_LOCAL_BACKTEST=1)");
   }
 
   throw new EngineBacktestError({
@@ -258,6 +235,35 @@ export function resolveBacktestPackagePath(
     hint: descriptor.installHint,
     details: { specifier, tried },
   });
+}
+
+function resolveVendoredRunner(hooks?: ResolvePackageHooks): ResolvedPackagePath {
+  const cliRoot = findCliRoot(dirname(callerFilename(hooks)), hooks);
+  if (!cliRoot) {
+    throw new EngineBacktestError({
+      type: "runtime",
+      subtype: "package_unresolved",
+      message: `Cannot resolve ${RUNNER_SPEC} from the vendored runner`,
+      hint: PACKAGE_DESCRIPTORS.runner.installHint,
+    });
+  }
+  const dir = join(cliRoot, "vendor", "backtest-runner");
+  const entry = entryFromPackageDir(dir, "runner", hooks);
+  if (!entry) {
+    throw new EngineBacktestError({
+      type: "runtime",
+      subtype: "package_unresolved",
+      message: `Cannot resolve ${RUNNER_SPEC} from ${dir}`,
+      hint: PACKAGE_DESCRIPTORS.runner.installHint,
+      details: { specifier: RUNNER_SPEC, dir },
+    });
+  }
+  return {
+    kind: "runner",
+    specifier: RUNNER_SPEC,
+    filePath: entry,
+    source: "vendor",
+  };
 }
 
 async function importFile(
@@ -329,9 +335,28 @@ export async function loadBacktestWasm(
   env: NodeJS.ProcessEnv = process.env,
   hooks?: ResolvePackageHooks
 ): Promise<{ readonly module: BacktestWasmModule; readonly resolved: ResolvedPackagePath }> {
-  const resolved = resolveBacktestPackagePath("wasm", env, hooks);
-  const mod = assertWasmModule(await importFile(resolved.filePath, hooks), resolved.filePath);
-  return { module: mod, resolved };
+  if (hasExplicitLocalDir("wasm", env)) {
+    const resolved = resolveBacktestPackagePath("wasm", env, hooks);
+    const mod = assertWasmModule(
+      await importFile(resolved.filePath, hooks),
+      resolved.filePath
+    );
+    return { module: mod, resolved };
+  }
+  const runtime = await ensureBlobRuntime(env, hooks);
+  const mod = assertWasmModule(
+    await importFile(runtime.nodeEntry, hooks),
+    runtime.nodeEntry
+  );
+  return {
+    module: mod,
+    resolved: {
+      kind: "wasm",
+      specifier: WASM_SPEC,
+      filePath: runtime.nodeEntry,
+      source: "blob",
+    },
+  };
 }
 
 export async function loadBacktestRunner(
@@ -341,7 +366,9 @@ export async function loadBacktestRunner(
   readonly module: BacktestRunnerModule;
   readonly resolved: ResolvedPackagePath;
 }> {
-  const resolved = resolveBacktestPackagePath("runner", env, hooks);
+  const resolved = hasExplicitLocalDir("runner", env)
+    ? resolveBacktestPackagePath("runner", env, hooks)
+    : resolveVendoredRunner(hooks);
   const mod = assertRunnerModule(
     await importFile(resolved.filePath, hooks),
     resolved.filePath

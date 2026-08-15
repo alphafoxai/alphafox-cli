@@ -1,0 +1,13 @@
+{
+  "name": "@alphafox/backtest-runner",
+  "private": true,
+  "type": "module",
+  "main": "./index.mjs",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.mjs"
+    }
+  }
+}

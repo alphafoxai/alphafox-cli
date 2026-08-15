@@ -1,4 +1,10 @@
 import { EngineBacktestError } from "./errors";
+import {
+  ENGINE_BACKTEST_DEFAULT_REPLAY_TIMEFRAME,
+  ENGINE_BACKTEST_REPLAY_TIMEFRAMES,
+  isEngineBacktestReplayTimeframe,
+  type EngineBacktestReplayTimeframe,
+} from "./replay-timeframe";
 import type {
   DataQualityMode,
   EngineBacktestRunArgs,
@@ -14,7 +20,7 @@ const DATA_QUALITY = new Set<DataQualityMode>(["strict", "basic"]);
 const PRICE_PATHS = new Set(["ohlc_path_4", "close_only"]);
 
 export const ENGINE_BACKTEST_RUN_USAGE = [
-  "alphafox engine-backtest run --experiment <uuid> --definition <id> --config @file.json --exchange <id> --range YYYY-MM-DD..YYYY-MM-DD --initial-equity N",
+  "alphafox engine-backtest run --experiment <uuid> --definition <id> --config @file.json --exchange <id> --range YYYY-MM-DD..YYYY-MM-DD --initial-equity N [--replay-timeframe 1m]",
   "alphafox engine-backtest run --create-experiment --name <name> --definition <id> --config @file.json --exchange <id> --from YYYY-MM-DD --to YYYY-MM-DD --initial-equity N",
 ];
 
@@ -138,6 +144,8 @@ export function parseEngineBacktestRunArgs(
   let executionModelOverride: Partial<ExecutionModel> | undefined;
   let persist = true;
   let help = false;
+  let replayTimeframe: EngineBacktestReplayTimeframe =
+    ENGINE_BACKTEST_DEFAULT_REPLAY_TIMEFRAME;
 
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i]!;
@@ -237,6 +245,17 @@ export function parseEngineBacktestRunArgs(
       case "--execution-model":
         executionModelOverride = parseExecutionModelJson(read());
         break;
+      case "--replay-timeframe": {
+        const raw = read().trim();
+        if (!isEngineBacktestReplayTimeframe(raw)) {
+          usage(
+            `--replay-timeframe must be ${ENGINE_BACKTEST_REPLAY_TIMEFRAMES.join("|")} (got ${raw})`,
+            "invalid_replay_timeframe"
+          );
+        }
+        replayTimeframe = raw;
+        break;
+      }
       default:
         usage(`Unknown flag: ${flag}`, "unknown_flag");
     }
@@ -249,6 +268,7 @@ export function parseEngineBacktestRunArgs(
       tier,
       dataQualityMode,
       persist,
+      replayTimeframe,
     };
   }
 
@@ -313,5 +333,6 @@ export function parseEngineBacktestRunArgs(
     configSchemaVersion,
     executionModelOverride,
     persist,
+    replayTimeframe,
   };
 }

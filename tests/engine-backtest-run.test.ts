@@ -190,6 +190,7 @@ describe("engine-backtest parse", () => {
     assert.equal(parsed.tier, undefined);
     assert.equal(parsed.dataQualityMode, "strict");
     assert.equal(parsed.persist, true);
+    assert.equal(parsed.replayTimeframe, "1m");
   });
 
   it("rejects calendar dates that Date.parse would normalize", () => {
@@ -501,6 +502,8 @@ describe("engine-backtest orchestration", () => {
             `tape:${req.symbols.join(",")}:${req.fromMs}:${req.toMs}:${req.dataQualityMode}`
           );
           assert.equal(req.exchangeId, "binance_perp_usdt");
+          assert.equal(req.baseTimeframe, "1m");
+          assert.deepEqual(req.timeframes, PLAN.timeframes);
           assert.deepEqual(req.seriesRequirements, PLAN.seriesRequirements);
           assert.equal(req.needsFunding, false);
           return sampleTape();
@@ -597,6 +600,69 @@ describe("engine-backtest orchestration", () => {
     );
     assert.equal(result.engineVersion, "test-engine");
     assert.deepEqual(result.metrics, METRICS);
+  });
+
+  it("defaults tape replay to 1m when the plan only has a coarser indicator", async () => {
+    const fourHourPlan: EngineSupportedBacktestPlan = {
+      ...PLAN,
+      timeframes: ["4h"],
+      seriesRequirements: [
+        { symbol: "BTC/USDT:USDT", timeframe: "4h", minWarmupCandles: 200 },
+      ],
+    };
+    let tapeRequest: {
+      readonly baseTimeframe?: string;
+      readonly timeframes: readonly string[];
+      readonly seriesRequirements?: readonly {
+        readonly symbol: string;
+        readonly timeframe: string;
+        readonly minWarmupCandles: number;
+      }[];
+    } | undefined;
+    await executeEngineBacktestRun(
+      parseEngineBacktestRunArgs([
+        "--experiment",
+        "11111111-1111-1111-1111-111111111111",
+        "--definition",
+        "grid",
+        "--config",
+        "{}",
+        "--exchange",
+        "binance",
+        "--range",
+        "2026-08-01..2026-08-08",
+        "--initial-equity",
+        "10000",
+        "--no-persist",
+        "--tier",
+        "pro",
+      ]),
+      FLAGS,
+      { ALPHAFOX_CONFIG_DIR: mkdtempSync(join(tmpdir(), "alphafox-cfg-")) },
+      {
+        createNodeBacktestClient: () =>
+          fakeClient({ planBacktest: async () => fourHourPlan }),
+        loadTape: async (req) => {
+          tapeRequest = req;
+          return sampleTape();
+        },
+        assembleScenario: (input) => sampleScenario(input.runId),
+        resolveTapeExchange: () => ({
+          id: "binance_perp_usdt",
+          label: "Binance",
+          ccxtId: "binanceusdm",
+          marketType: "swap",
+          quoteAsset: "USDT",
+        }),
+        defaultExecutionModel: DEFAULT_EXECUTION_MODEL,
+      }
+    );
+    assert.equal(tapeRequest?.baseTimeframe, "1m");
+    assert.deepEqual(tapeRequest?.timeframes, ["1m", "4h"]);
+    assert.deepEqual(tapeRequest?.seriesRequirements, [
+      { symbol: "BTC/USDT:USDT", timeframe: "4h", minWarmupCandles: 200 },
+      { symbol: "BTC/USDT:USDT", timeframe: "1m", minWarmupCandles: 0 },
+    ]);
   });
 
   it("does not POST runs.create with --no-persist", async () => {

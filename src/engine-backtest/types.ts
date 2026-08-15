@@ -34,6 +34,8 @@ export interface EngineBacktestRunArgs {
   readonly configSchemaVersion?: number;
   readonly executionModelOverride?: Partial<ExecutionModel>;
   readonly persist: boolean;
+  /** Replay/download bar. Defaults to 1m; never finer. */
+  readonly replayTimeframe: string;
 }
 
 export interface EngineBacktestSeriesRequirement {
@@ -205,6 +207,7 @@ export interface BacktestRunnerModule {
       readonly exchangeId?: string;
       readonly exchange?: TapeExchangeDefinition;
       readonly symbols: readonly string[];
+      readonly baseTimeframe?: string;
       readonly timeframes: readonly string[];
       readonly seriesRequirements?: readonly EngineBacktestSeriesRequirement[];
       readonly needsFunding?: boolean;

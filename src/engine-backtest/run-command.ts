@@ -18,6 +18,7 @@ import {
   DEFAULT_EXECUTION_MODEL,
   experimentPageUrl,
 } from "./persist";
+import { mergeReplayTimeframeWithPlan } from "./replay-timeframe";
 import {
   loadBacktestRunner,
   loadBacktestWasm,
@@ -439,14 +440,22 @@ export async function executeEngineBacktestRun(
       });
     }
 
+    const replayPlan = mergeReplayTimeframeWithPlan({
+      replayTimeframe: args.replayTimeframe,
+      planTimeframes: plan.timeframes,
+      seriesRequirements: plan.seriesRequirements,
+      symbols: plan.symbols,
+    });
+
     let tapeResult;
     try {
       tapeResult = await runner.loadTape({
         exchangeId: exchange.id,
         exchange,
         symbols: plan.symbols,
-        timeframes: plan.timeframes,
-        seriesRequirements: plan.seriesRequirements,
+        baseTimeframe: replayPlan.baseTimeframe,
+        timeframes: replayPlan.timeframes,
+        seriesRequirements: replayPlan.seriesRequirements,
         needsFunding: plan.needsFunding,
         auxiliaryDataRequirements: plan.auxiliaryDataRequirements,
         fromMs: args.range.fromMs,
@@ -597,6 +606,7 @@ export function engineBacktestHelpData(): {
       "Local WASM run is hyphenated engine-backtest so it does not steal typed catalog engine_backtest.*",
       "runs.create is write (not high-risk-write); --yes is not required",
       "Do not pass --token; use alphafox auth login",
+      "--replay-timeframe defaults to 1m (min 1m). Indicator series still download their native plan timeframes.",
     ],
   };
 }

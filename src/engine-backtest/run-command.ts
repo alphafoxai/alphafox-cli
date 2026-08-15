@@ -31,6 +31,7 @@ import type {
   EngineBacktestRunArgs,
   EngineBacktestRunSuccess,
   EngineBacktestScenario,
+  SubscriptionTier,
   TapeLoadProgress,
 } from "./types";
 
@@ -63,6 +64,12 @@ export interface EngineBacktestRunDeps {
 }
 
 const CREATE_EXPERIMENT_PATH = "/api/v1/engine-backtest/experiments";
+const SUBSCRIPTION_PATH = "/api/v1/subscriptions/me";
+const SUBSCRIPTION_TIERS = new Set<SubscriptionTier>([
+  "free",
+  "pro",
+  "pro_max",
+]);
 
 function runsPath(experimentId: string): string {
   return `/api/v1/engine-backtest/experiments/${encodeURIComponent(experimentId)}/runs`;
@@ -209,6 +216,55 @@ async function postJson(
   return res;
 }
 
+function extractSubscriptionTier(json: unknown): SubscriptionTier | undefined {
+  if (!json || typeof json !== "object") return undefined;
+  const root = json as Record<string, unknown>;
+  const nested =
+    root.data && typeof root.data === "object"
+      ? (root.data as Record<string, unknown>)
+      : undefined;
+  const value = root.subscriptionTier ?? nested?.subscriptionTier;
+  return typeof value === "string" &&
+    SUBSCRIPTION_TIERS.has(value as SubscriptionTier)
+    ? (value as SubscriptionTier)
+    : undefined;
+}
+
+async function loadAccountSubscriptionTier(
+  api: NonNullable<EngineBacktestRunDeps["apiRequest"]>,
+  profile: ProfileConfig,
+  env: NodeJS.ProcessEnv
+): Promise<SubscriptionTier> {
+  const res = await api(
+    {
+      method: "GET",
+      path: SUBSCRIPTION_PATH,
+      profile,
+    },
+    env
+  );
+  if (res.status >= 400) {
+    throw new EngineBacktestError({
+      type: "http",
+      status: res.status,
+      message: extractErrorMessage(res.json, res.bodyText),
+      code: extractErrorCode(res.json),
+      details: res.json,
+    });
+  }
+  const tier = extractSubscriptionTier(res.json);
+  if (!tier) {
+    throw new EngineBacktestError({
+      type: "runtime",
+      subtype: "subscription_tier_unresolved",
+      message:
+        "subscriptions.me response did not include a valid subscriptionTier",
+      details: res.json,
+    });
+  }
+  return tier;
+}
+
 function emitProgress(
   flags: EngineBacktestCliFlags,
   writeLine: (value: unknown) => void,
@@ -271,24 +327,7 @@ export async function executeEngineBacktestRun(
   });
 
   let experimentId = args.experimentId;
-  if (createExperiment) {
-    const body = {
-      name: args.name,
-      strategyDefinitionId: args.definitionId,
-      strategyDefinitionDisplay: definitionDisplay(args),
-    };
-    const res = await postJson(api, profile, env, CREATE_EXPERIMENT_PATH, body, mintId);
-    experimentId = extractEntityId(res.json);
-    if (!experimentId) {
-      throw new EngineBacktestError({
-        type: "runtime",
-        subtype: "create_experiment_no_id",
-        message: "experiments.create response did not include an id",
-        details: res.json,
-      });
-    }
-  }
-  if (!experimentId) {
+  if (!experimentId && !createExperiment) {
     throw new EngineBacktestError({
       type: "usage",
       subtype: "missing_experiment",
@@ -371,6 +410,23 @@ export async function executeEngineBacktestRun(
       });
     }
 
+    let subscriptionTier: SubscriptionTier = args.tier ?? "pro";
+    if (persist) {
+      const accountTier = await loadAccountSubscriptionTier(api, profile, env);
+      if (args.tier !== undefined && args.tier !== accountTier) {
+        throw new EngineBacktestError({
+          type: "usage",
+          subtype: "subscription_tier_mismatch",
+          message: `--tier ${args.tier} does not match account subscription tier ${accountTier}`,
+          hint:
+            "Remove --tier for persisted runs, or use --no-persist to simulate another tier.",
+          status: 400,
+          details: { requestedTier: args.tier, accountTier },
+        });
+      }
+      subscriptionTier = accountTier;
+    }
+
     let exchange;
     try {
       exchange = runner.resolveTapeExchange(args.exchange);
@@ -430,7 +486,7 @@ export async function executeEngineBacktestRun(
       definitionId: args.definitionId,
       configSchemaVersion,
       config: plan.effectiveConfig ?? config,
-      subscriptionTier: args.tier,
+      subscriptionTier,
       initialEquity: args.initialEquity!,
       tape: tapeResult.tape,
       executionModel,
@@ -456,6 +512,39 @@ export async function executeEngineBacktestRun(
       result.engineVersion?.trim() ||
       (typeof client.version === "function" ? (await client.version()).trim() : "") ||
       "node-wasm";
+
+    if (createExperiment) {
+      const body = {
+        name: args.name,
+        strategyDefinitionId: args.definitionId,
+        strategyDefinitionDisplay: definitionDisplay(args),
+      };
+      const res = await postJson(
+        api,
+        profile,
+        env,
+        CREATE_EXPERIMENT_PATH,
+        body,
+        mintId
+      );
+      experimentId = extractEntityId(res.json);
+      if (!experimentId) {
+        throw new EngineBacktestError({
+          type: "runtime",
+          subtype: "create_experiment_no_id",
+          message: "experiments.create response did not include an id",
+          details: res.json,
+        });
+      }
+    }
+    if (!experimentId) {
+      throw new EngineBacktestError({
+        type: "usage",
+        subtype: "missing_experiment",
+        message: "Provide --experiment <uuid> or --create-experiment --name <name>",
+        status: 400,
+      });
+    }
 
     let persistedRunId: string | undefined;
     if (persist) {

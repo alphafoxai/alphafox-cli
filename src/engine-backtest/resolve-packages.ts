@@ -4,12 +4,48 @@ import { dirname, isAbsolute, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { EngineBacktestError } from "./errors";
+import { importNativeModule } from "./native-import";
 import type { BacktestRunnerModule, BacktestWasmModule } from "./types";
 
 const WASM_SPEC = "@alphafoxai/backtest-wasm/node";
 const RUNNER_SPEC = "@alphafoxai/backtest-runner";
 
 export type PackageKind = "wasm" | "runner";
+
+interface PackageDescriptor {
+  readonly specifier: string;
+  readonly envKey:
+    | "ALPHAFOX_BACKTEST_WASM_DIR"
+    | "ALPHAFOX_BACKTEST_RUNNER_DIR";
+  readonly npmName: "backtest-wasm" | "backtest-runner";
+  readonly exportKey: "./node" | ".";
+  readonly useMainFallback: boolean;
+  readonly entryCandidates: readonly string[];
+  readonly installHint: string;
+}
+
+const PACKAGE_DESCRIPTORS: Record<PackageKind, PackageDescriptor> = {
+  wasm: {
+    specifier: WASM_SPEC,
+    envKey: "ALPHAFOX_BACKTEST_WASM_DIR",
+    npmName: "backtest-wasm",
+    exportKey: "./node",
+    useMainFallback: false,
+    entryCandidates: ["node.mjs", "node.js", "node.cjs"],
+    installHint:
+      "Install @alphafoxai/backtest-wasm, or set ALPHAFOX_BACKTEST_WASM_DIR / ALPHAFOX_ENGINE_ROOT.",
+  },
+  runner: {
+    specifier: RUNNER_SPEC,
+    envKey: "ALPHAFOX_BACKTEST_RUNNER_DIR",
+    npmName: "backtest-runner",
+    exportKey: ".",
+    useMainFallback: true,
+    entryCandidates: ["index.mjs", "index.js", "index.cjs"],
+    installHint:
+      "Install @alphafoxai/backtest-runner, or set ALPHAFOX_BACKTEST_RUNNER_DIR / ALPHAFOX_ENGINE_ROOT.",
+  },
+};
 
 export interface ResolvedPackagePath {
   readonly kind: PackageKind;
@@ -103,12 +139,12 @@ function entryFromPackageDir(
   hooks?: ResolvePackageHooks
 ): string | undefined {
   if (!existsPath(dir, hooks)) return undefined;
+  const descriptor = PACKAGE_DESCRIPTORS[kind];
   const pkgPath = join(dir, "package.json");
   if (existsPath(pkgPath, hooks)) {
     try {
       const req = createRequire(pkgPath);
-      const spec = kind === "wasm" ? WASM_SPEC : RUNNER_SPEC;
-      return req.resolve(spec);
+      return req.resolve(descriptor.specifier);
     } catch {
       // fall through to known filenames
     }
@@ -117,49 +153,28 @@ function entryFromPackageDir(
         exports?: Record<string, unknown>;
         main?: string;
       };
-      if (kind === "wasm") {
-        const exp = pkg.exports?.["./node"];
-        const file =
-          typeof exp === "string"
-            ? exp
-            : exp && typeof exp === "object"
-              ? String(
-                  (exp as { default?: string; import?: string }).default ??
-                    (exp as { import?: string }).import ??
-                    ""
-                )
-              : "";
-        if (file) {
-          const abs = join(dir, file);
-          if (existsPath(abs, hooks)) return abs;
-        }
-      } else {
-        const exp = pkg.exports?.["."];
-        const file =
-          typeof exp === "string"
-            ? exp
-            : exp && typeof exp === "object"
-              ? String(
-                  (exp as { default?: string; import?: string }).default ??
-                    (exp as { import?: string }).import ??
-                    pkg.main ??
-                    ""
-                )
-              : (pkg.main ?? "");
-        if (file) {
-          const abs = join(dir, file);
-          if (existsPath(abs, hooks)) return abs;
-        }
+      const exp = pkg.exports?.[descriptor.exportKey];
+      const mainFallback = descriptor.useMainFallback ? pkg.main : undefined;
+      const file =
+        typeof exp === "string"
+          ? exp
+          : exp && typeof exp === "object"
+            ? String(
+                (exp as { default?: string; import?: string }).default ??
+                  (exp as { import?: string }).import ??
+                  mainFallback ??
+                  ""
+              )
+            : (mainFallback ?? "");
+      if (file) {
+        const abs = join(dir, file);
+        if (existsPath(abs, hooks)) return abs;
       }
     } catch {
       // ignore malformed package.json
     }
   }
-  const candidates =
-    kind === "wasm"
-      ? ["node.mjs", "node.js", "node.cjs"]
-      : ["index.mjs", "index.js", "index.cjs"];
-  for (const name of candidates) {
+  for (const name of descriptor.entryCandidates) {
     const abs = join(dir, name);
     if (existsPath(abs, hooks)) return abs;
   }
@@ -175,12 +190,8 @@ export function resolveBacktestPackagePath(
   env: NodeJS.ProcessEnv = process.env,
   hooks?: ResolvePackageHooks
 ): ResolvedPackagePath {
-  const specifier = kind === "wasm" ? WASM_SPEC : RUNNER_SPEC;
-  const envKey =
-    kind === "wasm"
-      ? "ALPHAFOX_BACKTEST_WASM_DIR"
-      : "ALPHAFOX_BACKTEST_RUNNER_DIR";
-  const npmName = kind === "wasm" ? "backtest-wasm" : "backtest-runner";
+  const descriptor = PACKAGE_DESCRIPTORS[kind];
+  const { specifier, envKey, npmName } = descriptor;
   const tried: string[] = [];
 
   const fromNode = nodeResolve(specifier, hooks);
@@ -205,7 +216,7 @@ export function resolveBacktestPackagePath(
       type: "runtime",
       subtype: "package_unresolved",
       message: `Cannot resolve ${specifier} from ${envKey}=${abs}`,
-      hint: `Point ${envKey} at the npm/${npmName} package directory (must contain ${kind === "wasm" ? "node.mjs" : "index.mjs"}).`,
+      hint: `Point ${envKey} at the npm/${npmName} package directory (must contain ${descriptor.entryCandidates[0]}).`,
       details: { specifier, envKey, dir: abs, tried },
     });
   }
@@ -244,10 +255,7 @@ export function resolveBacktestPackagePath(
     type: "runtime",
     subtype: "package_unresolved",
     message: `Cannot resolve ${specifier}`,
-    hint:
-      kind === "wasm"
-        ? "Install @alphafoxai/backtest-wasm, or set ALPHAFOX_BACKTEST_WASM_DIR / ALPHAFOX_ENGINE_ROOT."
-        : "Install @alphafoxai/backtest-runner, or set ALPHAFOX_BACKTEST_RUNNER_DIR / ALPHAFOX_ENGINE_ROOT.",
+    hint: descriptor.installHint,
     details: { specifier, tried },
   });
 }
@@ -260,7 +268,7 @@ async function importFile(
   if (hooks?.importModule) {
     return hooks.importModule(url);
   }
-  return import(url);
+  return importNativeModule(url);
 }
 
 function assertWasmModule(mod: unknown, filePath: string): BacktestWasmModule {

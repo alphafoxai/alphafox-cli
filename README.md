@@ -31,7 +31,9 @@ alphafox api GET /api/v1/me
 
 ## Skills
 
-Co-versioned Agent Skills live under `skills/`. They route intent to public `operationId`s only.
+Co-versioned Agent Skills live under `skills/`. API-oriented skills route public
+`operationId`s; an explicit local-execution skill may call its co-versioned
+built-in command.
 
 ## Docs
 

@@ -187,9 +187,20 @@ describe("engine-backtest parse", () => {
       "10000",
     ]);
     assert.deepEqual(parsed.range, a);
-    assert.equal(parsed.tier, "pro");
+    assert.equal(parsed.tier, undefined);
     assert.equal(parsed.dataQualityMode, "strict");
     assert.equal(parsed.persist, true);
+  });
+
+  it("rejects calendar dates that Date.parse would normalize", () => {
+    assert.throws(
+      () => parseRangeFlag("2026-02-30..2026-03-02"),
+      (err: unknown) => {
+        assert.ok(err instanceof EngineBacktestError);
+        assert.equal(err.subtype, "invalid_range");
+        return true;
+      }
+    );
   });
 
   it("fails when --experiment and --create-experiment are both missing", () => {
@@ -379,6 +390,62 @@ describe("engine-backtest resolve-packages", () => {
       }
     );
   });
+
+  it("loads real runner and wasm .mjs files from the CommonJS build", async () => {
+    const runnerDir = mkdtempSync(join(tmpdir(), "alphafox-runner-mjs-"));
+    writeFileSync(
+      join(runnerDir, "package.json"),
+      JSON.stringify({
+        name: "@alphafoxai/backtest-runner",
+        type: "module",
+        exports: { ".": "./index.mjs" },
+      })
+    );
+    writeFileSync(
+      join(runnerDir, "index.mjs"),
+      [
+        "export async function loadTape() { return { tape: {}, buffers: {}, coverageWarnings: [] }; }",
+        "export function assembleScenario(input) { return input; }",
+        "export function resolveTapeExchange(id) { return { id }; }",
+        "export const DEFAULT_EXECUTION_MODEL = { pricePath: 'close_only' };",
+      ].join("\n")
+    );
+
+    const wasmDir = mkdtempSync(join(tmpdir(), "alphafox-wasm-mjs-"));
+    writeFileSync(
+      join(wasmDir, "package.json"),
+      JSON.stringify({
+        name: "@alphafoxai/backtest-wasm",
+        type: "module",
+        exports: { "./node": "./node.mjs" },
+      })
+    );
+    writeFileSync(
+      join(wasmDir, "node.mjs"),
+      "export function createNodeBacktestClient() { return { from: 'real-mjs' }; }\n"
+    );
+
+    const builtResolver = require(
+      join(__dirname, "..", "..", "dist", "engine-backtest", "resolve-packages.js")
+    ) as typeof import("../src/engine-backtest/resolve-packages");
+    const hooks = {
+      requireResolve: () => {
+        throw new Error("force env package directories");
+      },
+    };
+    const runner = await builtResolver.loadBacktestRunner(
+      { ALPHAFOX_BACKTEST_RUNNER_DIR: runnerDir },
+      hooks
+    );
+    const wasm = await builtResolver.loadBacktestWasm(
+      { ALPHAFOX_BACKTEST_WASM_DIR: wasmDir },
+      hooks
+    );
+
+    assert.equal(typeof runner.module.loadTape, "function");
+    assert.equal(runner.module.DEFAULT_EXECUTION_MODEL.pricePath, "close_only");
+    assert.equal(typeof wasm.module.createNodeBacktestClient, "function");
+  });
 });
 
 describe("engine-backtest orchestration", () => {
@@ -419,6 +486,8 @@ describe("engine-backtest orchestration", () => {
         "2026-08-01..2026-08-08",
         "--initial-equity",
         "10000",
+        "--tier",
+        "pro_max",
       ]),
       FLAGS,
       {
@@ -480,6 +549,9 @@ describe("engine-backtest orchestration", () => {
         }),
         apiRequest: async (options: ApiRequestOptions) => {
           calls.push(`api:${options.method}:${options.path}`);
+          if (options.method === "GET") {
+            return jsonResponse(200, { subscriptionTier: "pro_max" });
+          }
           apiBodies.push(options.body);
           return jsonResponse(201, { id: "run-persisted-1" });
         },
@@ -495,6 +567,7 @@ describe("engine-backtest orchestration", () => {
 
     assert.deepEqual(calls, [
       "plan:grid:4",
+      "api:GET:/api/v1/subscriptions/me",
       "exchange:binance",
       `tape:BTC/USDT:USDT:${Date.parse("2026-08-01T00:00:00Z")}:${Date.parse("2026-08-09T00:00:00Z")}:strict`,
       "assemble:grid",
@@ -503,11 +576,17 @@ describe("engine-backtest orchestration", () => {
       "terminate",
     ]);
     const body = apiBodies[0] as {
-      snapshot: { rangeEnd: string; executionModel: unknown; exchangeId: string };
+      snapshot: {
+        rangeEnd: string;
+        executionModel: unknown;
+        exchangeId: string;
+        subscriptionTier: string;
+      };
       clientRunId: string;
     };
     assert.equal(body.snapshot.rangeEnd, "2026-08-08");
     assert.equal(body.snapshot.exchangeId, "binance_perp_usdt");
+    assert.equal(body.snapshot.subscriptionTier, "pro_max");
     assert.deepEqual(body.snapshot.executionModel, DEFAULT_EXECUTION_MODEL);
     assert.equal(result.persisted, true);
     assert.equal(result.runId, "run-persisted-1");
@@ -538,13 +617,24 @@ describe("engine-backtest orchestration", () => {
         "--initial-equity",
         "10000",
         "--no-persist",
+        "--tier",
+        "free",
       ]),
       FLAGS,
       { ALPHAFOX_CONFIG_DIR: mkdtempSync(join(tmpdir(), "alphafox-cfg-")) },
       {
         createNodeBacktestClient: () => client,
         loadTape: async () => sampleTape(),
-        assembleScenario: (input) => sampleScenario(input.runId),
+        assembleScenario: (input) => {
+          assert.equal(input.subscriptionTier, "free");
+          return {
+            ...sampleScenario(input.runId),
+            trader: {
+              ...sampleScenario(input.runId).trader,
+              subscriptionTier: input.subscriptionTier,
+            },
+          };
+        },
         resolveTapeExchange: () => ({
           id: "binance_perp_usdt",
           label: "Binance",
@@ -563,8 +653,9 @@ describe("engine-backtest orchestration", () => {
     assert.equal(result.runId, undefined);
   });
 
-  it("POSTs experiments.create then skips runs.create when creating + no-persist", async () => {
+  it("creates an experiment after the local run and skips runs.create with --no-persist", async () => {
     const apiCalls: string[] = [];
+    let runCompleted = false;
     const result = await executeEngineBacktestRun(
       parseEngineBacktestRunArgs([
         "--create-experiment",
@@ -589,9 +680,23 @@ describe("engine-backtest orchestration", () => {
       FLAGS,
       { ALPHAFOX_CONFIG_DIR: mkdtempSync(join(tmpdir(), "alphafox-cfg-")) },
       {
-        createNodeBacktestClient: () => fakeClient(),
+        createNodeBacktestClient: () =>
+          fakeClient({
+            runBacktest: async (scenario) => {
+              runCompleted = true;
+              return {
+                runId: scenario.runId,
+                status: "completed",
+                engineVersion: "test-engine",
+                metrics: METRICS,
+              };
+            },
+          }),
         loadTape: async () => sampleTape(),
-        assembleScenario: (input) => sampleScenario(input.runId),
+        assembleScenario: (input) => {
+          assert.equal(input.subscriptionTier, "pro");
+          return sampleScenario(input.runId);
+        },
         resolveTapeExchange: () => ({
           id: "binance_perp_usdt",
           label: "Binance",
@@ -610,6 +715,7 @@ describe("engine-backtest orchestration", () => {
           scopes: ["openid"],
         }),
         apiRequest: async (options) => {
+          assert.equal(runCompleted, true);
           apiCalls.push(`${options.method} ${options.path}`);
           assert.deepEqual(options.body, {
             name: "grid-aug",
@@ -625,14 +731,16 @@ describe("engine-backtest orchestration", () => {
     assert.equal(result.persisted, false);
   });
 
-  it("fails closed when plan is unsupported and does not load tape", async () => {
+  it("does not create an experiment when planning fails", async () => {
     let tapeCalls = 0;
+    const apiCalls: string[] = [];
     await assert.rejects(
       () =>
         executeEngineBacktestRun(
           parseEngineBacktestRunArgs([
-            "--experiment",
-            "11111111-1111-1111-1111-111111111111",
+            "--create-experiment",
+            "--name",
+            "must-not-exist",
             "--definition",
             "grid",
             "--config",
@@ -676,6 +784,20 @@ describe("engine-backtest orchestration", () => {
               marketType: "swap",
               quoteAsset: "USDT",
             }),
+            loadTokens: () => ({
+              accessToken: "test-access",
+              refreshToken: "",
+              expiresAt: Date.now() + 60_000,
+              environment: "local",
+              issuer: localProfile.issuer,
+              audience: localProfile.audience,
+              clientId: localProfile.clientId,
+              scopes: ["openid"],
+            }),
+            apiRequest: async (options) => {
+              apiCalls.push(`${options.method} ${options.path}`);
+              return jsonResponse(500, { message: "must not create" });
+            },
           }
         ),
       (err: unknown) => {
@@ -690,15 +812,18 @@ describe("engine-backtest orchestration", () => {
       }
     );
     assert.equal(tapeCalls, 0);
+    assert.deepEqual(apiCalls, []);
   });
 
-  it("fails with a package_unresolved envelope instead of hanging", async () => {
+  it("does not create an experiment when packages are unresolved", async () => {
+    const apiCalls: string[] = [];
     await assert.rejects(
       () =>
         executeEngineBacktestRun(
           parseEngineBacktestRunArgs([
-            "--experiment",
-            "11111111-1111-1111-1111-111111111111",
+            "--create-experiment",
+            "--name",
+            "must-not-exist",
             "--definition",
             "grid",
             "--config",
@@ -722,6 +847,20 @@ describe("engine-backtest orchestration", () => {
               cliRoot: join(tmpdir(), "alphafox-cli-missing-root"),
               callerFilename: join(tmpdir(), "no-such-cli", "src", "x.js"),
             },
+            loadTokens: () => ({
+              accessToken: "test-access",
+              refreshToken: "",
+              expiresAt: Date.now() + 60_000,
+              environment: "local",
+              issuer: localProfile.issuer,
+              audience: localProfile.audience,
+              clientId: localProfile.clientId,
+              scopes: ["openid"],
+            }),
+            apiRequest: async (options) => {
+              apiCalls.push(`${options.method} ${options.path}`);
+              return jsonResponse(500, { message: "must not create" });
+            },
           }
         ),
       (err: unknown) => {
@@ -731,6 +870,69 @@ describe("engine-backtest orchestration", () => {
         return true;
       }
     );
+    assert.deepEqual(apiCalls, []);
+  });
+
+  it("rejects an explicit persisted tier that differs from the account tier", async () => {
+    const apiCalls: string[] = [];
+    await assert.rejects(
+      () =>
+        executeEngineBacktestRun(
+          parseEngineBacktestRunArgs([
+            "--experiment",
+            "11111111-1111-1111-1111-111111111111",
+            "--definition",
+            "grid",
+            "--config",
+            "{}",
+            "--exchange",
+            "binance",
+            "--range",
+            "2026-08-01..2026-08-08",
+            "--initial-equity",
+            "10000",
+            "--tier",
+            "free",
+          ]),
+          FLAGS,
+          { ALPHAFOX_CONFIG_DIR: mkdtempSync(join(tmpdir(), "alphafox-cfg-")) },
+          {
+            createNodeBacktestClient: () => fakeClient(),
+            loadTape: async () => sampleTape(),
+            assembleScenario: (input) => sampleScenario(input.runId),
+            resolveTapeExchange: () => ({
+              id: "binance_perp_usdt",
+              label: "Binance",
+              ccxtId: "binanceusdm",
+              marketType: "swap",
+              quoteAsset: "USDT",
+            }),
+            loadTokens: () => ({
+              accessToken: "test-access",
+              refreshToken: "",
+              expiresAt: Date.now() + 60_000,
+              environment: "local",
+              issuer: localProfile.issuer,
+              audience: localProfile.audience,
+              clientId: localProfile.clientId,
+              scopes: ["openid"],
+            }),
+            apiRequest: async (options) => {
+              apiCalls.push(`${options.method} ${options.path}`);
+              return jsonResponse(200, {
+                data: { subscriptionTier: "pro" },
+              });
+            },
+          }
+        ),
+      (err: unknown) => {
+        assert.ok(err instanceof EngineBacktestError);
+        assert.equal(err.subtype, "subscription_tier_mismatch");
+        assert.match(err.message, /free.*pro/);
+        return true;
+      }
+    );
+    assert.deepEqual(apiCalls, ["GET /api/v1/subscriptions/me"]);
   });
 
   it("fails like whoami when persist is requested without tokens", async () => {

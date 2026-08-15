@@ -28,7 +28,8 @@ export interface EngineBacktestRunArgs {
   readonly exchange?: string;
   readonly range?: InclusiveUtcDateRange;
   readonly initialEquity?: number;
-  readonly tier: SubscriptionTier;
+  /** Explicit --tier value. Persisted runs otherwise use the account tier. */
+  readonly tier?: SubscriptionTier;
   readonly dataQualityMode: DataQualityMode;
   readonly configSchemaVersion?: number;
   readonly executionModelOverride?: Partial<ExecutionModel>;

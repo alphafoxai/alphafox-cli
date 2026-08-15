@@ -57,6 +57,8 @@ export function parseInclusiveUtcDateRange(
     !Number.isFinite(fromMs) ||
     !Number.isFinite(endStartMs) ||
     !Number.isFinite(toMs) ||
+    new Date(fromMs).toISOString().slice(0, 10) !== rangeStart ||
+    new Date(endStartMs).toISOString().slice(0, 10) !== rangeEnd ||
     endStartMs < fromMs
   ) {
     usage(
@@ -130,7 +132,7 @@ export function parseEngineBacktestRunArgs(
   let from: string | undefined;
   let to: string | undefined;
   let initialEquity: number | undefined;
-  let tier: SubscriptionTier = "pro";
+  let tier: SubscriptionTier | undefined;
   let dataQualityMode: DataQualityMode = "strict";
   let configSchemaVersion: number | undefined;
   let executionModelOverride: Partial<ExecutionModel> | undefined;

@@ -42,7 +42,7 @@ alphafox engine-backtest run \
   --format jsonl --no-input
 ```
 
-Also valid: `--from` / `--to` instead of `--range`. `--create-experiment --name "..."` when there is no `--experiment` (needs `strategyDefinitionId` + `strategyDefinitionDisplay` `{zh,en}`; pass `--definition-label-zh` / `--definition-label-en` or the CLI falls back to the definition id). `--tier` defaults to `pro` (do not silently raise to `pro_max`). `--data-quality` defaults to `strict`. `--no-persist` skips `runs.create`. `runs.create` is `write`, not `high-risk-write` — do not add `--yes`. Do not update or delete experiments through this command.
+Also valid: `--from` / `--to` instead of `--range`. `--create-experiment --name "..."` when there is no `--experiment` (needs `strategyDefinitionId` + `strategyDefinitionDisplay` `{zh,en}`; pass `--definition-label-zh` / `--definition-label-en` or the CLI falls back to the definition id). Persisted runs use the account tier from `subscriptions.me.get`; if `--tier` is supplied, it must match. With `--no-persist`, `runs.create` is skipped and `--tier` may simulate `free|pro|pro_max` (default `pro`). `--data-quality` defaults to `strict`. `runs.create` is `write`, not `high-risk-write` — do not add `--yes`. Do not update or delete experiments through this command.
 
 `--format jsonl` writes one JSON object per progress line (`{event:"progress",stage,fraction}`), then a final `{ok:true,data:{...}}` envelope.
 

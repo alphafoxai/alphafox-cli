@@ -174,7 +174,8 @@ describe("install wizard", () => {
     assert.equal(result.skills.action, "planned");
     assert.equal(result.skills.scope, "global");
     assert.equal(result.skills.source, SKILLS_GITHUB_SOURCE);
-    assert.equal(result.auth.action, "planned");
+    assert.equal(result.auth.action, "skipped");
+    assert.equal(result.auth.reason, "no-auth");
     assert.equal(
       execCalls.some((c) => c.command === "npm" && c.args[0] === "install"),
       false

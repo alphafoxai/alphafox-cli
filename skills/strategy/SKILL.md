@@ -17,8 +17,13 @@ alphafox api GET /api/v1/trading/strategy-definitions --format json --no-input
 
 ## Write (ordinary)
 
+Read `request.body` first. Do not invent chat or strategy fields.
+
 ```bash
-alphafox api POST /api/v1/chats --body '{"strategyGenerationMode":"simple"}' --format json --no-input
+alphafox schema chats.create --format json --no-input
+alphafox chats create --body '{"strategyGenerationMode":"simple"}' --format json --no-input
+# large / nested bodies:
+# alphafox chats create --config @./create-chat.json --format json --no-input
 ```
 
 Requires auth. Sends `Idempotency-Key` when available. Duplicate key → `409`; do not invent a new key unless the operator asks to create another chat.
@@ -28,6 +33,7 @@ Engine strategy backtest (WASM tape + persist) is `skills/engine-backtest` (`alp
 ## Long-running backtest
 
 ```bash
+alphafox schema backtests.create --format json --no-input
 alphafox api POST /api/v1/backtests --body '{"chatId":"<chat-id>"}' --format json --no-input
 alphafox api GET /api/v1/backtests/{backtestId} --format json --no-input
 alphafox api GET /api/v1/backtests/{backtestId}/stream --format jsonl --no-input

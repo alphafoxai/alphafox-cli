@@ -16,9 +16,12 @@ alphafox api GET /api/v1/trading/traders --format json --no-input
 
 ## High-risk write
 
+Read `alphafox schema trading.traders.byId.start` first. Body may only include documented fields (`reason` is optional). Do not invent keys.
+
 ```bash
-alphafox api POST /api/v1/trading/traders/{traderId}/start --body '{}' --dry-run --format json --no-input
-alphafox api POST /api/v1/trading/traders/{traderId}/start --body '{}' --yes --format json --no-input
+alphafox schema trading.traders.byId.start --format json --no-input
+alphafox trading traders byId start --traderId <id> --body '{}' --dry-run --format json --no-input
+alphafox trading traders byId start --traderId <id> --body '{}' --yes --format json --no-input
 ```
 
 Without `--yes`, CLI exits `10` with `confirmation_required`. Server still checks role/ownership.

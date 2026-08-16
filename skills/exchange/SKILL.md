@@ -12,7 +12,7 @@ Always `--format json --no-input`. List is `exchange-connectors:read`.
 alphafox api GET /api/v1/exchange-connectors --format json --no-input
 ```
 
-Writes that create/disable connectors may be `high-risk-write` — use `--dry-run` / `--yes`. Uncataloged connector POST is treated as unknown risk and still needs `--yes`.
+Writes that create/disable connectors may be `high-risk-write` — `alphafox schema` first, then `--dry-run` / `--yes`. Do not invent connector fields; large bodies use `--config @file`. Uncataloged connector POST cannot carry a non-empty body.
 
 ## Recovery
 

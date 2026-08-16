@@ -164,6 +164,59 @@ describe("cli launch", () => {
     );
   });
 
+  it("write body is validated against catalog before dry-run", () => {
+    const missing = run([
+      "api",
+      "POST",
+      "/api/v1/chats",
+      "--body",
+      "{}",
+      "--dry-run",
+    ]);
+    assert.equal(missing.status, 64, missing.stderr + missing.stdout);
+    const missingErr = JSON.parse(missing.stderr);
+    assert.equal(missingErr.error.subtype, "body_schema");
+
+    const extra = run([
+      "chats",
+      "create",
+      "--body",
+      '{"strategyGenerationMode":"simple","invented":1}',
+      "--dry-run",
+    ]);
+    assert.equal(extra.status, 64, extra.stderr + extra.stdout);
+    const extraErr = JSON.parse(extra.stderr);
+    assert.equal(extraErr.error.subtype, "body_schema");
+
+    const ok = run([
+      "chats",
+      "create",
+      "--body",
+      '{"strategyGenerationMode":"simple"}',
+      "--dry-run",
+    ]);
+    assert.equal(ok.status, 0, ok.stderr + ok.stdout);
+    const json = JSON.parse(ok.stdout);
+    assert.equal(json.data.dryRun, true);
+    assert.equal(json.data.operationId, "chats.create");
+    assert.deepEqual(json.data.body, { strategyGenerationMode: "simple" });
+  });
+
+  it("uncataloged write with a non-empty body fails closed", () => {
+    const r = run([
+      "api",
+      "POST",
+      "/api/v1/me",
+      "--body",
+      '{"invented":true}',
+      "--yes",
+      "--dry-run",
+    ]);
+    assert.equal(r.status, 64, r.stderr + r.stdout);
+    const err = JSON.parse(r.stderr);
+    assert.equal(err.error.subtype, "body_schema_missing");
+  });
+
   it("uncataloged mutation with --yes passes confirmation (dry-run)", () => {
     const r = run([
       "api",

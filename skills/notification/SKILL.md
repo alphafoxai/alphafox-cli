@@ -6,7 +6,7 @@ version: 0.2.0
 
 # Notification
 
-Always `--format json --no-input`. List is `notification:read`. Channel create/replace/delete may be write or high-risk — `--dry-run` / `--yes`.
+Always `--format json --no-input`. List is `notification:read`. Channel create/replace/delete may be write or high-risk — `alphafox schema` first (no invented fields), then `--dry-run` / `--yes`. Large bodies: `--config @file`.
 
 ```bash
 alphafox api GET /api/v1/notification/channels --format json --no-input

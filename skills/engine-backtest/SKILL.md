@@ -16,10 +16,11 @@ Always `--format json --no-input` (or `--format jsonl` when you need progress). 
 | List / get / create / rename / delete experiments and persisted runs | Catalog `engine_backtest.*` (underscore) | Do not invent a second catalog |
 | Chat-attached `/api/v1/backtests` job | `skills/strategy` + `backtests.*` | That stub is **not** the Engine WASM runner |
 
-Read the create-experiment body with:
+Read the create-experiment body with `alphafox schema` **before** composing JSON. Do not invent experiment fields. Large create/run payloads use `--config @file`, never a guessed `--body`.
 
 ```bash
 alphafox schema engine_backtest.experiments.create --format json --no-input
+alphafox engine_backtest experiments create --config @./experiment.json --format json --no-input
 ```
 
 ## Local run

@@ -12,7 +12,7 @@ Requires admin role on the server. CLI confirmation does not grant privilege. No
 alphafox api GET /api/v1/admin/users --format json --no-input
 ```
 
-High-risk admin writes: `--dry-run` then `--yes`. If the operator is not admin, expect `403` and stop.
+High-risk admin writes: `alphafox schema <operationId>` first, then `--dry-run` then `--yes`. Body fields must come from that schema; use `--config @file` for large objects. If the operator is not admin, expect `403` and stop.
 
 ## Recovery
 

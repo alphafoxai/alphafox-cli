@@ -66,3 +66,5 @@ export {
   checkGeneratedCatalogCompatibility,
 } from "./catalog/operations";
 export { CLI_VERSION, CLI_PACKAGE, CLI_CONTRACT_VERSION } from "./version";
+export { validateCatalogWriteBody } from "./catalog/validate-body";
+export { parseRequestBodyFlags, loadJsonArg } from "./commands/request-body";

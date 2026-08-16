@@ -29,7 +29,7 @@ export const ENGINE_BACKTEST_RUN_USAGE = [
 ];
 
 export const ENGINE_BACKTEST_SWEEP_USAGE = [
-  "alphafox engine-backtest sweep --experiment <uuid> --definition <id> --config @file.json --axes @axes.json --exchange <id> --range YYYY-MM-DD..YYYY-MM-DD --initial-equity N --no-persist [--mode neighborhood|range] [--search-mode standard|fast] [--concurrency N]",
+  "alphafox engine-backtest sweep --experiment <uuid> --definition <id> --config @file.json --axes @axes.json --exchange <id> --range YYYY-MM-DD..YYYY-MM-DD --initial-equity N [--no-persist] [--mode neighborhood|range] [--search-mode standard|fast] [--concurrency N]",
 ];
 
 const SWEEP_MODES = new Set<SweepMode>(["neighborhood", "range"]);

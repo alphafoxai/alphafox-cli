@@ -1,10 +1,24 @@
 import { randomUUID } from "node:crypto";
 
+import type { ProfileConfig } from "../config/profiles";
 import { resolveProfile, type ProfileName } from "../config/profiles";
+import type { ApiResponse } from "../http/client";
+import { apiRequest as defaultApiRequest } from "../http/client";
+import { loadTokens } from "../keychain/store";
 import { EngineBacktestError, isEngineBacktestError } from "./errors";
 import { loadConfigValue } from "./load-config";
 import { parseSweepAxesDocument } from "./parse-axes";
-import { DEFAULT_EXECUTION_MODEL, experimentPageUrl } from "./persist";
+import {
+  DEFAULT_EXECUTION_MODEL,
+  buildCreateSweepRequest,
+  buildSweepBaseSnapshot,
+  exclusiveTapeEndToRangeEnd,
+  experimentSweepPageUrl,
+  mintClientSweepId,
+  shouldPersistSweepCompletion,
+  sweepsPath,
+  uniqueSeriesField,
+} from "./persist";
 import { mergeReplayTimeframeWithPlan } from "./replay-timeframe";
 import {
   loadBacktestRunner,
@@ -46,6 +60,14 @@ import type {
 export const MAX_ENGINE_BACKTEST_BATCH_VARIANTS = 256;
 /** Sweep chunk size: below the 256 cap so JSONL can refresh mid-search. */
 export const SWEEP_WASM_BATCH_VARIANTS = 32;
+
+const CREATE_EXPERIMENT_PATH = "/api/v1/engine-backtest/experiments";
+const SUBSCRIPTION_PATH = "/api/v1/subscriptions/me";
+const SUBSCRIPTION_TIERS = new Set<SubscriptionTier>([
+  "free",
+  "pro",
+  "pro_max",
+]);
 
 export interface EngineBacktestSweepDeps extends EngineBacktestRunDeps {
   readonly maxVariantsPerBatch?: number;
@@ -95,16 +117,6 @@ export async function executeEngineBacktestSweep(
       message: "internal: help should be handled by the command wrapper",
     });
   }
-  if (args.persist) {
-    throw new EngineBacktestError({
-      type: "usage",
-      subtype: "persist_not_implemented",
-      message:
-        "Sweep persist is not implemented yet. Re-run with --no-persist for a local search that writes nothing.",
-      hint: "alphafox engine-backtest sweep ... --no-persist",
-      status: 400,
-    });
-  }
   if (!args.definitionId || !args.configRaw || !args.exchange || !args.range || !args.axesRaw) {
     throw new EngineBacktestError({
       type: "usage",
@@ -118,12 +130,19 @@ export async function executeEngineBacktestSweep(
   const profile = resolveProfile(flags.profile, env, {
     unsafeCustomEndpoint: flags.unsafeCustomEndpoint,
   });
+  const api = deps.apiRequest ?? defaultApiRequest;
+  const tokensFn = deps.loadTokens ?? loadTokens;
+  const persist = args.persist && !flags.dryRun;
+  const createExperiment = args.createExperiment && !flags.dryRun;
   const mintId = deps.randomUUID ?? randomUUID;
   const writeLine =
     deps.writeLine ??
     ((value: unknown) => {
       process.stdout.write(`${JSON.stringify(value)}\n`);
     });
+  if (persist) {
+    requireAuth(profile, env, tokensFn);
+  }
 
   const config = asConfigRecord(
     loadConfigValue(args.configRaw, {
@@ -154,7 +173,22 @@ export async function executeEngineBacktestSweep(
       args.definitionId,
       args.configSchemaVersion
     );
-    const subscriptionTier: SubscriptionTier = args.tier ?? "pro";
+    let subscriptionTier: SubscriptionTier = args.tier ?? "pro";
+    if (persist) {
+      const accountTier = await loadAccountSubscriptionTier(api, profile, env);
+      if (args.tier !== undefined && args.tier !== accountTier) {
+        throw new EngineBacktestError({
+          type: "usage",
+          subtype: "subscription_tier_mismatch",
+          message: `--tier ${args.tier} does not match account subscription tier ${accountTier}`,
+          hint:
+            "Remove --tier for persisted sweeps, or use --no-persist to simulate another tier.",
+          status: 400,
+          details: { requestedTier: args.tier, accountTier },
+        });
+      }
+      subscriptionTier = accountTier;
+    }
     const concurrency = resolveSweepConcurrency({
       subscriptionTier,
       requested: args.concurrency,
@@ -393,23 +427,134 @@ export async function executeEngineBacktestSweep(
         : "") || "node-wasm";
     const best = selectBestNonLiquidatedPoint(sweepPoints);
     const successful = sweepPoints.filter((point) => point.status === "ok");
-    const experimentId = args.experimentId;
+    const elapsedMs = Math.max(0, (deps.now ?? Date.now)() - startedAt);
+    const sampled =
+      standardPlan.requestedCombinationCount >
+      coarsePlan.coordinates.length + refinement.length;
+    const completed = shouldPersistSweepCompletion({
+      completed: true,
+      cancelled: false,
+    });
+    let experimentId = args.experimentId;
+    let sweepId: string | undefined;
+    let clientSweepId: string | undefined;
+    let persisted = false;
+
+    if (persist && completed) {
+      emitProgress(flags, writeLine, "persist", 0);
+      if (createExperiment) {
+        const created = await postJson(
+          api,
+          profile,
+          env,
+          CREATE_EXPERIMENT_PATH,
+          {
+            name: args.name,
+            strategyDefinitionId: args.definitionId,
+            strategyDefinitionDisplay: {
+              zh: args.definitionLabelZh?.trim() || args.definitionId,
+              en: args.definitionLabelEn?.trim() || args.definitionId,
+            },
+          },
+          mintId
+        );
+        experimentId = extractEntityId(created.json);
+        if (!experimentId) {
+          throw new EngineBacktestError({
+            type: "runtime",
+            subtype: "create_experiment_no_id",
+            message: "experiments.create response did not include an id",
+            details: created.json,
+          });
+        }
+      }
+      if (!experimentId) {
+        throw new EngineBacktestError({
+          type: "usage",
+          subtype: "missing_experiment",
+          message:
+            "Provide --experiment <uuid> or --create-experiment --name <name>",
+          status: 400,
+        });
+      }
+      const tapeSymbols = uniqueSeriesField(tapeResult.tape.series, "symbol");
+      const snapshot = buildSweepBaseSnapshot({
+        definitionId: args.definitionId,
+        configSchemaVersion,
+        config,
+        exchangeId: exchange.id,
+        rangeStart: tapeResult.tape.from
+          ? tapeResult.tape.from.slice(0, 10)
+          : args.range.rangeStart,
+        rangeEnd: tapeResult.tape.to
+          ? exclusiveTapeEndToRangeEnd(tapeResult.tape.to)
+          : args.range.rangeEnd,
+        initialEquity: args.initialEquity!,
+        subscriptionTier,
+        dataQualityMode: args.dataQualityMode,
+        symbols: tapeSymbols.length > 0 ? tapeSymbols : coverage.symbols,
+        timeframes: uniqueSeriesField(tapeResult.tape.series, "timeframe"),
+        baseTimeframe: tapeResult.tape.baseTimeframe || args.replayTimeframe,
+        executionModel,
+        positionSideDual: true,
+        engineVersion,
+      });
+      clientSweepId = mintClientSweepId(mintId);
+      const body = buildCreateSweepRequest({
+        clientSweepId,
+        snapshot,
+        axes: coarsePlan.axes,
+        mode: args.mode,
+        searchMode: args.searchMode,
+        concurrency,
+        requestedCombinationCount: standardPlan.requestedCombinationCount,
+        sampled,
+        points: sweepPoints,
+        successfulCount: successful.length,
+        failedCount: sweepPoints.length - successful.length,
+        liquidatedCount: successful.filter(
+          (point) => (point.metrics?.liquidationCount ?? 0) > 0
+        ).length,
+        elapsedMs,
+        best,
+        engineVersion,
+      });
+      const saved = await postJson(
+        api,
+        profile,
+        env,
+        sweepsPath(experimentId),
+        body,
+        mintId
+      );
+      sweepId = extractEntityId(saved.json);
+      if (!sweepId) {
+        throw new EngineBacktestError({
+          type: "runtime",
+          subtype: "create_sweep_no_id",
+          message: "sweeps.create response did not include an id",
+          details: saved.json,
+        });
+      }
+      persisted = true;
+      emitProgress(flags, writeLine, "persist", 1);
+    }
 
     return {
-      persisted: false,
+      persisted,
+      sweepId,
+      clientSweepId,
       mode: args.mode,
       searchMode: args.searchMode,
       requestedCombinationCount: standardPlan.requestedCombinationCount,
-      sampled:
-        standardPlan.requestedCombinationCount >
-        coarsePlan.coordinates.length + refinement.length,
+      sampled,
       combinationCount: sweepPoints.length,
       successfulCount: successful.length,
       failedCount: sweepPoints.length - successful.length,
       liquidatedCount: successful.filter(
         (point) => (point.metrics?.liquidationCount ?? 0) > 0
       ).length,
-      elapsedMs: Math.max(0, (deps.now ?? Date.now)() - startedAt),
+      elapsedMs,
       best: best
         ? {
             coordinate: best.coordinate,
@@ -421,7 +566,7 @@ export async function executeEngineBacktestSweep(
       engineVersion,
       experimentId,
       experimentUrl: experimentId
-        ? experimentPageUrl(profile.name as ProfileName, experimentId)
+        ? experimentSweepPageUrl(profile.name as ProfileName, experimentId)
         : undefined,
       coverageWarnings: tapeResult.coverageWarnings ?? [],
       axes: coarsePlan.axes,
@@ -431,6 +576,134 @@ export async function executeEngineBacktestSweep(
       client.terminate();
     }
   }
+}
+
+function requireAuth(
+  profile: ProfileConfig,
+  env: NodeJS.ProcessEnv,
+  loadTokensFn: typeof loadTokens
+): void {
+  const tokens = loadTokensFn(profile.name, env);
+  if (tokens?.accessToken?.trim()) return;
+  throw new EngineBacktestError({
+    type: "http",
+    status: 401,
+    message: "Not authenticated. Run alphafox auth login.",
+    hint: "Tokens live in the OS keychain. Do not pass --token.",
+    subtype: "unauthenticated",
+  });
+}
+
+function extractErrorMessage(json: unknown, fallback: string): string {
+  if (json && typeof json === "object") {
+    const o = json as Record<string, unknown>;
+    if (typeof o.message === "string") return o.message;
+    if (typeof o.detail === "string") return o.detail;
+    if (typeof o.error === "string") return o.error;
+    if (o.error && typeof o.error === "object") {
+      const e = o.error as Record<string, unknown>;
+      if (typeof e.message === "string") return e.message;
+    }
+  }
+  return fallback || "Request failed";
+}
+
+function extractErrorCode(json: unknown): string | number | undefined {
+  if (json && typeof json === "object") {
+    const o = json as Record<string, unknown>;
+    if (typeof o.code === "string" || typeof o.code === "number") return o.code;
+  }
+  return undefined;
+}
+
+function extractEntityId(json: unknown): string | undefined {
+  if (!json || typeof json !== "object") return undefined;
+  const o = json as Record<string, unknown>;
+  if (typeof o.id === "string" && o.id.trim()) return o.id.trim();
+  if (o.data && typeof o.data === "object") {
+    const d = o.data as Record<string, unknown>;
+    if (typeof d.id === "string" && d.id.trim()) return d.id.trim();
+  }
+  return undefined;
+}
+
+function extractSubscriptionTier(json: unknown): SubscriptionTier | undefined {
+  if (!json || typeof json !== "object") return undefined;
+  const root = json as Record<string, unknown>;
+  const nested =
+    root.data && typeof root.data === "object"
+      ? (root.data as Record<string, unknown>)
+      : undefined;
+  const value = root.subscriptionTier ?? nested?.subscriptionTier;
+  return typeof value === "string" &&
+    SUBSCRIPTION_TIERS.has(value as SubscriptionTier)
+    ? (value as SubscriptionTier)
+    : undefined;
+}
+
+async function postJson(
+  api: NonNullable<EngineBacktestSweepDeps["apiRequest"]>,
+  profile: ProfileConfig,
+  env: NodeJS.ProcessEnv,
+  path: string,
+  body: unknown,
+  mintId: () => string
+): Promise<ApiResponse> {
+  const res = await api(
+    {
+      method: "POST",
+      path,
+      body,
+      profile,
+      idempotencyKey: mintId(),
+    },
+    env
+  );
+  if (res.status >= 400) {
+    throw new EngineBacktestError({
+      type: "http",
+      status: res.status,
+      message: extractErrorMessage(res.json, res.bodyText),
+      code: extractErrorCode(res.json),
+      details: res.json,
+    });
+  }
+  return res;
+}
+
+async function loadAccountSubscriptionTier(
+  api: NonNullable<EngineBacktestSweepDeps["apiRequest"]>,
+  profile: ProfileConfig,
+  env: NodeJS.ProcessEnv
+): Promise<SubscriptionTier> {
+  const res = await api(
+    {
+      method: "GET",
+      path: SUBSCRIPTION_PATH,
+      profile,
+    },
+    env
+  );
+  if (res.status >= 400) {
+    throw new EngineBacktestError({
+      type: "http",
+      status: res.status,
+      message: extractErrorMessage(res.json, res.bodyText),
+      code: extractErrorCode(res.json),
+      details: res.json,
+    });
+  }
+  const tier = extractSubscriptionTier(res.json);
+  if (!tier) {
+    throw new EngineBacktestError({
+      type: "runtime",
+      subtype: "subscription_tier_unresolved",
+      message:
+        "subscriptions.me response did not include a valid subscriptionTier",
+      details: res.json,
+    });
+  }
+  return tier;
 }
 
 async function loadRuntime(

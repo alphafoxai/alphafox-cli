@@ -569,7 +569,8 @@ export function engineBacktestHelpData(): {
     ],
     notes: [
       "Local WASM run/sweep is hyphenated engine-backtest so it does not steal typed catalog engine_backtest.*",
-      "Sweep persist is not implemented; local search requires --no-persist and never writes Sweep or Run",
+      "Sweep persist POSTs engine_backtest.experiments.byId.sweeps.create once after local completion; --no-persist writes nothing",
+      "sweeps.create is write (not high-risk-write); sweeps.byId.delete is high-risk-write and needs --yes",
       "runs.create is write (not high-risk-write); --yes is not required",
       "Do not pass --token; use alphafox auth login",
       "--replay-timeframe defaults to 1m (min 1m). Indicator series still download their native plan timeframes.",

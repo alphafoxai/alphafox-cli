@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
@@ -11,7 +11,19 @@ import {
   parseEngineBacktestSweepArgs,
 } from "../src/engine-backtest/parse-args";
 import { parseSweepAxesDocument } from "../src/engine-backtest/parse-axes";
-import { DEFAULT_EXECUTION_MODEL } from "../src/engine-backtest/persist";
+import type { ProfileConfig } from "../src/config/profiles";
+import {
+  DEFAULT_EXECUTION_MODEL,
+  ENGINE_BACKTEST_SWEEP_ERROR_MAX_UTF8_BYTES,
+  ENGINE_BACKTEST_SWEEP_MAX_UTF8_BYTES,
+  SNAPSHOT_SCHEMA_VERSION,
+  buildCreateSweepRequest,
+  buildSweepBaseSnapshot,
+  experimentSweepPageUrl,
+  mintClientSweepId,
+  shouldPersistSweepCompletion,
+  sweepsPath,
+} from "../src/engine-backtest/persist";
 import {
   cmdEngineBacktest,
   engineBacktestHelpData,
@@ -208,8 +220,18 @@ function runnerDeps(overrides: {
     }[];
   }) => Promise<TapeLoadResult> | TapeLoadResult;
   readonly apiRequest?: (
-    options: { readonly method: string; readonly path: string }
+    options: { readonly method: string; readonly path: string; readonly body?: unknown }
   ) => Promise<ApiResponse>;
+  readonly loadTokens?: () => {
+    readonly accessToken: string;
+    readonly refreshToken: string;
+    readonly expiresAt: number;
+    readonly environment: string;
+    readonly issuer: string;
+    readonly audience: string;
+    readonly clientId: string;
+    readonly scopes: readonly string[];
+  } | null;
   readonly assembleScenario?: (input: {
     readonly runId: string;
     readonly config: unknown;
@@ -255,11 +277,96 @@ function runnerDeps(overrides: {
     apiRequest:
       overrides.apiRequest ??
       (async () => jsonResponse(500, { message: "should not be called" })),
+    loadTokens: overrides.loadTokens,
+  };
+}
+
+const LOCAL_PROFILE: ProfileConfig = {
+  name: "local",
+  apiBaseUrl: "http://127.0.0.1:3000/api/v1",
+  issuer: "http://127.0.0.1:3000/api/auth",
+  audience: "http://127.0.0.1:3000/api/v1",
+  clientId: "alphafox-cli-local",
+};
+
+function authedTokens() {
+  return {
+    accessToken: "test-access",
+    refreshToken: "test-refresh",
+    expiresAt: Date.now() + 60_000,
+    environment: "local",
+    issuer: LOCAL_PROFILE.issuer,
+    audience: LOCAL_PROFILE.audience,
+    clientId: LOCAL_PROFILE.clientId,
+    scopes: ["openid", "profile"],
+  };
+}
+
+function sampleSweepSnapshot() {
+  return buildSweepBaseSnapshot({
+    definitionId: "grid",
+    configSchemaVersion: 4,
+    config: BASE_CONFIG,
+    exchangeId: "binance_perp_usdt",
+    rangeStart: "2026-08-01",
+    rangeEnd: "2026-08-08",
+    initialEquity: 10_000,
+    subscriptionTier: "pro",
+    dataQualityMode: "strict",
+    symbols: ["BTC/USDT:USDT"],
+    timeframes: ["1m"],
+    baseTimeframe: "1m",
+    executionModel: DEFAULT_EXECUTION_MODEL,
+    positionSideDual: true,
+    engineVersion: "test-engine",
+  });
+}
+
+const CLIENT_SWEEP_ID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function okSweepPoint(value: number, returnPct: number) {
+  return {
+    coordinate: { values: [value] },
+    status: "ok" as const,
+    metrics: {
+      returnPct,
+      maxDrawdownPct: 5,
+      sharpeRatio: 1,
+      winRatePct: 50,
+      maxLeverage: 2,
+      liquidationCount: 0,
+      netPnl: returnPct,
+      finalEquity: 10_000 + returnPct,
+      tradeCount: 4,
+    },
+  };
+}
+
+function hydrateSweepDetailFromCreate(
+  body: ReturnType<typeof buildCreateSweepRequest>,
+  ids: { readonly id: string; readonly experimentId: string }
+) {
+  const createdAt = "2026-08-16T00:00:00.000Z";
+  const expiresAt = "2026-08-23T00:00:00.000Z";
+  return {
+    id: ids.id,
+    experimentId: ids.experimentId,
+    clientSweepId: body.clientSweepId,
+    searchMetadata: body.searchMetadata,
+    aggregateSummary: body.aggregateSummary,
+    createdAt,
+    expiresAt,
+    baseInputSnapshot: body.baseInputSnapshot,
+    axes: body.axes,
+    pointSummaries: body.pointSummaries,
+    engineVersion: body.engineVersion,
+    configSchemaVersion: body.configSchemaVersion,
   };
 }
 
 describe("engine-backtest sweep parse", () => {
-  it("reuses run flags and requires --axes plus --no-persist for local search", () => {
+  it("reuses run flags and requires --axes; persist is the default", () => {
     const parsed = parseEngineBacktestSweepArgs(sweepArgv(["--no-persist"]));
     assert.equal(parsed.help, false);
     assert.equal(parsed.persist, false);
@@ -488,40 +595,335 @@ describe("engine-backtest sweep buffers", () => {
   });
 });
 
+describe("engine-backtest sweep persist payload", () => {
+  it("only persists completed non-cancelled searches", () => {
+    assert.equal(
+      shouldPersistSweepCompletion({ completed: true, cancelled: false }),
+      true
+    );
+    assert.equal(
+      shouldPersistSweepCompletion({ completed: true, cancelled: true }),
+      false
+    );
+    assert.equal(
+      shouldPersistSweepCompletion({ completed: false, cancelled: false }),
+      false
+    );
+  });
+
+  it("mints a stable UUID clientSweepId for retry", () => {
+    const first = mintClientSweepId(() => "11111111-1111-4111-8111-111111111111");
+    const second = mintClientSweepId();
+    assert.equal(first, "11111111-1111-4111-8111-111111111111");
+    assert.match(second, CLIENT_SWEEP_ID_RE);
+  });
+
+  it("builds a Web-hydrateable summary payload without tape, curves, or runs", () => {
+    const clientSweepId = "22222222-2222-4222-8222-222222222222";
+    const body = buildCreateSweepRequest({
+      clientSweepId,
+      snapshot: sampleSweepSnapshot(),
+      axes: [{ path: ["strategy", "period"], current: 10, values: [8, 10, 12] }],
+      mode: "range",
+      searchMode: "standard",
+      concurrency: 2,
+      requestedCombinationCount: 3,
+      sampled: false,
+      points: [
+        okSweepPoint(8, 8),
+        { coordinate: { values: [10] }, status: "failed", error: "planner rejected" },
+        okSweepPoint(12, 20),
+      ],
+      successfulCount: 2,
+      failedCount: 1,
+      liquidatedCount: 0,
+      elapsedMs: 1234.6,
+      best: { coordinate: { values: [12] }, returnPct: 20 },
+      engineVersion: "test-engine",
+    });
+    assert.equal(body.clientSweepId, clientSweepId);
+    assert.equal(body.baseInputSnapshot.snapshotSchemaVersion, SNAPSHOT_SCHEMA_VERSION);
+    assert.equal(body.pointSummaries.length, 3);
+    assert.equal(body.aggregateSummary.failedCount, 1);
+    assert.equal(body.aggregateSummary.elapsedMs, 1235);
+    assert.equal(body.aggregateSummary.best?.returnPct, 20);
+    assert.equal(body.searchMetadata.concurrency, 2);
+    const serialized = JSON.stringify(body);
+    assert.equal(serialized.includes("islandScore"), false);
+    assert.equal(serialized.includes("equityCurve"), false);
+    assert.equal(serialized.includes("tape"), false);
+    assert.equal("tape" in body, false);
+    assert.equal("clientRunId" in body, false);
+
+    const hydrated = hydrateSweepDetailFromCreate(body, {
+      id: "33333333-3333-4333-8333-333333333333",
+      experimentId: "11111111-1111-1111-1111-111111111111",
+    });
+    assert.equal(hydrated.pointSummaries.length, 3);
+    assert.deepEqual(hydrated.axes[0]?.path, ["strategy", "period"]);
+    assert.equal(hydrated.searchMetadata.mode, "range");
+    assert.equal(hydrated.aggregateSummary.successfulCount, 2);
+    assert.ok(hydrated.expiresAt > hydrated.createdAt);
+  });
+
+  it("keeps a zero-success diagnostic result and truncates point errors", () => {
+    const longError = "x".repeat(ENGINE_BACKTEST_SWEEP_ERROR_MAX_UTF8_BYTES + 80);
+    const body = buildCreateSweepRequest({
+      clientSweepId: "22222222-2222-4222-8222-222222222222",
+      snapshot: sampleSweepSnapshot(),
+      axes: [{ path: ["strategy", "period"], current: 10, values: [8] }],
+      mode: "neighborhood",
+      searchMode: "standard",
+      concurrency: 1,
+      requestedCombinationCount: 1,
+      sampled: false,
+      points: [{ coordinate: { values: [8] }, status: "failed", error: longError }],
+      successfulCount: 0,
+      failedCount: 1,
+      liquidatedCount: 0,
+      elapsedMs: 10,
+      best: null,
+      engineVersion: "test-engine",
+    });
+    assert.equal(body.aggregateSummary.best, null);
+    assert.equal(body.pointSummaries[0]?.status, "failed");
+    assert.ok((body.pointSummaries[0]?.error?.length ?? 0) <= ENGINE_BACKTEST_SWEEP_ERROR_MAX_UTF8_BYTES);
+    assert.ok((body.pointSummaries[0]?.error?.length ?? 0) > 0);
+  });
+
+  it("rejects an oversized create request as sweep_too_large", () => {
+    const snapshot = sampleSweepSnapshot();
+    assert.throws(
+      () =>
+        buildCreateSweepRequest({
+          clientSweepId: "22222222-2222-4222-8222-222222222222",
+          snapshot: {
+            ...snapshot,
+            config: { pad: "x".repeat(ENGINE_BACKTEST_SWEEP_MAX_UTF8_BYTES) },
+          },
+          axes: [{ path: ["strategy", "period"], current: 10, values: [8] }],
+          mode: "range",
+          searchMode: "standard",
+          concurrency: 1,
+          requestedCombinationCount: 1,
+          sampled: false,
+          points: [okSweepPoint(8, 1)],
+          successfulCount: 1,
+          failedCount: 0,
+          liquidatedCount: 0,
+          elapsedMs: 1,
+          best: { coordinate: { values: [8] }, returnPct: 1 },
+          engineVersion: "test-engine",
+        }),
+      (err: unknown) =>
+        err instanceof EngineBacktestError && err.subtype === "sweep_too_large"
+    );
+  });
+
+  it("keeps Sweep persist off Chat backtests and per-coordinate runs.create", () => {
+    const persist = readFileSync(
+      join(__dirname, "..", "..", "src", "engine-backtest", "persist.ts"),
+      "utf8"
+    );
+    const command = readFileSync(
+      join(__dirname, "..", "..", "src", "engine-backtest", "sweep-command.ts"),
+      "utf8"
+    );
+    assert.equal(persist.includes("backtests."), false);
+    assert.equal(command.includes("backtests."), false);
+    assert.equal(command.includes("/runs"), false);
+    assert.equal(command.includes("runs.create"), false);
+    assert.ok(command.includes("sweepsPath"));
+  });
+
+  it("opens the Experiment Sweep tab", () => {
+    assert.equal(
+      experimentSweepPageUrl("local", "11111111-1111-1111-1111-111111111111"),
+      "http://127.0.0.1:3000/dashboard/traders/backtest/11111111-1111-1111-1111-111111111111?tab=sweep"
+    );
+    assert.equal(
+      sweepsPath("11111111-1111-1111-1111-111111111111"),
+      "/api/v1/engine-backtest/experiments/11111111-1111-1111-1111-111111111111/sweeps"
+    );
+  });
+});
+
 describe("engine-backtest sweep execute", () => {
-  it("fails persist before any write, tape load, or Run create", async () => {
-    let tapeCalls = 0;
-    let apiCalls = 0;
+  it("persists once after every coordinate finishes and never creates a Run", async () => {
+    const apiCalls: string[] = [];
+    const bodies: unknown[] = [];
+    const progress: Array<{ stage: string; fraction: number }> = [];
+    const result = await executeEngineBacktestSweep(
+      parseEngineBacktestSweepArgs(
+        sweepArgv(["--mode", "range", "--concurrency", "1"])
+      ),
+      { ...FLAGS, format: "jsonl" },
+      isolatedEnv(),
+      {
+        ...runnerDeps({
+          loadTokens: authedTokens,
+          apiRequest: async (options) => {
+            apiCalls.push(`${options.method} ${options.path}`);
+            if (options.method === "GET" && options.path === "/api/v1/subscriptions/me") {
+              return jsonResponse(200, { subscriptionTier: "pro" });
+            }
+            if (
+              options.method === "POST" &&
+              options.path ===
+                "/api/v1/engine-backtest/experiments/11111111-1111-1111-1111-111111111111/sweeps"
+            ) {
+              bodies.push(options.body);
+              return jsonResponse(201, { id: "sweep-persisted-1" });
+            }
+            return jsonResponse(500, { message: `unexpected ${options.method} ${options.path}` });
+          },
+        }),
+        randomUUID: (() => {
+          let n = 0;
+          return () => {
+            n += 1;
+            return `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
+          };
+        })(),
+        writeLine: (value) => {
+          const row = value as { event?: string; stage?: string; fraction?: number };
+          if (row.event === "progress" && row.stage) {
+            progress.push({ stage: row.stage, fraction: row.fraction ?? 0 });
+          }
+        },
+      }
+    );
+
+    assert.deepEqual(
+      apiCalls.filter((call) => call.startsWith("POST")),
+      [
+        "POST /api/v1/engine-backtest/experiments/11111111-1111-1111-1111-111111111111/sweeps",
+      ]
+    );
+    assert.equal(apiCalls.some((call) => call.includes("/runs")), false);
+    assert.equal(apiCalls.some((call) => call.includes("/backtests")), false);
+    assert.equal(result.persisted, true);
+    assert.equal(result.sweepId, "sweep-persisted-1");
+    assert.match(result.clientSweepId ?? "", CLIENT_SWEEP_ID_RE);
+    assert.equal(
+      result.experimentUrl,
+      "http://127.0.0.1:3000/dashboard/traders/backtest/11111111-1111-1111-1111-111111111111?tab=sweep"
+    );
+    const body = bodies[0] as { clientSweepId: string; pointSummaries: unknown[] };
+    assert.equal(body.clientSweepId, result.clientSweepId);
+    assert.equal(body.pointSummaries.length, 3);
+    assert.ok(progress.some((row) => row.stage === "persist" && row.fraction === 0));
+    assert.ok(progress.some((row) => row.stage === "persist" && row.fraction === 1));
+    const retried = buildCreateSweepRequest({
+      clientSweepId: result.clientSweepId!,
+      snapshot: sampleSweepSnapshot(),
+      axes: result.axes,
+      mode: result.mode,
+      searchMode: result.searchMode,
+      concurrency: 1,
+      requestedCombinationCount: result.requestedCombinationCount,
+      sampled: result.sampled,
+      points: result.points,
+      successfulCount: result.successfulCount,
+      failedCount: result.failedCount,
+      liquidatedCount: result.liquidatedCount,
+      elapsedMs: result.elapsedMs,
+      best: result.best
+        ? { coordinate: result.best.coordinate, returnPct: result.best.returnPct }
+        : null,
+      engineVersion: result.engineVersion,
+    });
+    assert.equal(retried.clientSweepId, body.clientSweepId);
+  });
+
+  it("does not claim success when Sweep create returns no id", async () => {
     await assert.rejects(
       () =>
         executeEngineBacktestSweep(
-          parseEngineBacktestSweepArgs(sweepArgv()),
+          parseEngineBacktestSweepArgs(sweepArgv(["--mode", "range"])),
+          FLAGS,
+          isolatedEnv(),
+          runnerDeps({
+            loadTokens: authedTokens,
+            apiRequest: async (options) => {
+              if (options.method === "GET") {
+                return jsonResponse(200, { subscriptionTier: "pro" });
+              }
+              return jsonResponse(201, { ok: true });
+            },
+          })
+        ),
+      (err: unknown) => {
+        assert.ok(err instanceof EngineBacktestError);
+        assert.equal(err.subtype, "create_sweep_no_id");
+        return true;
+      }
+    );
+  });
+
+  it("fails like whoami when persist is requested without tokens", async () => {
+    let tapeCalls = 0;
+    await assert.rejects(
+      () =>
+        executeEngineBacktestSweep(
+          parseEngineBacktestSweepArgs(sweepArgv(["--mode", "range"])),
           FLAGS,
           isolatedEnv(),
           {
             ...runnerDeps({
+              loadTokens: () => null,
               loadTape: async () => {
                 tapeCalls += 1;
                 return sampleTape();
               },
-              apiRequest: async () => {
-                apiCalls += 1;
-                return jsonResponse(201, { id: "should-not-exist" });
-              },
             }),
-            readFile: () => {
-              throw new Error("should not read files when persist is blocked");
-            },
           }
         ),
       (err: unknown) => {
         assert.ok(err instanceof EngineBacktestError);
-        assert.equal(err.subtype, "persist_not_implemented");
+        assert.equal(err.subtype, "unauthenticated");
+        assert.equal(err.status, 401);
         return true;
       }
     );
     assert.equal(tapeCalls, 0);
-    assert.equal(apiCalls, 0);
+  });
+
+  it("does not persist when a coordinate batch is cancelled mid-search", async () => {
+    const apiCalls: string[] = [];
+    await assert.rejects(
+      () =>
+        executeEngineBacktestSweep(
+          parseEngineBacktestSweepArgs(sweepArgv(["--mode", "range"])),
+          FLAGS,
+          isolatedEnv(),
+          runnerDeps({
+            loadTokens: authedTokens,
+            client: fakeClient({
+              runBacktestBatch: async () => {
+                throw new EngineBacktestError({
+                  type: "runtime",
+                  subtype: "cancelled",
+                  message: "search cancelled",
+                });
+              },
+            }),
+            apiRequest: async (options) => {
+              apiCalls.push(`${options.method} ${options.path}`);
+              if (options.method === "GET") {
+                return jsonResponse(200, { subscriptionTier: "pro" });
+              }
+              return jsonResponse(201, { id: "should-not-exist" });
+            },
+          })
+        ),
+      (err: unknown) =>
+        err instanceof EngineBacktestError && err.subtype === "cancelled"
+    );
+    assert.equal(
+      apiCalls.some((call) => call.startsWith("POST")),
+      false
+    );
   });
 
   it("runs --no-persist with one broad tape, cloned buffers, and zero writes", async () => {
@@ -782,13 +1184,13 @@ describe("engine-backtest sweep execute", () => {
     );
   });
 
-  it("help documents sweep --no-persist and the command accepts sweep", async () => {
+  it("help documents sweep persist and the command accepts sweep", async () => {
     const help = engineBacktestHelpData();
     assert.ok(
-      help.usage.some(
-        (line) =>
-          line.includes("engine-backtest sweep") && line.includes("--no-persist")
-      )
+      help.usage.some((line) => line.includes("engine-backtest sweep"))
+    );
+    assert.ok(
+      help.notes.some((line) => line.includes("sweeps.create"))
     );
     const code = await cmdEngineBacktest(["sweep", "--help"], FLAGS, isolatedEnv());
     assert.equal(code, 0);

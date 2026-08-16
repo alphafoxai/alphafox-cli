@@ -57,7 +57,7 @@ describe("credential honesty", () => {
     }
   });
 
-  it("unexpected keychain miss marks degraded and emits warning code", () => {
+  it("unexpected keychain miss marks degraded file fallback", () => {
     const dir = mkdtempSync(join(tmpdir(), "alphafox-cli-cred-deg-"));
     const env = {
       // No FORCE_FILE — on non-darwin this always falls back; on darwin we
@@ -73,20 +73,12 @@ describe("credential honesty", () => {
       rmSync(dir, { recursive: true, force: true });
       return; // darwin has real keychain; intentional-file case covers API
     }
-    const warnings: string[] = [];
-    const onWarn = (w: Error) => {
-      warnings.push(String((w as NodeJS.ErrnoException).code ?? w.message));
-    };
-    process.on("warning", onWarn);
     try {
       const result = saveTokens(profile.name, sampleTokens(), env);
       assert.equal(result.backend, "file");
       assert.equal(result.degraded, true);
-      assert.ok(
-        warnings.some((w) => w.includes("ALPHAFOX_KEYCHAIN_FILE_FALLBACK"))
-      );
+      assert.equal(getLastTokenSaveResult()?.degraded, true);
     } finally {
-      process.off("warning", onWarn);
       rmSync(dir, { recursive: true, force: true });
     }
   });

@@ -37,7 +37,6 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # Full `pnpm test` needs sibling alphafox-contracts + alphafox-web.
-      # v0.2.0 CI died there before npm publish; the tarball was uploaded by hand.
       - name: Test
         run: pnpm test:release
 

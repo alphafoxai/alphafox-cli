@@ -140,6 +140,7 @@ export function resolveTypedCommand(tokens: readonly string[]): TypedResolution 
 export function typedCommandExample(op: CatalogOperation): {
   readonly typed: string;
   readonly api: string;
+  readonly config?: string;
 } {
   const segments = op.operationId.split(".");
   const schemaNames =
@@ -147,15 +148,17 @@ export function typedCommandExample(op: CatalogOperation): {
   const pathFlags = schemaNames.map((name) => `--${name} <${name}>`).join(" ");
   const riskFlag =
     op.risk === "high-risk-write" || op.risk === "unknown" ? " --yes" : "";
-  const bodyFlag =
-    op.method !== "GET" && op.method !== "HEAD" && op.method !== "DELETE"
-      ? " --body '{}'"
-      : "";
+  const writesBody =
+    op.method !== "GET" && op.method !== "HEAD" && op.method !== "DELETE";
+  const bodyFlag = writesBody ? " --body '{…}'" : "";
   const typedFlags = [pathFlags, bodyFlag.trim(), riskFlag.trim()]
     .filter(Boolean)
     .join(" ");
   return {
     typed: `alphafox ${segments.join(" ")}${typedFlags ? ` ${typedFlags}` : ""}`,
     api: `alphafox api ${op.method} ${op.path}${bodyFlag}${riskFlag}`,
+    config: writesBody
+      ? `alphafox ${segments.join(" ")} --config @./${op.operationId}.json${riskFlag}`
+      : undefined,
   };
 }

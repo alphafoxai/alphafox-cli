@@ -56,6 +56,20 @@ alphafox api GET /api/v1/me --format json --no-input
 
 Forbidden: `/backend`, `/control-plane`, `/signal-center`, internal secrets, non-`/api/v1` product routes, `--token`.
 
+## Writes — schema first, never invent fields
+
+Before every write (`POST` / `PUT` / `PATCH` / `DELETE` with a body):
+
+1. Run `alphafox schema <operationId> --format json --no-input`.
+2. Build the body **only** from `request.body` (property names, types, enums, required). Do not guess fields from memory, from another operationId, or from training data.
+3. Small object: typed command + `--body '<json>'`.
+4. Nested / large object: write a JSON file, then `--config @./payload.json`. Do not paste 20+ fields onto argv.
+5. `--dry-run` first when the risk is `write` or `high-risk-write`.
+
+CLI validates `--body` / `--config` against the catalog **before** HTTP. `body_schema` / `body_schema_missing` (exit `64`) means the payload is wrong — re-read `schema`, do not add extra keys to “make it work”. `--body` and `--config` cannot be combined. `--body @file` is also a file (same as `--config @file`).
+
+Uncataloged writes cannot carry a non-empty body. Find the `operationId` first.
+
 ## Risk
 
 - `high-risk-write` and uncataloged mutations (`unknown`) require `--yes` (exit code `10` if missing).

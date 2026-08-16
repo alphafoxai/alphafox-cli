@@ -6,7 +6,7 @@ version: 0.2.0
 
 # Account / wallet
 
-Always `--format json --no-input`. These paths are read-first. Wallet mutations are write/high-risk — `--dry-run` then `--yes`; never auto-retry.
+Always `--format json --no-input`. These paths are read-first. Wallet mutations are write/high-risk — `alphafox schema` first (do not invent fields), `--dry-run` then `--yes`; never auto-retry. Large bodies: `--config @file`.
 
 ```bash
 alphafox api GET /api/v1/wallet --format json --no-input

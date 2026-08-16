@@ -55,6 +55,11 @@ import {
   CLI_VERSION,
 } from "../version";
 import { cmdEngineBacktest } from "../engine-backtest/run-command";
+import { validateCatalogWriteBody } from "../catalog/validate-body";
+import {
+  isRequestBodyError,
+  parseRequestBodyFlags,
+} from "./request-body";
 
 export interface GlobalFlags {
   profile?: string;
@@ -138,7 +143,7 @@ export async function runCli(
           "alphafox profile list|use <name>",
           "alphafox schema [operationId]",
           "alphafox catalog",
-          "alphafox api METHOD PATH [--body JSON]",
+          "alphafox api METHOD PATH [--body JSON|--config @file]",
           "alphafox engine-backtest run --experiment <uuid> --definition <id> --config @file --exchange <id> --range FROM..TO --initial-equity N",
           "alphafox <domain> <resource> <action> [flags]",
         ],
@@ -833,7 +838,7 @@ async function cmdApi(
   if (!method || !path) {
     writeError({
       type: "usage",
-      message: "Usage: alphafox api METHOD PATH [--body JSON]",
+      message: "Usage: alphafox api METHOD PATH [--body JSON|--config @file]",
     });
   }
   if (isInternalDisallowedPath(path) || !isFacadeAllowlistedPath(path)) {
@@ -849,9 +854,18 @@ async function cmdApi(
   }
 
   let body: unknown;
-  const bodyIdx = args.indexOf("--body");
-  if (bodyIdx >= 0) {
-    body = JSON.parse(args[bodyIdx + 1] ?? "{}");
+  try {
+    body = parseRequestBodyFlags(args).body;
+  } catch (err) {
+    if (isRequestBodyError(err)) {
+      writeError({
+        type: err.type,
+        subtype: err.subtype,
+        message: err.message,
+        hint: err.hint,
+      });
+    }
+    throw err;
   }
 
   const profile = resolveProfile(flags.profile, env, {
@@ -860,6 +874,15 @@ async function cmdApi(
 
   // Infer risk from catalog; uncataloged mutations are treated as high-risk.
   const catalogHit = findCatalogOperationByRoute(method, normalizeApiPath(path));
+  const validated = validateCatalogWriteBody({
+    method,
+    operationId: catalogHit?.operationId,
+    body,
+  });
+  if (!validated.ok) {
+    writeError(validated.error);
+  }
+  body = validated.body;
   const risk = inferRawApiRisk(method, catalogHit?.risk);
   const gate = assertHighRiskConfirmation({
     risk,
@@ -880,6 +903,8 @@ async function cmdApi(
         path,
         profile: profile.name,
         risk,
+        operationId: catalogHit?.operationId,
+        body,
       },
       { format: flags.format, jq: flags.jq }
     );
@@ -998,7 +1023,7 @@ async function invokeOperation(
   );
   for (let i = 0; i < args.length; i += 1) {
     const a = args[i]!;
-    if (a.startsWith("--") && a !== "--body") {
+    if (a.startsWith("--") && a !== "--body" && a !== "--config") {
       const key = a.slice(2);
       const value = args[++i] ?? "";
       if (pathParamNames.has(key)) {
@@ -1009,10 +1034,28 @@ async function invokeOperation(
     }
   }
   let body: unknown;
-  const bodyIdx = args.indexOf("--body");
-  if (bodyIdx >= 0) {
-    body = JSON.parse(args[bodyIdx + 1] ?? "{}");
+  try {
+    body = parseRequestBodyFlags(args).body;
+  } catch (err) {
+    if (isRequestBodyError(err)) {
+      writeError({
+        type: err.type,
+        subtype: err.subtype,
+        message: err.message,
+        hint: err.hint,
+      });
+    }
+    throw err;
   }
+  const validated = validateCatalogWriteBody({
+    method: op.method,
+    operationId,
+    body,
+  });
+  if (!validated.ok) {
+    writeError(validated.error);
+  }
+  body = validated.body;
 
   let path = resolveOperationPath(op.path, params);
   if (
@@ -1035,6 +1078,7 @@ async function invokeOperation(
         path,
         risk: op.risk,
         profile: profile.name,
+        body: op.method === "GET" || op.method === "HEAD" ? undefined : body,
       },
       { format: flags.format, jq: flags.jq }
     );

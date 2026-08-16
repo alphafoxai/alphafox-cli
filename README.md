@@ -28,6 +28,9 @@ alphafox api GET /api/v1/me
 - Profiles: `production` (default), `staging`, `local` — isolated issuer/audience/client (ADR 0003).
 - High-risk writes require `--yes`. Automation tokens are **deferred** (ADR 0004).
 - Raw `api` only hits allowlisted `/api/v1/*` facade paths.
+- Writes validate `--body` / `--config @file` against the catalog schema
+  before HTTP. Agents must `alphafox schema <operationId>` first and must
+  not invent fields. Large objects use `--config @file`, not argv.
 
 ## Skills
 

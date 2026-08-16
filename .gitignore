@@ -8,4 +8,5 @@ dist-mvp-web/
 .env.*
 coverage/
 *.tgz
+sbom.json
 .npmrc

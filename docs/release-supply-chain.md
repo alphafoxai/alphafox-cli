@@ -116,8 +116,9 @@ it work”.
 
 ## SBOM / audit
 
-CI MUST emit an SBOM (`npm sbom` or CycloneDX) from the tagged SHA and fail
-the release job on **critical** vulnerabilities in **runtime** dependencies.
+CI MUST emit an SBOM (CycloneDX from the pnpm production tree via
+`scripts/generate-sbom.mjs`) from the tagged SHA and fail the release job on
+**critical** vulnerabilities in **runtime** dependencies (`pnpm audit --prod`).
 Dev-only advisories do not block publish. SBOM is an artifact of the release
 workflow, not a file committed to `main` by default.
 

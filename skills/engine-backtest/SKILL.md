@@ -1,7 +1,7 @@
 ---
 name: alphafox-engine-backtest
 description: Local Engine WASM backtest (alphafox engine-backtest run) vs catalog experiment CRUD vs chat backtests stub.
-version: 0.3.1
+version: 0.3.2
 ---
 
 # Engine Backtest

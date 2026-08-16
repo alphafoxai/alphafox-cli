@@ -528,6 +528,7 @@ export async function executeEngineBacktestRun(
         exchangeId: exchange.id,
         dataQualityMode: args.dataQualityMode,
         engineVersion,
+        equityCurve: result.equityCurve,
       });
       const res = await postJson(api, profile, env, runsPath(experimentId), body, mintId);
       persistedRunId = extractEntityId(res.json);

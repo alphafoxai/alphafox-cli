@@ -302,6 +302,8 @@ export interface CreateRunRequestBody {
   readonly metrics: EngineBacktestMetrics;
   readonly engineVersion: string;
   readonly configSchemaVersion: number;
+  /** Compact [[unix_ms, cumulative_return]]; omitted when the local run has no series. */
+  readonly returnCurve?: ReadonlyArray<readonly [number, number]>;
 }
 
 export interface EngineBacktestRunSuccess {

@@ -328,6 +328,26 @@ describe("engine-backtest persist", () => {
     assert.equal(body.engineVersion, "test-engine");
     assert.equal(body.configSchemaVersion, 4);
     assert.deepEqual(body.metrics, METRICS);
+    assert.equal(body.returnCurve, undefined);
+  });
+
+  it("includes a compressed return curve from the local equity series", () => {
+    const body = buildCreateRunRequest({
+      clientRunId: "22222222-2222-2222-2222-222222222222",
+      scenario: sampleScenario(),
+      metrics: METRICS,
+      exchangeId: "binance",
+      dataQualityMode: "strict",
+      engineVersion: "test-engine",
+      equityCurve: [
+        { t: 1_775_808_000_000, equity: 10_000 },
+        { t: 1_775_808_060_000, equity: 11_000 },
+      ],
+    });
+    assert.deepEqual(body.returnCurve, [
+      [1_775_808_000_000, 0],
+      [1_775_808_060_000, 0.1],
+    ]);
   });
 
   it("defaults executionModel to runner/web values", () => {
@@ -566,6 +586,10 @@ describe("engine-backtest orchestration", () => {
           status: "completed",
           engineVersion: "test-engine",
           metrics: METRICS,
+          equityCurve: [
+            { t: 1_775_808_000_000, equity: 10_000 },
+            { t: 1_775_808_060_000, equity: 11_000 },
+          ],
         };
       },
       terminate: () => {
@@ -686,11 +710,16 @@ describe("engine-backtest orchestration", () => {
         subscriptionTier: string;
       };
       clientRunId: string;
+      returnCurve?: ReadonlyArray<readonly [number, number]>;
     };
     assert.equal(body.snapshot.rangeEnd, "2026-08-08");
     assert.equal(body.snapshot.exchangeId, "binance_perp_usdt");
     assert.equal(body.snapshot.subscriptionTier, "pro_max");
     assert.deepEqual(body.snapshot.executionModel, DEFAULT_EXECUTION_MODEL);
+    assert.deepEqual(body.returnCurve, [
+      [1_775_808_000_000, 0],
+      [1_775_808_060_000, 0.1],
+    ]);
     assert.equal(result.persisted, true);
     assert.equal(result.runId, "run-persisted-1");
     assert.equal(result.experimentId, "11111111-1111-1111-1111-111111111111");

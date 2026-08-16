@@ -1,5 +1,6 @@
 import type { ProfileName } from "../config/profiles";
 import { EngineBacktestError } from "./errors";
+import { compressEngineBacktestReturnCurve } from "./return-curve";
 import type {
   CreateRunRequestBody,
   CreateSweepPointSummary,
@@ -59,6 +60,7 @@ export function buildCreateRunRequest(input: {
   readonly exchangeId: string;
   readonly dataQualityMode: DataQualityMode;
   readonly engineVersion: string;
+  readonly equityCurve?: unknown;
 }): CreateRunRequestBody {
   const { scenario } = input;
   const rangeStart = scenario.tape.from.slice(0, 10);
@@ -92,12 +94,18 @@ export function buildCreateRunRequest(input: {
     engineVersion,
   };
 
+  const returnCurve = compressEngineBacktestReturnCurve({
+    initialEquity: snapshot.initialEquity,
+    equityCurve: input.equityCurve,
+  });
+
   return {
     clientRunId: input.clientRunId,
     snapshot,
     metrics: input.metrics,
     engineVersion,
     configSchemaVersion: snapshot.configSchemaVersion,
+    ...(returnCurve ? { returnCurve } : {}),
   };
 }
 

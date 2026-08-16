@@ -12,11 +12,11 @@ import {
 } from "../src/commands/request-body";
 
 describe("catalog write-body validation", () => {
-  it("accepts chats.create when body matches schema", () => {
+  it("accepts trading.traders.byId.start when body matches schema", () => {
     const result = validateCatalogWriteBody({
       method: "POST",
-      operationId: "chats.create",
-      body: { strategyGenerationMode: "simple" },
+      operationId: "trading.traders.byId.start",
+      body: { reason: "resume" },
     });
     assert.equal(result.ok, true);
   });
@@ -24,19 +24,19 @@ describe("catalog write-body validation", () => {
   it("rejects missing required fields and extra keys", () => {
     const missing = validateCatalogWriteBody({
       method: "POST",
-      operationId: "chats.create",
+      operationId: "trading.traders.create",
       body: {},
     });
     assert.equal(missing.ok, false);
     if (!missing.ok) {
       assert.equal(missing.error.subtype, "body_schema");
-      assert.match(missing.error.message, /chats\.create/);
+      assert.match(missing.error.message, /trading\.traders\.create/);
     }
 
     const extra = validateCatalogWriteBody({
       method: "POST",
-      operationId: "chats.create",
-      body: { strategyGenerationMode: "simple", inventedField: true },
+      operationId: "trading.traders.byId.start",
+      body: { reason: "resume", inventedField: true },
     });
     assert.equal(extra.ok, false);
     if (!extra.ok) {
@@ -47,8 +47,8 @@ describe("catalog write-body validation", () => {
   it("rejects invented enum values", () => {
     const result = validateCatalogWriteBody({
       method: "POST",
-      operationId: "chats.create",
-      body: { strategyGenerationMode: "from-memory" },
+      operationId: "trading.traders.create",
+      body: { mode: "from-memory" },
     });
     assert.equal(result.ok, false);
   });
@@ -99,17 +99,14 @@ describe("catalog write-body validation", () => {
 describe("request body flags", () => {
   it("loads --config @file and --body @file", () => {
     const dir = mkdtempSync(join(tmpdir(), "alphafox-body-"));
-    const file = join(dir, "chat.json");
-    writeFileSync(
-      file,
-      JSON.stringify({ strategyGenerationMode: "interview" })
-    );
+    const file = join(dir, "start.json");
+    writeFileSync(file, JSON.stringify({ reason: "resume" }));
     const fromConfig = parseRequestBodyFlags(["--config", `@${file}`]);
     assert.equal(fromConfig.source, "config");
-    assert.deepEqual(fromConfig.body, { strategyGenerationMode: "interview" });
+    assert.deepEqual(fromConfig.body, { reason: "resume" });
     const fromBody = parseRequestBodyFlags(["--body", `@${file}`]);
     assert.equal(fromBody.source, "body");
-    assert.deepEqual(fromBody.body, { strategyGenerationMode: "interview" });
+    assert.deepEqual(fromBody.body, { reason: "resume" });
   });
 
   it("rejects --body and --config together", () => {

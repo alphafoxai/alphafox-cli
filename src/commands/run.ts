@@ -162,7 +162,7 @@ export async function runCli(
           "alphafox api METHOD PATH [--body JSON|--config @file]",
           "alphafox engine-backtest run --experiment <uuid> --definition <id> --config @file --exchange <id> --range FROM..TO --initial-equity N",
           "alphafox engine-backtest sweep --experiment <uuid> --definition <id> --config @file --axes @file --exchange <id> --range FROM..TO --initial-equity N --no-persist",
-          "alphafox resolve-symbols <query...> [--exchange binance]",
+          "alphafox resolve-symbols <query...> [--exchange binance] [--asset-class equity_perp]",
           "alphafox <domain> <resource> <action> [flags]",
         ],
       },

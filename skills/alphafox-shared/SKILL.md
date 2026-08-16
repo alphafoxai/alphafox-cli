@@ -1,7 +1,7 @@
 ---
 name: alphafox-shared
 description: Shared AlphaFox CLI rules for Agents — auth, profiles, envelopes, risk gates, and public operationIds only.
-version: 0.3.6
+version: 0.3.7
 ---
 
 # AlphaFox shared Agent contract
@@ -76,7 +76,7 @@ Wrong environment / missing permission / missing `--yes`: stop. Do not retry wit
 
 ## Commands
 
-User-mentioned tickers (including typos) must be resolved with `alphafox resolve-symbols` before they are written into config. See `skills/market`.
+User-mentioned tickers (including typos) must be resolved with `alphafox resolve-symbols` before they are written into config. See `skills/market`. 美股 are `equity_perp` on `binance_perp_usdt`; do not swap them for a crypto coin.
 
 1. Prefer typed catalog: `alphafox schema <operationId>` then invoke domain commands.
 2. Raw escape hatch only for allowlisted facade:
@@ -104,7 +104,7 @@ Uncataloged writes cannot carry a non-empty body. Find the `operationId` first.
 ## Risk
 
 - `high-risk-write` and uncataloged mutations (`unknown`) require `--yes` (exit code `10` if missing).
-- Prefer `--dry-run` first for trader start/stop, withdrawals, admin writes.
+- Prefer `--dry-run` first for trader create/start/stop, withdrawals, admin writes.
 - Never auto-retry unknown write outcomes.
 - CLI `--yes` is UX only; the server still enforces role, ownership, and scopes.
 

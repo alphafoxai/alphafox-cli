@@ -1,38 +1,40 @@
 ---
 name: alphafox-strategy
-description: Strategy definitions and chats via public operationIds.
-version: 0.3.6
+description: Strategy definitions — list types (grid, dca, copy, …) and validate config. Creating a running strategy is creating a trader; use alphafox-trading for that.
+version: 0.3.7
 ---
 
-# Strategy / Chat
+# Strategy definitions
 
-Always `--format json --no-input`. Read scopes `trading:read`; writes `chats:write`.
+Always `--format json --no-input`. Read scopes `trading:read`; validate is `trading:write`.
 
-Whenever the human names a coin or ticker, resolve it with `alphafox resolve-symbols` (`skills/market`) before writing strategy config or symbols arrays. Exact matches may be used; a single close match needs confirmation; multiple close matches must be chosen by the human.
+A **definition** is a strategy type (grid, dca, copy, …). A **trader** is one running instance of a definition. Instantiating a definition is `alphafox-trading`, not this skill.
+
+Whenever the human names a ticker (US stock, coin, or contract), resolve it with `alphafox resolve-symbols` (`skills/market`) before writing symbols into a config you later validate or hand to create. 美股 are equity perps in `binance_perp_usdt` (`NVDA/USDT:USDT`, `assetClass=equity_perp`) — do not swap them for a crypto coin.
 
 ## Read
 
 ```bash
 alphafox schema trading.strategy_definitions.list --format json --no-input
 alphafox api GET /api/v1/trading/strategy-definitions --format json --no-input
+alphafox trading strategy_definitions byId get --definitionId <id> --format json --no-input
 ```
 
-## Write (ordinary)
+Use the list to pick the definition the operator named. Copy / rebate-copy / DCA / grid are rows in this catalog, not a separate product.
 
-Read `request.body` first. Do not invent chat or strategy fields.
+## Validate config
+
+Read `request.body` first. Do not invent definition or config fields.
 
 ```bash
-alphafox schema chats.create --format json --no-input
-alphafox chats create --body '{"strategyGenerationMode":"simple"}' --format json --no-input
-# large / nested bodies:
-# alphafox chats create --config @./create-chat.json --format json --no-input
+alphafox schema trading.strategy_definitions.byId.validate_config --format json --no-input
+alphafox trading strategy_definitions byId validate_config --definitionId <id> --config @./strategy-config.json --format json --no-input
 ```
 
-Requires auth. Sends `Idempotency-Key` when available. Duplicate key → `409`; do not invent a new key unless the operator asks to create another chat.
-
-Engine strategy backtest (WASM tape + persist) is `skills/engine-backtest` (`alphafox engine-backtest run`). Chat-attached `/api/v1/backtests` (`backtests.*`) is not a CLI surface — do not call it.
+After the config validates, create the running instance with `alphafox-trading`.
 
 ## operationIds
 
 - `trading.strategy_definitions.list`
-- `chats.create`
+- `trading.strategy_definitions.byId.get`
+- `trading.strategy_definitions.byId.validate_config`

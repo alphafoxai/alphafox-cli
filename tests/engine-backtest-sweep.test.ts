@@ -720,7 +720,7 @@ describe("engine-backtest sweep persist payload", () => {
     );
   });
 
-  it("keeps Sweep persist off Chat backtests and per-coordinate runs.create", () => {
+  it("keeps Sweep persist off web backtests and per-coordinate runs.create", () => {
     const persist = readFileSync(
       join(__dirname, "..", "..", "src", "engine-backtest", "persist.ts"),
       "utf8"

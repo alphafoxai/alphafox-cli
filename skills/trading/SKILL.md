@@ -1,14 +1,26 @@
 ---
 name: alphafox-trading
-description: Traders list and high-risk start/stop with confirmation gates.
-version: 0.3.6
+description: Running strategies (traders) — create, list, start, and stop. A trader is a live or paper strategy instance (grid, dca, copy, …), not a person.
+version: 0.3.7
 ---
 
-# Trading
+# Running strategies (traders)
 
-Always `--format json --no-input`. Read first. Writes need scopes `trading:write`; start/stop also `trading:high-risk`.
+Always `--format json --no-input`. Read first. Creates and updates need `trading:write`; start/stop also `trading:high-risk`.
 
-Human-mentioned tickers must be resolved with `alphafox resolve-symbols` (`skills/market`) before they are written into trader config.
+A **trader** is a running strategy instance (paper or live). Creating a strategy means creating a trader. Bind it to a **strategy definition**, an exchange connector, and runtime settings.
+
+Human-mentioned tickers must be resolved with `alphafox resolve-symbols` (`skills/market`) before they are written into trader config. 美股 stay `equity_perp` contracts such as `NVDA/USDT:USDT`.
+
+Pick the create operation from the definition the operator asked for:
+
+| Kind | Create |
+|---|---|
+| Engine definitions (grid, dca, …) | `trading.traders.create` |
+| Hyperliquid copy | `trading.hl_copy_traders.create` |
+| Rebate copy | `trading.rebate_copy_traders.create` |
+
+Copy leads come from `trading.signal_sources.list` when the operator named one. Same trader lifecycle (list / start / stop) after create.
 
 ## Read
 
@@ -16,9 +28,23 @@ Human-mentioned tickers must be resolved with `alphafox resolve-symbols` (`skill
 alphafox api GET /api/v1/trading/traders --format json --no-input
 ```
 
-## High-risk write
+## Create
 
-Read `alphafox schema trading.traders.byId.start` first. Body may only include documented fields (`reason` is optional). Do not invent keys.
+Read `alphafox schema <operationId>` first. Body may only include documented `request.body` fields. Large / nested bodies use `--config @file`.
+
+```bash
+alphafox schema trading.traders.create --format json --no-input
+alphafox trading traders create --config @./create-trader.json --dry-run --format json --no-input
+alphafox trading traders create --config @./create-trader.json --yes --format json --no-input
+```
+
+`trading.traders.create` is `high-risk-write` and needs `--yes`. Copy creates follow whatever `risk` the schema reports — `--dry-run` first, then `--yes` when required.
+
+If a required field is missing, re-read the schema and ask the operator. Do not invent ids. The CLI has no authoring-session surface; instantiate from a definition, connector, and config.
+
+## High-risk start / stop
+
+Read `alphafox schema trading.traders.byId.start` first. Body may only include documented fields (`reason` is optional).
 
 ```bash
 alphafox schema trading.traders.byId.start --format json --no-input
@@ -39,5 +65,9 @@ Stop: `POST /api/v1/trading/traders/{traderId}/stop` with the same `--dry-run` t
 ## operationIds
 
 - `trading.traders.list`
+- `trading.traders.create`
+- `trading.hl_copy_traders.create`
+- `trading.rebate_copy_traders.create`
+- `trading.signal_sources.list`
 - `trading.traders.byId.start`
 - `trading.traders.byId.stop`

@@ -3,14 +3,22 @@ import {
   RESOLVE_SYMBOLS_DEFAULT_EXCHANGE,
   resolveSymbolsExchangeId,
 } from "./exchanges";
-import type { ResolveSymbolsRunArgs } from "./types";
+import type { ResolveAssetClassFilter, ResolveSymbolsRunArgs } from "./types";
 
 export const RESOLVE_SYMBOLS_DEFAULT_LIMIT = 8;
 export const RESOLVE_SYMBOLS_MAX_LIMIT = 25;
 
+export const RESOLVE_SYMBOLS_ASSET_CLASSES = [
+  "all",
+  "equity_perp",
+  "rwa_perp",
+  "crypto",
+] as const satisfies readonly ResolveAssetClassFilter[];
+
 export const RESOLVE_SYMBOLS_USAGE = [
-  "alphafox resolve-symbols <query...> [--exchange binance] [--limit 8]",
+  "alphafox resolve-symbols <query...> [--exchange binance] [--asset-class all] [--limit 8]",
   "alphafox resolve-symbols --query BTC --query ETH --exchange okx",
+  "alphafox resolve-symbols NVDA AAPL TSLA --exchange binance --asset-class equity_perp",
 ];
 
 function usage(message: string, subtype = "invalid_args"): never {
@@ -41,6 +49,7 @@ export function parseResolveSymbolsArgs(
   const queries: string[] = [];
   let exchange = RESOLVE_SYMBOLS_DEFAULT_EXCHANGE;
   let limit = RESOLVE_SYMBOLS_DEFAULT_LIMIT;
+  let assetClass: ResolveAssetClassFilter = "all";
   let help = false;
 
   for (let i = 0; i < args.length; i += 1) {
@@ -72,6 +81,21 @@ export function parseResolveSymbolsArgs(
       case "--exchange":
         exchange = read();
         break;
+      case "--asset-class": {
+        const value = read().trim().toLowerCase();
+        if (
+          !RESOLVE_SYMBOLS_ASSET_CLASSES.includes(
+            value as ResolveAssetClassFilter
+          )
+        ) {
+          usage(
+            `--asset-class must be ${RESOLVE_SYMBOLS_ASSET_CLASSES.join("|")}`,
+            "invalid_asset_class"
+          );
+        }
+        assetClass = value as ResolveAssetClassFilter;
+        break;
+      }
       case "--limit": {
         const n = Number(read());
         if (!Number.isInteger(n) || n <= 0 || n > RESOLVE_SYMBOLS_MAX_LIMIT) {
@@ -89,7 +113,7 @@ export function parseResolveSymbolsArgs(
   }
 
   if (help) {
-    return { help: true, queries: [], exchange, limit };
+    return { help: true, queries: [], exchange, limit, assetClass };
   }
 
   const normalizedQueries = queries.map((item) => item.trim()).filter(Boolean);
@@ -109,6 +133,7 @@ export function parseResolveSymbolsArgs(
     queries: uniqueQueries(normalizedQueries),
     exchange: resolvedExchange,
     limit,
+    assetClass,
   };
 }
 

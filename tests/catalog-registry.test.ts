@@ -109,23 +109,46 @@ describe("generated operation catalog", () => {
     );
   });
 
-  it("omits chat backtest backtests.* from the CLI catalog", () => {
-    assert.equal(isOmittedCatalogOperation("backtests.create"), true);
+  it("omits chat product and web backtests.* from the CLI catalog", () => {
+    const generatedIds = (
+      registryJson as { operations: readonly { operationId: string }[] }
+    ).operations.map((op) => op.operationId);
+    const omittedIds = generatedIds.filter(isOmittedCatalogOperation);
+    assert.ok(omittedIds.includes("backtests.create"));
+    assert.ok(omittedIds.includes("chats.create"));
+    assert.ok(omittedIds.includes("chats.byId.get"));
+    assert.ok(omittedIds.includes("chat_summaries.list"));
+    for (const id of omittedIds) {
+      assert.equal(findCatalogOperation(id), undefined, id);
+      assert.equal(getOperationSchemaDocument(id), undefined, id);
+    }
     assert.equal(isOmittedCatalogOperation("backtests.byId.stream"), true);
     assert.equal(
       isOmittedCatalogOperation("engine_backtest.experiments.create"),
       false
     );
-    assert.equal(findCatalogOperation("backtests.create"), undefined);
-    assert.equal(getOperationSchemaDocument("backtests.create"), undefined);
     assert.ok(findCatalogOperation("engine_backtest.experiments.create"));
+    assert.ok(findCatalogOperation("trading.traders.create"));
+    assert.equal(
+      CATALOG_OPERATIONS.some(
+        (op) =>
+          op.operationId === "chats" ||
+          op.operationId.startsWith("chats.") ||
+          op.operationId.startsWith("chat_")
+      ),
+      false
+    );
     assert.equal(isFacadeAllowlistedPath("/api/v1/backtests"), false);
     assert.equal(isFacadeAllowlistedPath("/api/v1/backtests/bt-1/cancel"), false);
+    assert.equal(isFacadeAllowlistedPath("/api/v1/chats"), false);
+    assert.equal(isFacadeAllowlistedPath("/api/v1/chats/abc"), false);
+    assert.equal(isFacadeAllowlistedPath("/api/v1/chat-summaries"), false);
     assert.equal(
       isFacadeAllowlistedPath("/api/v1/engine-backtest/experiments"),
       true
     );
     assert.equal(resolveTypedCommand(["backtests", "create"]).kind, "missing");
+    assert.equal(resolveTypedCommand(["chats", "create"]).kind, "missing");
   });
 
   it("capability manifest and schema documents cover every CLI operationId", () => {
@@ -141,8 +164,8 @@ describe("generated operation catalog", () => {
       assert.equal(schema.error.contentType, "application/problem+json");
       assert.ok(schema.response.success);
     }
-    const chats = getOperationSchemaDocument("chats.create");
-    assert.ok(chats?.request.body);
+    const create = getOperationSchemaDocument("trading.traders.create");
+    assert.ok(create?.request.body);
     const start = getOperationSchemaDocument("trading.traders.byId.start");
     assert.deepEqual(start?.request.pathParamNames, ["traderId"]);
   });

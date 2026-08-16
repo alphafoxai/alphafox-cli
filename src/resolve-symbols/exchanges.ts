@@ -47,16 +47,19 @@ for (const exchange of RESOLVE_SYMBOLS_EXCHANGES) {
   }
 }
 
+const PASSTHROUGH_EXCHANGE_ID = /^[a-z][a-z0-9_]{1,63}$/;
+
 export function resolveSymbolsExchangeId(raw: string): ResolveSymbolsExchange {
   const key = raw.trim().toLowerCase();
   const exchange = EXCHANGE_BY_ALIAS.get(key);
-  if (!exchange) {
-    const allowed = RESOLVE_SYMBOLS_EXCHANGES.map((item) => item.aliases[0]).join(
-      "|"
-    );
-    throw new Error(
-      `--exchange must be ${allowed} (got ${raw.trim() || "<empty>"})`
-    );
+  if (exchange) return exchange;
+  if (PASSTHROUGH_EXCHANGE_ID.test(key)) {
+    return { id: key, label: raw.trim(), aliases: [key] };
   }
-  return exchange;
+  const allowed = RESOLVE_SYMBOLS_EXCHANGES.map((item) => item.aliases[0]).join(
+    "|"
+  );
+  throw new Error(
+    `--exchange must be ${allowed} or a market.symbols.list catalog id (got ${raw.trim() || "<empty>"})`
+  );
 }

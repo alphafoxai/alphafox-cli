@@ -1,25 +1,25 @@
 ---
 name: alphafox-engine-backtest
 description: Local Engine WASM backtest (alphafox engine-backtest run|sweep) vs catalog experiment CRUD.
-version: 0.3.6
+version: 0.3.7
 ---
 
 # Engine Backtest
 
 Always `--format json --no-input` (or `--format jsonl` when you need progress). Never `--token`. Tokens live in the OS keychain via `alphafox auth login`.
 
-Human-mentioned tickers must be resolved with `alphafox resolve-symbols` (`skills/market`) before they go into `--config`. Use `data.queries[].resolved` only when `status` is `exact`, or `close` after confirming with the human. Do not invent `BTC/USDT:USDT`. Aster is in the public catalog but is **not** an Engine tape source.
+Human-mentioned tickers must be resolved with `alphafox resolve-symbols` (`skills/market`) before they go into `--config`. Use `data.queries[].resolved` only when `status` is `exact`, or `close` after confirming with the human, and only when `assetClass` matches the operator (美股 → `equity_perp`). Local Engine tape is Binance-style USDT-M perps (`binance|okx|bybit|bitget|hyperliquid`), which is the same catalog that lists equity perps. Aster is in the public catalog but is **not** an Engine tape source. Do not rewrite `NVDA/USDT:USDT` into a crypto coin to force a backtest.
 
 ## Which command
 
 | Intent | Use | Do not |
 |---|---|---|
 | Iterate a strategy locally (pull tape + run wasm + optional persist) | `alphafox engine-backtest run` (hyphen, built-in) | Do not treat this as server-side execution of `engine_backtest.experiments.byId.runs.create` |
-| Local parameter search with explicit axes; persist one Sweep after completion | `alphafox engine-backtest sweep` | Never loop `runs.create` per coordinate. Do not call Chat `backtests.*` |
+| Local parameter search with explicit axes; persist one Sweep after completion | `alphafox engine-backtest sweep` | Never loop `runs.create` per coordinate. Do not call `backtests.*` |
 | Local search with zero writes | `alphafox engine-backtest sweep ... --no-persist` | Do not persist a cancelled or incomplete search |
 | List / get / delete persisted Sweeps | Catalog `engine_backtest.experiments.byId.sweeps.*` | Do not invent a second catalog. Delete is high-risk and needs `--yes` |
 | List / get / create / rename / delete experiments and persisted runs | Catalog `engine_backtest.*` (underscore) | Do not invent a second catalog |
-| Chat-attached `/api/v1/backtests` job | — | Not a CLI surface. Do not call `backtests.*` or `/api/v1/backtests` |
+| Web `/api/v1/backtests` job | — | Not a CLI surface. Do not call `backtests.*` or `/api/v1/backtests` |
 
 Read the create-experiment body with `alphafox schema` **before** composing JSON. Do not invent experiment fields. Large create/run/sweep payloads use `--config @file`, never a guessed `--body`.
 
@@ -110,4 +110,4 @@ Owner isolation and 7-day expiry are enforced by the server. Applying a coordina
 - `engine_backtest.experiments.byId.sweeps.byId.get`
 - High-risk (not this skill's run/sweep path): `engine_backtest.experiments.byId.update` / `.byId.delete` / `.byId.runs.byId.delete` / `.byId.sweeps.byId.delete`
 
-Chat `backtests.*` is not an Engine Sweep or Engine Run surface. Do not call it from this skill.
+`backtests.*` is not an Engine Sweep or Engine Run surface. Do not call it from this skill.

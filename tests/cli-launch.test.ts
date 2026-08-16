@@ -122,21 +122,34 @@ describe("cli launch", () => {
     const json = JSON.parse(r.stdout);
     assert.equal(json.ok, true);
     assert.ok(json.data.operations.includes("me.whoami"));
+    assert.ok(json.data.operations.includes("trading.traders.create"));
+    assert.equal(json.data.operations.includes("chats.create"), false);
+    assert.equal(json.data.operations.includes("backtests.create"), false);
     assert.ok(json.data.operations.length > 24);
     assert.equal(json.data.contractVersion, "2026-08-13");
   });
 
-  it("schema for an operation includes registry input/output contracts", () => {
+  it("schema rejects omitted chat operations", () => {
     const r = run(["schema", "chats.create"]);
+    assert.notEqual(r.status, 0, r.stdout + r.stderr);
+    const err = JSON.parse(r.stderr);
+    assert.equal(err.ok, false);
+    assert.equal(err.error.type, "not_found");
+  });
+
+  it("schema for an operation includes registry input/output contracts", () => {
+    const r = run(["schema", "trading.traders.byId.start"]);
     assert.equal(r.status, 0, r.stderr);
     const json = JSON.parse(r.stdout);
     assert.equal(json.ok, true);
-    assert.equal(json.data.operationId, "chats.create");
+    assert.equal(json.data.operationId, "trading.traders.byId.start");
     assert.equal(json.data.request.contentType, "application/json");
     assert.equal(json.data.error.contentType, "application/problem+json");
     assert.ok(json.data.request.body);
     assert.ok(json.data.response.success);
-    assert.ok(String(json.data.examples?.typed ?? "").includes("chats create"));
+    assert.ok(
+      String(json.data.examples?.typed ?? "").includes("traders byId start")
+    );
   });
 
   it("typed command tree resolves registry operationIds", () => {
@@ -246,7 +259,7 @@ describe("cli launch", () => {
     const missing = run([
       "api",
       "POST",
-      "/api/v1/chats",
+      "/api/v1/trading/traders",
       "--body",
       "{}",
       "--dry-run",
@@ -256,10 +269,13 @@ describe("cli launch", () => {
     assert.equal(missingErr.error.subtype, "body_schema");
 
     const extra = run([
-      "chats",
-      "create",
+      "trading",
+      "traders",
+      "start",
+      "--traderId",
+      "t1",
       "--body",
-      '{"strategyGenerationMode":"simple","invented":1}',
+      '{"reason":"resume","invented":1}',
       "--dry-run",
     ]);
     assert.equal(extra.status, 64, extra.stderr + extra.stdout);
@@ -267,17 +283,20 @@ describe("cli launch", () => {
     assert.equal(extraErr.error.subtype, "body_schema");
 
     const ok = run([
-      "chats",
-      "create",
+      "trading",
+      "traders",
+      "start",
+      "--traderId",
+      "t1",
       "--body",
-      '{"strategyGenerationMode":"simple"}',
+      '{"reason":"resume"}',
       "--dry-run",
     ]);
     assert.equal(ok.status, 0, ok.stderr + ok.stdout);
     const json = JSON.parse(ok.stdout);
     assert.equal(json.data.dryRun, true);
-    assert.equal(json.data.operationId, "chats.create");
-    assert.deepEqual(json.data.body, { strategyGenerationMode: "simple" });
+    assert.equal(json.data.operationId, "trading.traders.byId.start");
+    assert.deepEqual(json.data.body, { reason: "resume" });
   });
 
   it("uncataloged write with a non-empty body fails closed", () => {

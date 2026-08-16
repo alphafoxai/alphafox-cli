@@ -1,8 +1,10 @@
 import type {
   CatalogSymbol,
+  ResolveAssetClassFilter,
   ResolveSymbolsMatch,
   ResolveSymbolsMatchReason,
   ResolveSymbolsQueryResult,
+  SymbolMetadata,
 } from "./types";
 
 const LINEAR_PERP_PATTERN =
@@ -74,7 +76,8 @@ export function parseCatalogSymbol(symbol: string): CatalogSymbol | null {
 }
 
 export function indexCatalogSymbols(
-  symbols: readonly string[]
+  symbols: readonly string[],
+  metadata: Readonly<Record<string, SymbolMetadata>> = {}
 ): readonly CatalogSymbol[] {
   const seen = new Set<string>();
   const indexed: CatalogSymbol[] = [];
@@ -83,71 +86,77 @@ export function indexCatalogSymbols(
     if (!parsed) continue;
     if (seen.has(parsed.symbol)) continue;
     seen.add(parsed.symbol);
-    indexed.push(parsed);
+    indexed.push({
+      ...parsed,
+      metadata: metadata[raw] ?? metadata[parsed.symbol],
+    });
   }
   return indexed;
+}
+
+export function catalogMatchesAssetClass(
+  item: CatalogSymbol,
+  assetClass: ResolveAssetClassFilter
+): boolean {
+  if (assetClass === "all") return true;
+  const cls = item.metadata?.assetClass;
+  const tradfi = item.metadata?.isTradFiRwa === true;
+  if (assetClass === "equity_perp") return cls === "equity_perp";
+  if (assetClass === "rwa_perp") return cls === "rwa_perp";
+  return !tradfi && cls !== "equity_perp" && cls !== "rwa_perp";
 }
 
 export function resolveQueryAgainstCatalog(
   query: string,
   catalog: readonly CatalogSymbol[],
-  limit = 8
+  limit = 8,
+  assetClass: ResolveAssetClassFilter = "all"
 ): ResolveSymbolsQueryResult {
   const trimmed = query.trim();
-  const matches = rankMatches(trimmed, catalog);
+  const scoped = catalog.filter((item) =>
+    catalogMatchesAssetClass(item, assetClass)
+  );
+  const matches = rankMatches(trimmed, scoped);
   const exact = matches.filter((item) => EXACT_REASONS.has(item.reason));
   const close = matches.filter((item) => !EXACT_REASONS.has(item.reason));
   const capped = (items: readonly ResolveSymbolsMatch[]) =>
     items.slice(0, Math.max(1, limit));
 
   if (exact.length === 1) {
-    return {
-      query: trimmed,
-      status: "exact",
-      resolved: exact[0]!.symbol,
-      needsConfirmation: false,
-      matches: exact,
-      matchCount: exact.length,
-    };
+    return result("exact", exact[0]!.symbol, false, exact, exact.length);
   }
   if (exact.length > 1) {
-    return {
-      query: trimmed,
-      status: "ambiguous",
-      resolved: null,
-      needsConfirmation: true,
-      matches: capped(exact),
-      matchCount: exact.length,
-    };
+    return result("ambiguous", null, true, capped(exact), exact.length);
   }
   if (close.length === 1) {
-    return {
-      query: trimmed,
-      status: "close",
-      resolved: close[0]!.symbol,
-      needsConfirmation: true,
-      matches: close,
-      matchCount: 1,
-    };
+    return result("close", close[0]!.symbol, true, close, 1);
   }
   if (close.length > 1) {
+    return result("ambiguous", null, true, capped(close), close.length);
+  }
+  return result("none", null, false, [], 0);
+
+  function result(
+    status: ResolveSymbolsQueryResult["status"],
+    resolved: string | null,
+    needsConfirmation: boolean,
+    matches: readonly ResolveSymbolsMatch[],
+    matchCount: number
+  ): ResolveSymbolsQueryResult {
+    const chosen = resolved
+      ? matches.find((item) => item.symbol === resolved)
+      : undefined;
     return {
       query: trimmed,
-      status: "ambiguous",
-      resolved: null,
-      needsConfirmation: true,
-      matches: capped(close),
-      matchCount: close.length,
+      status,
+      resolved,
+      assetClass: chosen?.assetClass ?? null,
+      isTradFiRwa: chosen?.isTradFiRwa ?? false,
+      needsConfirmation,
+      matches,
+      matchCount,
     };
   }
-  return {
-    query: trimmed,
-    status: "none",
-    resolved: null,
-    needsConfirmation: false,
-    matches: [],
-    matchCount: 0,
-  };
 }
 
 function rankMatches(
@@ -179,16 +188,16 @@ function rankCatalogSymbol(
   queryBaseKey: string
 ): ResolveSymbolsMatch | null {
   if (item.symbol === canonicalQuery) {
-    return match(item.symbol, "exact_canonical", 100);
+    return match(item, "exact_canonical", 100);
   }
   if (item.pair === canonicalQuery) {
-    return match(item.symbol, "exact_pair", 96);
+    return match(item, "exact_pair", 96);
   }
   if (item.compactKey === queryKey || item.searchKey === queryKey) {
-    return match(item.symbol, "exact_compact", 98);
+    return match(item, "exact_compact", 98);
   }
   if (item.baseKey === queryKey || item.baseKey === queryBaseKey) {
-    return match(item.symbol, "exact_base", 95);
+    return match(item, "exact_base", 95);
   }
 
   let best: ResolveSymbolsMatch | null = null;
@@ -197,7 +206,7 @@ function rankCatalogSymbol(
     score: number
   ): void => {
     if (!best || score > best.score) {
-      best = match(item.symbol, reason, score);
+      best = match(item, reason, score);
     }
   };
 
@@ -244,11 +253,17 @@ function isCloseDistance(left: string, right: string, distance: number): boolean
 }
 
 function match(
-  symbol: string,
+  item: CatalogSymbol,
   reason: ResolveSymbolsMatchReason,
   score: number
 ): ResolveSymbolsMatch {
-  return { symbol, reason, score };
+  return {
+    symbol: item.symbol,
+    reason,
+    score,
+    assetClass: item.metadata?.assetClass ?? null,
+    isTradFiRwa: item.metadata?.isTradFiRwa === true,
+  };
 }
 
 function clampScore(score: number): number {

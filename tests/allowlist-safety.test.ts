@@ -24,7 +24,7 @@ describe("raw API allowlist", () => {
 
   it("requires /api/v1 facade prefix", () => {
     assert.equal(isFacadeAllowlistedPath("/api/chats"), false);
-    assert.equal(isFacadeAllowlistedPath("/api/v1/chats"), true);
+    assert.equal(isFacadeAllowlistedPath("/api/v1/chats"), false);
   });
 
   it("rejects unknown nested paths that used to match facility prefixes", () => {
@@ -172,7 +172,7 @@ describe("high-risk confirmation gate", () => {
       assertHighRiskConfirmation({
         risk: "write",
         yes: false,
-        action: "chats.create",
+        action: "trading.hl_copy_traders.create",
       }).allowed,
       true
     );

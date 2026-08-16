@@ -3,7 +3,7 @@ import { resolveProfile } from "../config/profiles";
 import { writeError, writeSuccess } from "../envelope";
 import type { ApiRequestOptions, ApiResponse } from "../http/client";
 import { apiRequest as defaultApiRequest } from "../http/client";
-import { extractCatalogSymbols, marketSymbolsPath } from "./catalog";
+import { extractMarketCatalog, marketSymbolsPath } from "./catalog";
 import { isResolveSymbolsError, ResolveSymbolsError } from "./errors";
 import { resolveSymbolsExchangeId } from "./exchanges";
 import { indexCatalogSymbols, resolveQueryAgainstCatalog } from "./match";
@@ -61,10 +61,12 @@ export function resolveSymbolsHelpData(): {
     name: "resolve-symbols",
     usage: RESOLVE_SYMBOLS_USAGE,
     notes: [
-      "Resolves user-mentioned tickers against the public linear-perp catalog from market.symbols.list",
-      "Default --exchange is binance (binance_perp_usdt). Aliases: binance|okx|bybit|bitget|hyperliquid|aster",
-      "Do not guess CCXT symbols. Exact match may be used directly; a single close match needs user confirmation; multiple close matches must be chosen by the user",
-      "Catalog CRUD remains alphafox market symbols list --exchange <id>",
+      "Resolves user-mentioned tickers against market.symbols.list for the chosen catalog",
+      "Default --exchange is binance (binance_perp_usdt). Built-in aliases: binance|okx|bybit|bitget|hyperliquid|aster",
+      "US stock perps live in the same catalog (NVDA/USDT:USDT) and are tagged symbolMetadata.assetClass=equity_perp / isTradFiRwa",
+      "For 美股 use --asset-class equity_perp. For gold/silver RWAs use rwa_perp. Crypto perps are untagged or --asset-class crypto",
+      "Each match includes assetClass and isTradFiRwa. Do not treat an equity_perp as a crypto coin",
+      "Catalog dump remains alphafox market symbols list --exchange <id>",
     ],
   };
 }
@@ -108,13 +110,26 @@ export async function executeResolveSymbols(
     });
   }
 
-  const catalog = indexCatalogSymbols(extractCatalogSymbols(res.json));
+  const payload = extractMarketCatalog(res.json);
+  const catalog = indexCatalogSymbols(payload.symbols, payload.symbolMetadata);
+  if (
+    args.assetClass !== "all" &&
+    !catalog.some((item) => item.metadata?.assetClass)
+  ) {
+    throw new ResolveSymbolsError({
+      type: "runtime",
+      subtype: "metadata_missing",
+      message:
+        "market.symbols.list did not include symbolMetadata; cannot apply --asset-class",
+      hint: "Retry without --asset-class, or use a catalog that returns symbolMetadata.assetClass.",
+    });
+  }
   return {
     exchange: exchange.id,
     exchangeLabel: exchange.label,
     catalogSize: catalog.length,
     queries: args.queries.map((query) =>
-      resolveQueryAgainstCatalog(query, catalog, args.limit)
+      resolveQueryAgainstCatalog(query, catalog, args.limit, args.assetClass)
     ),
   };
 }
@@ -163,6 +178,7 @@ export async function cmdResolveSymbols(
         path: marketSymbolsPath(exchange.id),
         exchange: exchange.id,
         exchangeLabel: exchange.label,
+        assetClass: parsed.assetClass,
         queries: parsed.queries,
       },
       { format: flags.format, jq: flags.jq }

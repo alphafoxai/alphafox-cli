@@ -68,3 +68,14 @@ export {
 export { CLI_VERSION, CLI_PACKAGE, CLI_CONTRACT_VERSION } from "./version";
 export { validateCatalogWriteBody } from "./catalog/validate-body";
 export { parseRequestBodyFlags, loadJsonArg } from "./commands/request-body";
+export {
+  parseInstallArgs,
+  runInstallWizard,
+  semverLessThan,
+  skillsListHasAlphafox,
+} from "./install/wizard";
+export {
+  AGENT_INSTALL_GUIDE_BLOB_URL,
+  AGENT_INSTALL_GUIDE_URL,
+  SKILLS_GITHUB_SOURCE,
+} from "./install/types";

@@ -10,7 +10,14 @@ Co-versioned with `@alphafox/cli`. Query compatibility with `alphafox version --
 
 ## Install / identity
 
+Prefer the wizard (CLI + Agent Skills) or the Agent install guide. Do not treat
+`npm install -g @alphafox/cli` as enough for Agents — Skills must be registered
+with `npx skills add`.
+
 ```bash
+npx @alphafox/cli@latest install
+# Agent playbook:
+# https://github.com/alphafoxai/alphafox-cli/blob/main/docs/alphafox-cli-installation-guide.md
 npx @alphafox/cli version --format json --no-input
 npx @alphafox/cli doctor --format json --no-input
 ```

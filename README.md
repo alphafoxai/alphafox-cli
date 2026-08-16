@@ -4,44 +4,38 @@ Alphafox CLI (`alphafox`) — Agent and human entry for the versioned Public App
 
 ## Install
 
-### Method 1 — Manual wizard
+Pick **one** of the following. Both install the CLI **and** register Agent
+Skills. `npm install -g @alphafox/cli` alone does **not** install Skills.
 
-Installs the CLI globally and copies co-versioned Agent Skills into detected
-agents (Cursor, Claude Code, Codex, and others):
+### Method 1 — Manual wizard
 
 ```bash
 npx @alphafox/cli@latest install
 ```
 
-After the wizard finishes, **restart your AI tool** so Skills load.
+This installs `@alphafox/cli` globally, runs `npx skills add` into detected
+agents (Cursor, Claude Code, Codex, …), and may prompt for
+`alphafox auth login --browser`. **Restart the AI tool** afterwards so Skills
+load.
 
 ### Method 2 — Install via Agent
 
-Copy and send this to your AI tool (Cursor, Claude Code, Codex, Trae, …):
-
-```
-Help me install Alphafox CLI: https://github.com/alphafoxai/alphafox-cli/blob/main/docs/alphafox-cli-installation-guide.md
-```
+Copy and send this to Cursor / Claude Code / Codex / Trae:
 
 ```
 帮我安装 Alphafox CLI：https://github.com/alphafoxai/alphafox-cli/blob/main/docs/alphafox-cli-installation-guide.md
 ```
 
-The Agent reads that guide and runs the steps (global CLI, `npx skills add`,
-login, verify). Restart the AI tool when it finishes.
-
-### CLI only (no Skills)
-
-```bash
-npm install -g @alphafox/cli
-# or
-npx @alphafox/cli version
+```
+Help me install Alphafox CLI: https://github.com/alphafoxai/alphafox-cli/blob/main/docs/alphafox-cli-installation-guide.md
 ```
 
-`npm install -g` does **not** register Skills with Agents. Use `alphafox install`
-or the Agent guide for that.
+The Agent follows that guide (`npm install -g`, `npx skills add`, login,
+`doctor`). **Restart the AI tool** when it finishes.
 
 ## Quick start
+
+After Method 1 or 2:
 
 ```bash
 alphafox version

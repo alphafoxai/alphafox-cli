@@ -1,12 +1,14 @@
 ---
 name: alphafox-engine-backtest
-description: Local Engine WASM backtest (alphafox engine-backtest run|sweep) vs catalog experiment CRUD vs chat backtests stub.
-version: 0.3.3
+description: Local Engine WASM backtest (alphafox engine-backtest run|sweep) vs catalog experiment CRUD.
+version: 0.3.4
 ---
 
 # Engine Backtest
 
 Always `--format json --no-input` (or `--format jsonl` when you need progress). Never `--token`. Tokens live in the OS keychain via `alphafox auth login`.
+
+Human-mentioned tickers must be resolved with `alphafox resolve-symbols` (`skills/market`) before they go into `--config`. Use `data.queries[].resolved` only when `status` is `exact`, or `close` after confirming with the human. Do not invent `BTC/USDT:USDT`. Aster is in the public catalog but is **not** an Engine tape source.
 
 ## Which command
 
@@ -17,7 +19,7 @@ Always `--format json --no-input` (or `--format jsonl` when you need progress). 
 | Local search with zero writes | `alphafox engine-backtest sweep ... --no-persist` | Do not persist a cancelled or incomplete search |
 | List / get / delete persisted Sweeps | Catalog `engine_backtest.experiments.byId.sweeps.*` | Do not invent a second catalog. Delete is high-risk and needs `--yes` |
 | List / get / create / rename / delete experiments and persisted runs | Catalog `engine_backtest.*` (underscore) | Do not invent a second catalog |
-| Chat-attached `/api/v1/backtests` job | `skills/strategy` + `backtests.*` | That stub is **not** the Engine WASM runner |
+| Chat-attached `/api/v1/backtests` job | — | Not a CLI surface. Do not call `backtests.*` or `/api/v1/backtests` |
 
 Read the create-experiment body with `alphafox schema` **before** composing JSON. Do not invent experiment fields. Large create/run/sweep payloads use `--config @file`, never a guessed `--body`.
 

@@ -13,7 +13,6 @@ import {
   AGENT_INSTALL_GUIDE_BLOB_URL,
   InstallError,
   SKILLS_GITHUB_SOURCE,
-  SKILLS_NAME_PREFIX,
   type InstallAuthStep,
   type InstallCliStep,
   type InstallFlags,
@@ -61,8 +60,7 @@ export function parseNpmListVersion(output: string): string | null {
 }
 
 export function skillsListHasAlphafox(output: string): boolean {
-  const prefix = SKILLS_NAME_PREFIX.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`(^|\\s)${prefix}[\\w-]+`, "m").test(output);
+  return /(^|\s)alphafox(?:-[\w-]+)?(?=\s|$)/m.test(output);
 }
 
 export function nextSteps(input: {

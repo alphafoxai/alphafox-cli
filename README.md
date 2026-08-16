@@ -61,9 +61,10 @@ alphafox api GET /api/v1/me
 
 ## Skills
 
-Co-versioned Agent Skills live under `skills/`. API-oriented skills route public
-`operationId`s; an explicit local-execution skill may call its co-versioned
-built-in command.
+Co-versioned Agent Skills live under `skills/`. The entry skill is
+`skills/alphafox` (`name: alphafox`): it routes to domain skills. API-oriented
+skills then use public `operationId`s; an explicit local-execution skill may
+call its co-versioned built-in command.
 
 `alphafox install` (and the [Agent install guide](docs/alphafox-cli-installation-guide.md))
 run `npx skills add` so those files land in Agent skill directories

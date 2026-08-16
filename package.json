@@ -1,6 +1,6 @@
 {
   "name": "@alphafox/cli",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Alphafox CLI — Agent/Human entry for the public Application API.",
   "type": "commonjs",
   "bin": {

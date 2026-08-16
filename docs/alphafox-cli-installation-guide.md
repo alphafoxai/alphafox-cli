@@ -88,8 +88,8 @@ Parse the JSON envelope: `ok === true` means success. Errors land on
 ## Step 4: Tell the user to restart
 
 Ask the user to **restart the AI tool** so the new Skills are loaded.
-Then they can ask the Agent to use Alphafox (auth, catalog, trading,
-engine-backtest, …).
+Then they can ask the Agent to use Alphafox. The entry skill `alphafox` routes
+to auth, market, engine-backtest, strategy, trading, and the rest.
 
 ## Human wizard (do not run this from an Agent)
 

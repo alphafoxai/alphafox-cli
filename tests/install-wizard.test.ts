@@ -109,6 +109,8 @@ describe("install helpers", () => {
 
   it("detects alphafox-* skills in ls output", () => {
     assert.equal(skillsListHasAlphafox("lark-im\n"), false);
+    assert.equal(skillsListHasAlphafox("alphafoxai\n"), false);
+    assert.equal(skillsListHasAlphafox("alphafox\n"), true);
     assert.equal(skillsListHasAlphafox("alphafox-shared\nalphafox-auth\n"), true);
     assert.equal(skillsListHasAlphafox("  alphafox-trading  "), true);
   });

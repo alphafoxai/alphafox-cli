@@ -1,10 +1,12 @@
 ---
 name: alphafox-shared
 description: Shared Alphafox CLI rules for Agents — auth, profiles, envelopes, risk gates, and public operationIds only.
-version: 0.3.3
+version: 0.3.4
 ---
 
 # Alphafox shared Agent contract
+
+User-facing entry is skill `alphafox` (router). This file is the shared CLI contract every domain skill assumes.
 
 Co-versioned with `@alphafox/cli`. Query compatibility with `alphafox version --format json` (`version`, `contractVersion`, `catalogVersion`) and `alphafox catalog`.
 
@@ -53,6 +55,8 @@ Local browser: `alphafox auth login --browser --format json --no-input` (loopbac
 Wrong environment / missing permission / missing `--yes`: stop. Do not retry with a different profile.
 
 ## Commands
+
+User-mentioned tickers (including typos) must be resolved with `alphafox resolve-symbols` before they are written into config. See `skills/market`.
 
 1. Prefer typed catalog: `alphafox schema <operationId>` then invoke domain commands.
 2. Raw escape hatch only for allowlisted facade:

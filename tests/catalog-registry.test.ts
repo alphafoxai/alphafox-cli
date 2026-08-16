@@ -14,7 +14,9 @@ import {
 import { checkCliCompatibility } from "../src/catalog/compatibility";
 import { resolveTypedCommand } from "../src/catalog/command-tree";
 import { isFacadeAllowlistedPath } from "../src/catalog/allowlist";
+import { isOmittedCatalogOperation } from "../src/catalog/omit";
 import { CLI_VERSION } from "../src/version";
+import registryJson from "../src/catalog/generated/registry.json";
 
 describe("generated operation catalog", () => {
   it("is generated from the public-api registry, not a handwritten 24-op list", () => {
@@ -25,7 +27,15 @@ describe("generated operation catalog", () => {
       CATALOG_OPERATIONS.length >= 200,
       `expected >= 200 operations, got ${CATALOG_OPERATIONS.length}`
     );
-    assert.equal(CATALOG_OPERATIONS.length, CATALOG_SOURCE.cliOperations);
+    const generatedIds = (
+      registryJson as { operations: readonly { operationId: string }[] }
+    ).operations.map((op) => op.operationId);
+    const omittedIds = generatedIds.filter(isOmittedCatalogOperation);
+    assert.equal(generatedIds.length, CATALOG_SOURCE.cliOperations);
+    assert.equal(
+      CATALOG_OPERATIONS.length + omittedIds.length,
+      CATALOG_SOURCE.cliOperations
+    );
     const ids = CATALOG_OPERATIONS.map((op) => op.operationId);
     assert.equal(new Set(ids).size, ids.length);
     assert.ok(findCatalogOperation("me.whoami"));
@@ -91,12 +101,31 @@ describe("generated operation catalog", () => {
         "/api/v1/engine-backtest/experiments/11111111-1111-1111-1111-111111111111/sweeps"
       )
     );
-    assert.equal(isFacadeAllowlistedPath("/api/v1/backtests"), true);
+    assert.equal(isFacadeAllowlistedPath("/api/v1/backtests"), false);
     assert.equal(
       findCatalogOperation("engine_backtest.experiments.byId.sweeps.create")
         ?.operationId.includes("backtests."),
       false
     );
+  });
+
+  it("omits chat backtest backtests.* from the CLI catalog", () => {
+    assert.equal(isOmittedCatalogOperation("backtests.create"), true);
+    assert.equal(isOmittedCatalogOperation("backtests.byId.stream"), true);
+    assert.equal(
+      isOmittedCatalogOperation("engine_backtest.experiments.create"),
+      false
+    );
+    assert.equal(findCatalogOperation("backtests.create"), undefined);
+    assert.equal(getOperationSchemaDocument("backtests.create"), undefined);
+    assert.ok(findCatalogOperation("engine_backtest.experiments.create"));
+    assert.equal(isFacadeAllowlistedPath("/api/v1/backtests"), false);
+    assert.equal(isFacadeAllowlistedPath("/api/v1/backtests/bt-1/cancel"), false);
+    assert.equal(
+      isFacadeAllowlistedPath("/api/v1/engine-backtest/experiments"),
+      true
+    );
+    assert.equal(resolveTypedCommand(["backtests", "create"]).kind, "missing");
   });
 
   it("capability manifest and schema documents cover every CLI operationId", () => {

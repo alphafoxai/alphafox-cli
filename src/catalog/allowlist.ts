@@ -90,7 +90,7 @@ export function isInternalDisallowedPath(path: string): boolean {
   );
 }
 
-/** Match OpenAPI-style templates: /api/v1/backtests/{backtestId}/cancel */
+/** Match OpenAPI-style templates: /api/v1/engine-backtest/experiments/{experimentId}. */
 export function pathTemplateMatches(
   template: string,
   actual: string,

@@ -1,12 +1,14 @@
 ---
 name: alphafox-trading
 description: Traders list and high-risk start/stop with confirmation gates.
-version: 0.3.3
+version: 0.3.4
 ---
 
 # Trading
 
 Always `--format json --no-input`. Read first. Writes need scopes `trading:write`; start/stop also `trading:high-risk`.
+
+Human-mentioned tickers must be resolved with `alphafox resolve-symbols` (`skills/market`) before they are written into trader config.
 
 ## Read
 

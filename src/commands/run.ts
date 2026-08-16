@@ -55,6 +55,7 @@ import {
   CLI_VERSION,
 } from "../version";
 import { cmdEngineBacktest } from "../engine-backtest/run-command";
+import { cmdResolveSymbols } from "../resolve-symbols/run-command";
 import { validateCatalogWriteBody } from "../catalog/validate-body";
 import { isInstallError } from "../install/types";
 import {
@@ -153,6 +154,7 @@ export async function runCli(
           "alphafox api METHOD PATH [--body JSON|--config @file]",
           "alphafox engine-backtest run --experiment <uuid> --definition <id> --config @file --exchange <id> --range FROM..TO --initial-equity N",
           "alphafox engine-backtest sweep --experiment <uuid> --definition <id> --config @file --axes @file --exchange <id> --range FROM..TO --initial-equity N --no-persist",
+          "alphafox resolve-symbols <query...> [--exchange binance]",
           "alphafox <domain> <resource> <action> [flags]",
         ],
       },
@@ -200,6 +202,9 @@ export async function runCli(
         // (engine_backtest.experiments.*) still goes through the typed tree.
         return await cmdTyped(cmd, args, flags, env);
       }
+      case "resolve-symbols":
+      case "resolve-symbol":
+        return await cmdResolveSymbols(args, flags, env);
       default:
         return await cmdTyped(cmd, args, flags, env);
     }

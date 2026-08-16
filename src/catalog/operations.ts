@@ -7,6 +7,7 @@ import type { CompatibilityRange } from "./compatibility";
 import { checkCliCompatibility } from "./compatibility";
 import registryJson from "./generated/registry.json";
 import schemasJson from "./generated/schemas.json";
+import { isOmittedCatalogOperation } from "./omit";
 
 export interface CatalogOperation {
   readonly operationId: string;
@@ -85,7 +86,9 @@ const generatedSchemas = schemasJson as Record<string, OperationSchemaDocument>;
 export const CATALOG_SOURCE: CatalogSource = generated.source;
 export const CATALOG_VERSION = generated.compatibility.contractVersion;
 export const CATALOG_OPERATIONS: readonly CatalogOperation[] =
-  generated.operations;
+  generated.operations.filter(
+    (op) => !isOmittedCatalogOperation(op.operationId)
+  );
 export const COMPATIBILITY_RANGE: CompatibilityRange = generated.compatibility;
 
 export function getCompatibilityRange(): CompatibilityRange {
@@ -138,6 +141,7 @@ function pathTemplateMatchesOp(
 export function getOperationSchemaDocument(
   operationId: string
 ): OperationSchemaDocument | undefined {
+  if (isOmittedCatalogOperation(operationId)) return undefined;
   return generatedSchemas[operationId];
 }
 
@@ -181,7 +185,7 @@ export function buildCapabilityManifest() {
   };
 }
 
-/** Resolve path templates like /api/v1/backtests/{backtestId}. */
+/** Resolve path templates like /api/v1/engine-backtest/experiments/{experimentId}. */
 export function resolveOperationPath(
   template: string,
   params: Record<string, string>

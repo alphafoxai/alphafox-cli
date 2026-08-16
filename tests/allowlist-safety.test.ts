@@ -48,9 +48,10 @@ describe("raw API allowlist", () => {
     );
     assert.equal(isFacadeAllowlistedPath("/api/v1/wallet"), true);
     assert.equal(
-      isFacadeAllowlistedPath("/api/v1/backtests/bt-1/cancel"),
+      isFacadeAllowlistedPath("/api/v1/engine-backtest/experiments"),
       true
     );
+    assert.equal(isFacadeAllowlistedPath("/api/v1/backtests/bt-1/cancel"), false);
   });
 
   it("rejects arbitrary unknown /api/v1 paths", () => {

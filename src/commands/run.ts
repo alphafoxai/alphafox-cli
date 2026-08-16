@@ -58,6 +58,7 @@ import {
   CLI_PACKAGE,
   CLI_VERSION,
 } from "../version";
+import { cmdCache } from "../cache/run-command";
 import { cmdEngineBacktest } from "../engine-backtest/run-command";
 import { cmdResolveSymbols } from "../resolve-symbols/run-command";
 import { cmdSkills } from "../skills/run-command";
@@ -166,6 +167,7 @@ export async function runCli(
           "alphafox api METHOD PATH [--body JSON|--config @file]",
           "alphafox engine-backtest run --experiment <uuid> --definition <id> --config @file --exchange <id> --range FROM..TO --initial-equity N",
           "alphafox engine-backtest sweep --experiment <uuid> --definition <id> --config @file --axes @file --exchange <id> --range FROM..TO --initial-equity N --no-persist",
+          "alphafox cache status|clean [--tape|--runtime|--all]",
           "alphafox resolve-symbols <query...> [--exchange binance] [--asset-class equity_perp]",
           "alphafox <domain> <resource> <action> [flags]",
         ],
@@ -187,7 +189,8 @@ export async function runCli(
       cmd !== "version" &&
       cmd !== "install" &&
       cmd !== "update" &&
-      cmd !== "skills"
+      cmd !== "skills" &&
+      cmd !== "cache"
     ) {
       assertCatalogCompatible();
     }
@@ -200,6 +203,8 @@ export async function runCli(
         return await cmdUpdate(args, flags, env);
       case "skills":
         return await cmdSkills(args, flags, env);
+      case "cache":
+        return await cmdCache(args, flags, env);
       case "doctor":
         return cmdDoctor(flags, env);
       case "whoami":

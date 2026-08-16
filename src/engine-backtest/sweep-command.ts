@@ -4,6 +4,7 @@ import type { ProfileConfig } from "../config/profiles";
 import { resolveProfile, type ProfileName } from "../config/profiles";
 import type { ApiResponse } from "../http/client";
 import { apiRequest as defaultApiRequest } from "../http/client";
+import { resolveTapeCacheDir } from "../cache/paths";
 import { loadTokens } from "../keychain/store";
 import { EngineBacktestError, isEngineBacktestError } from "./errors";
 import { loadConfigValue } from "./load-config";
@@ -285,6 +286,7 @@ export async function executeEngineBacktestSweep(
           fromMs: args.range.fromMs,
           toMs: args.range.toMs,
           dataQualityMode: args.dataQualityMode,
+          cacheDir: resolveTapeCacheDir(env),
           onProgress: (progress: TapeLoadProgress) => {
             emitProgress(
               flags,

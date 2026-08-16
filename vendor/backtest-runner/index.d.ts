@@ -288,6 +288,8 @@ export interface TapeLoadRequest {
   readonly signal?: AbortSignal;
   readonly onProgress?: (progress: TapeLoadProgress) => void;
   readonly nowMs?: number;
+  readonly cacheDir?: string;
+  readonly seriesConcurrency?: number;
   readonly ohlcvFetcher?: TapeOhlcvFetcher;
   readonly fundingFetcher?: TapeFundingFetcher;
   readonly marketsLoader?: () => Promise<TapeMarketsSnapshot>;
@@ -302,6 +304,8 @@ export interface TapeProxyOptions {
 export interface TapeLoadOptions extends TapeProxyOptions {
   readonly cache?: FileTapeCache | false | "disable";
   readonly cacheDir?: string;
+  /** Independent series fetches; default 4, hard cap 8. Pagination stays serial. */
+  readonly seriesConcurrency?: number;
   readonly nowMs?: number;
   readonly onProgress?: (progress: TapeLoadProgress) => void;
   readonly createExchange?: (
@@ -335,6 +339,17 @@ export interface TapeLoadResult {
     readonly series: readonly TapeChartSeries[];
   };
 }
+
+export const DEFAULT_TAPE_SERIES_CONCURRENCY: 4;
+export const MAX_TAPE_SERIES_CONCURRENCY: 8;
+
+export function resolveTapeSeriesConcurrency(value?: number): number;
+
+export function mapWithConcurrency<T, R>(
+  items: readonly T[],
+  concurrency: number,
+  worker: (item: T, index: number) => Promise<R>
+): Promise<R[]>;
 
 export function loadTape(
   request: TapeLoadRequest,

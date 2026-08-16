@@ -257,6 +257,7 @@ export interface BacktestRunnerModule {
       readonly fromMs: number;
       readonly toMs: number;
       readonly dataQualityMode?: DataQualityMode;
+      readonly cacheDir?: string;
       readonly onProgress?: (progress: TapeLoadProgress) => void;
     },
     options?: unknown

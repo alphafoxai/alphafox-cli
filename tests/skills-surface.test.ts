@@ -34,6 +34,24 @@ describe("Skills surface", () => {
     }
   });
 
+  it("routes large tape caches to cleanup and asks before deleting", () => {
+    const router = readFileSync(join(skillsRoot, "alphafox", "SKILL.md"), "utf8");
+    const cache = readFileSync(join(skillsRoot, "cache", "SKILL.md"), "utf8");
+    const engine = readFileSync(
+      join(skillsRoot, "engine-backtest", "SKILL.md"),
+      "utf8"
+    );
+    assert.match(router, /alphafox-cache/);
+    assert.match(router, /data\.tape\.large/);
+    assert.match(
+      router,
+      /回测下载的历史数据比较大，要不要我帮你清理本地缓存？/
+    );
+    assert.match(cache, /alphafox cache status/);
+    assert.match(cache, /alphafox cache clean --yes/);
+    assert.match(engine, /alphafox-cache/);
+  });
+
   it("does not teach chat product commands or paths", () => {
     const banned = [
       /chats\./,

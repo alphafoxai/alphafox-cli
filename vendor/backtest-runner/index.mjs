@@ -50,8 +50,12 @@ export {
   loadSeriesWithCache,
 } from "./lib/series.mjs";
 export {
+  DEFAULT_TAPE_SERIES_CONCURRENCY,
+  MAX_TAPE_SERIES_CONCURRENCY,
   loadTape,
+  mapWithConcurrency,
   resolveTapeCache,
+  resolveTapeSeriesConcurrency,
   effectiveTapeEndMs,
   inferFundingIntervals,
   classifyTapeSymbolsForPreflight,

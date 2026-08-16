@@ -1,7 +1,7 @@
 ---
 name: alphafox-engine-backtest
 description: Local Engine WASM backtest (alphafox engine-backtest run|sweep) vs catalog experiment CRUD.
-version: 0.3.8
+version: 0.3.9
 ---
 
 # Engine Backtest
@@ -94,6 +94,7 @@ Owner isolation and 7-day expiry are enforced by the server. Applying a coordina
 2. `engine-backtest run` (reuse `--experiment` after the first create).
 3. Read `data.metrics` / `data.engineVersion` / `data.runId` / `data.experimentUrl`.
 4. Adjust parameters and run again. Do not invent a token flag if persist returns 401 — `alphafox auth login`.
+5. After a long-range or 1m run, follow `alphafox-cache`: `alphafox cache status`. If `data.tape.large` is true, ask **回测下载的历史数据比较大，要不要我帮你清理本地缓存？** and wait for yes.
 
 ## Safety
 

@@ -20,6 +20,7 @@ import {
   DEFAULT_EXECUTION_MODEL,
   experimentPageUrl,
 } from "./persist";
+import { resolveTapeCacheDir } from "../cache/paths";
 import { mergeReplayTimeframeWithPlan } from "./replay-timeframe";
 import {
   loadBacktestRunner,
@@ -425,6 +426,7 @@ export async function executeEngineBacktestRun(
         fromMs: args.range.fromMs,
         toMs: args.range.toMs,
         dataQualityMode: args.dataQualityMode,
+        cacheDir: resolveTapeCacheDir(env),
         onProgress: (progress: TapeLoadProgress) => {
           emitProgress(
             flags,

@@ -39,7 +39,46 @@ const FUNDING_INTERVALS = [
   { interval: "8h", spacingMs: 28_800_000 },
 ];
 
+/** Independent symbol×timeframe (and funding) fetches. Pagination stays serial. */
+export const DEFAULT_TAPE_SERIES_CONCURRENCY = 4;
+export const MAX_TAPE_SERIES_CONCURRENCY = 8;
+
 const exchangePromises = new Map();
+
+export function resolveTapeSeriesConcurrency(value) {
+  if (typeof value === "number" && Number.isFinite(value) && value >= 1) {
+    return Math.min(
+      MAX_TAPE_SERIES_CONCURRENCY,
+      Math.max(1, Math.floor(value))
+    );
+  }
+  return DEFAULT_TAPE_SERIES_CONCURRENCY;
+}
+
+export async function mapWithConcurrency(items, concurrency, worker) {
+  const list = [...items];
+  if (list.length === 0) {
+    return [];
+  }
+  const limit = Math.min(
+    list.length,
+    Math.max(1, Math.floor(Number(concurrency)) || 1)
+  );
+  const results = new Array(list.length);
+  let nextIndex = 0;
+  async function runWorker() {
+    while (true) {
+      const index = nextIndex;
+      nextIndex += 1;
+      if (index >= list.length) {
+        return;
+      }
+      results[index] = await worker(list[index], index);
+    }
+  }
+  await Promise.all(Array.from({ length: limit }, () => runWorker()));
+  return results;
+}
 
 export function effectiveTapeEndMs(
   requestedToMs,
@@ -141,7 +180,13 @@ export async function loadTape(request, options = {}) {
 
   const exchangeDefinition = resolveRequestExchange(request);
   const onProgress = request.onProgress ?? options.onProgress;
-  const cache = resolveTapeCache(options);
+  const cache = resolveTapeCache({
+    ...options,
+    cacheDir: options.cacheDir ?? request.cacheDir,
+  });
+  const seriesConcurrency = resolveTapeSeriesConcurrency(
+    options.seriesConcurrency ?? request.seriesConcurrency
+  );
   const dataQualityMode = request.dataQualityMode ?? "strict";
   const baseTimeframe = resolvePlanBaseTimeframe({
     baseTimeframe: request.baseTimeframe,
@@ -233,17 +278,36 @@ export async function loadTape(request, options = {}) {
   const buffers = {};
   const chartSeries = [];
   const series = [];
-  const totalSeries = request.symbols.length * timeframes.length;
+  const seriesJobs = request.symbols.flatMap((symbol) =>
+    timeframes.map((timeframe) => ({ symbol, timeframe }))
+  );
+  const totalSeries = seriesJobs.length;
   const dataIssues = [];
   const coverageWarnings = [];
-  let seriesDone = 0;
-  let bufferSequence = 0;
-  for (const symbol of request.symbols) {
-    for (const timeframe of timeframes) {
+  const seriesFractions = new Array(totalSeries).fill(0);
+  let lastOhlcvDetail = "";
+  const reportOhlcv = (index, fraction, detail) => {
+    seriesFractions[index] = fraction;
+    lastOhlcvDetail = detail;
+    const completed =
+      seriesFractions.reduce((sum, value) => sum + value, 0) / totalSeries;
+    onProgress?.({
+      stage: "ohlcv",
+      detail: lastOhlcvDetail,
+      fraction:
+        MARKETS_PROGRESS_END +
+        (OHLCV_PROGRESS_END - MARKETS_PROGRESS_END) * completed,
+    });
+  };
+  const loadedSeries = await mapWithConcurrency(
+    seriesJobs,
+    seriesConcurrency,
+    async (job, index) => {
       request.signal?.throwIfAborted();
-      let loaded;
+      const { symbol, timeframe } = job;
+      const detail = `${symbol} ${timeframe}`;
       try {
-        loaded = await loadSeriesWithCache(
+        const loaded = await loadSeriesWithCache(
           exchange,
           exchangeDefinition,
           runtimeConfig,
@@ -255,46 +319,51 @@ export async function loadTape(request, options = {}) {
           requirementWarmups.get(`${symbol}\u0000${timeframe}`) ?? 0,
           timeframe === baseTimeframe,
           dataQualityMode,
-          (fraction) => {
-            onProgress?.({
-              stage: "ohlcv",
-              detail: `${symbol} ${timeframe}`,
-              fraction:
-                MARKETS_PROGRESS_END +
-                (OHLCV_PROGRESS_END - MARKETS_PROGRESS_END) *
-                  ((seriesDone + fraction) / totalSeries),
-            });
-          },
+          (fraction) => reportOhlcv(index, fraction, detail),
           cacheUntilMs,
           cache,
           request.signal
         );
+        reportOhlcv(index, 1, detail);
+        return { ok: true, job, loaded };
       } catch (error) {
         request.signal?.throwIfAborted();
-        dataIssues.push(...toTapeDataIssues(error, symbol, timeframe));
-        seriesDone++;
-        continue;
+        reportOhlcv(index, 1, detail);
+        return {
+          ok: false,
+          issues: toTapeDataIssues(error, symbol, timeframe),
+        };
       }
-      if (loaded.softIssues.length > 0) {
-        coverageWarnings.push(
-          formatCoverageSoftWarning(loaded.softIssues, loaded.coverageRatio)
-        );
-      }
-      const { rows } = loaded;
-      const bufferKey = `k${bufferSequence++}`;
-      const buffer = encodeOhlcvColumns(rows);
-      buffers[bufferKey] = buffer;
-      if (timeframe === baseTimeframe) {
-        chartSeries.push({
-          symbol,
-          timeframe: baseTimeframe,
-          rows: rows.length,
-          buffer: buffer.slice(0),
-        });
-      }
-      series.push({ symbol, timeframe, buffer: bufferKey, rows: rows.length });
-      seriesDone++;
     }
+  );
+  let bufferSequence = 0;
+  for (const result of loadedSeries) {
+    if (!result.ok) {
+      dataIssues.push(...result.issues);
+      continue;
+    }
+    if (result.loaded.softIssues.length > 0) {
+      coverageWarnings.push(
+        formatCoverageSoftWarning(
+          result.loaded.softIssues,
+          result.loaded.coverageRatio
+        )
+      );
+    }
+    const { symbol, timeframe } = result.job;
+    const { rows } = result.loaded;
+    const bufferKey = `k${bufferSequence++}`;
+    const buffer = encodeOhlcvColumns(rows);
+    buffers[bufferKey] = buffer;
+    if (timeframe === baseTimeframe) {
+      chartSeries.push({
+        symbol,
+        timeframe: baseTimeframe,
+        rows: rows.length,
+        buffer: buffer.slice(0),
+      });
+    }
+    series.push({ symbol, timeframe, buffer: bufferKey, rows: rows.length });
   }
   if (dataIssues.length > 0) {
     throw new TapeDataUnavailableError(dataIssues);
@@ -302,19 +371,24 @@ export async function loadTape(request, options = {}) {
 
   let fundingRates;
   if (request.needsFunding) {
-    fundingRates = {};
-    for (const symbol of request.symbols) {
-      request.signal?.throwIfAborted();
-      fundingRates[symbol] = await loadFundingHistory(
-        exchange,
-        exchangeDefinition,
-        runtimeConfig,
-        symbol,
-        request.fromMs,
-        tapeToMs,
-        request.signal
-      );
-    }
+    const fundingEntries = await mapWithConcurrency(
+      request.symbols,
+      seriesConcurrency,
+      async (symbol) => {
+        request.signal?.throwIfAborted();
+        const samples = await loadFundingHistory(
+          exchange,
+          exchangeDefinition,
+          runtimeConfig,
+          symbol,
+          request.fromMs,
+          tapeToMs,
+          request.signal
+        );
+        return [symbol, samples];
+      }
+    );
+    fundingRates = Object.fromEntries(fundingEntries);
   }
   request.signal?.throwIfAborted();
   onProgress?.({

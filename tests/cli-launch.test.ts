@@ -40,7 +40,7 @@ describe("cli launch", () => {
         line.includes("npx @alphafox/cli@latest install")
       )
     );
-    assert.match(String(json.data.description), /skills add/i);
+    assert.match(String(json.data.description), /npx skills add/);
   });
 
   it("install rejects unknown flags without contacting npm", () => {

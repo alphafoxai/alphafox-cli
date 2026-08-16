@@ -1,7 +1,7 @@
 ---
 name: alphafox-trading
 description: Traders list and high-risk start/stop with confirmation gates.
-version: 0.3.2
+version: 0.3.3
 ---
 
 # Trading

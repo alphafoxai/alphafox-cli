@@ -147,7 +147,7 @@ describe("install helpers", () => {
       auth: { action: "skipped", reason: "no-auth" },
       dryRun: false,
     });
-    assert.ok(steps.some((s) => s.includes("Restart")));
+    assert.ok(steps.some((s) => s.includes("重启")));
     assert.ok(steps.some((s) => s.includes("auth login --browser")));
     assert.ok(steps.some((s) => s.includes(AGENT_INSTALL_GUIDE_BLOB_URL)));
   });

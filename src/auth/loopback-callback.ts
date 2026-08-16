@@ -27,18 +27,18 @@ export interface LoopbackCallbackServer {
 }
 
 const SUCCESS_HTML = `<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><title>Alphafox CLI</title></head>
-<body><p>Signed in. You can close this window and return to the CLI.</p></body></html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>Alphafox CLI</title></head>
+<body><p>已登录。可以关闭此窗口，回到终端继续。</p></body></html>
 `;
 
 const FAILURE_HTML = `<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><title>Alphafox CLI</title></head>
-<body><p>Authorization failed. You can close this window and return to the CLI.</p></body></html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>Alphafox CLI</title></head>
+<body><p>授权失败。可以关闭此窗口，回到终端查看原因。</p></body></html>
 `;
 
 const DUPLICATE_HTML = `<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><title>Alphafox CLI</title></head>
-<body><p>This login callback was already used. You can close this window.</p></body></html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>Alphafox CLI</title></head>
+<body><p>此登录回调已使用过。可以关闭此窗口。</p></body></html>
 `;
 
 export async function startLoopbackCallbackServer(options: {

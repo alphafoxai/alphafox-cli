@@ -247,8 +247,8 @@ async function cmdInstall(
     writeError({
       type: "usage",
       subtype: "unknown_install_flag",
-      message: `Unknown install flag: ${parsed.unknown.join(" ")}`,
-      hint: "Usage: alphafox install [--no-auth] [--dry-run]",
+      message: `未知的 install 参数：${parsed.unknown.join(" ")}`,
+      hint: "用法：alphafox install [--no-auth] [--dry-run]",
     });
   }
   if (parsed.help) {

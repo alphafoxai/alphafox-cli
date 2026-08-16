@@ -69,9 +69,7 @@ export function nextSteps(input: {
   readonly auth: InstallAuthStep;
   readonly dryRun: boolean;
 }): string[] {
-  const steps = [
-    "Restart the AI tool so newly installed Skills are loaded.",
-  ];
+  const steps = ["请重启 AI 工具，以便加载刚安装的 Skills。"];
   if (input.auth.action === "skipped" || input.auth.action === "planned") {
     steps.push(
       "alphafox auth login --browser --format json --no-input",
@@ -80,10 +78,10 @@ export function nextSteps(input: {
   }
   steps.push(
     "alphafox doctor --format json --no-input",
-    `Agent install guide: ${AGENT_INSTALL_GUIDE_BLOB_URL}`
+    `Agent 安装指南：${AGENT_INSTALL_GUIDE_BLOB_URL}`
   );
   if (input.dryRun) {
-    steps.unshift("This was --dry-run; re-run without it to apply changes.");
+    steps.unshift("这是 --dry-run，去掉该参数再运行才会真正安装。");
   }
   return steps;
 }
@@ -93,7 +91,7 @@ export async function runInstallWizard(
   env: NodeJS.ProcessEnv = process.env,
   runner: InstallRunner = createDefaultInstallRunner(env, defaultSearchDirs())
 ): Promise<InstallResult> {
-  runner.log("Setting up Alphafox CLI...");
+  runner.log("正在安装 Alphafox CLI…");
 
   const installedVer = await readGloballyInstalledVersion(runner);
   const latestVer = await readLatestVersion(runner);
@@ -191,7 +189,7 @@ async function stepInstallCli(
 ): Promise<InstallCliStep> {
   const { installedVer, latestVer, needsUpgrade } = versions;
   if (installedVer && !needsUpgrade) {
-    runner.log(`Already installed (${installedVer}). Skipped`);
+    runner.log(`已安装（${installedVer}），已跳过`);
     return {
       action: flags.dryRun ? "planned" : "skipped",
       version: installedVer,
@@ -202,8 +200,8 @@ async function stepInstallCli(
   if (flags.dryRun) {
     runner.log(
       needsUpgrade
-        ? `Would upgrade ${CLI_PACKAGE} (${installedVer} → ${latestVer ?? "latest"})`
-        : `Would install ${CLI_PACKAGE} globally`
+        ? `将升级 ${CLI_PACKAGE}（${installedVer} → ${latestVer ?? "latest"}）`
+        : `将全局安装 ${CLI_PACKAGE}`
     );
     return {
       action: "planned",
@@ -214,8 +212,8 @@ async function stepInstallCli(
 
   runner.log(
     needsUpgrade
-      ? `Upgrading ${CLI_PACKAGE} (${installedVer} → ${latestVer})...`
-      : `Installing ${CLI_PACKAGE} globally...`
+      ? `正在升级 ${CLI_PACKAGE}（${installedVer} → ${latestVer}）…`
+      : `正在全局安装 ${CLI_PACKAGE}…`
   );
   try {
     await runner.exec("npm", ["install", "-g", CLI_PACKAGE], {
@@ -225,13 +223,13 @@ async function stepInstallCli(
     throw new InstallError({
       type: "install",
       subtype: "npm_global_failed",
-      message: `Failed to install ${CLI_PACKAGE} globally.`,
+      message: `全局安装 ${CLI_PACKAGE} 失败。`,
       hint: `npm install -g ${CLI_PACKAGE}`,
       details: err instanceof Error ? err.message : String(err),
     });
   }
   const after = (await readGloballyInstalledVersion(runner)) ?? latestVer ?? CLI_VERSION;
-  runner.log(needsUpgrade ? `Upgraded to ${after}` : "Installed globally");
+  runner.log(needsUpgrade ? `已升级到 ${after}` : "已全局安装");
   return {
     action: needsUpgrade ? "upgraded" : "installed",
     version: after,
@@ -282,7 +280,7 @@ async function stepInstallSkills(
   const sources = await resolveSkillsSources(runner);
   const already = flags.dryRun ? false : await skillsAlreadyInstalled(runner);
   if (already) {
-    runner.log("Skills already installed. Skipped");
+    runner.log("Skills 已安装，已跳过");
     return {
       action: "skipped",
       source: sources[0],
@@ -292,7 +290,7 @@ async function stepInstallSkills(
   }
 
   if (flags.dryRun) {
-    runner.log(`Would install Skills from ${sources[0] ?? SKILLS_GITHUB_SOURCE}`);
+    runner.log(`将从 ${sources[0] ?? SKILLS_GITHUB_SOURCE} 安装 Skills`);
     return {
       action: "planned",
       source: sources[0] ?? SKILLS_GITHUB_SOURCE,
@@ -300,7 +298,7 @@ async function stepInstallSkills(
     };
   }
 
-  runner.log("Installing AI Skills...");
+  runner.log("正在安装 AI Skills…");
   let lastError: unknown;
   for (const source of sources) {
     try {
@@ -309,7 +307,7 @@ async function stepInstallSkills(
         ["-y", "skills", "add", source, "-y", "-g"],
         { timeoutMs: SKILLS_TIMEOUT_MS }
       );
-      runner.log(`Skills installed (${source})`);
+      runner.log(`Skills 已安装（${source}）`);
       return { action: "installed", source, scope: "global" };
     } catch (err) {
       lastError = err;
@@ -319,7 +317,7 @@ async function stepInstallSkills(
   throw new InstallError({
     type: "install",
     subtype: "skills_add_failed",
-    message: "Failed to install Agent Skills.",
+    message: "安装 Agent Skills 失败。",
     hint: `npx skills add ${SKILLS_GITHUB_SOURCE} -y -g`,
     details: lastError instanceof Error ? lastError.message : String(lastError),
   });
@@ -358,20 +356,20 @@ async function stepAuth(
       return { action: "planned", reason: "non-interactive" };
     }
     runner.log(
-      "To finish setup, run:\n  alphafox auth login --browser\n  alphafox auth login --no-wait --format json --no-input"
+      "要完成安装，请运行：\n  alphafox auth login --browser\n  alphafox auth login --no-wait --format json --no-input"
     );
     return { action: "skipped", reason: "non-interactive" };
   }
   if (flags.dryRun) {
-    runner.log("Would prompt for alphafox auth login --browser");
+    runner.log("将提示运行 alphafox auth login --browser");
     return { action: "planned", reason: "tty" };
   }
 
   const yes = await runner.confirm(
-    "Log in now so Agents can call the public Application API?"
+    "现在登录，以便 Agent 可以调用公开 Application API？"
   );
   if (!yes) {
-    runner.log("Skipped login. Run alphafox auth login later.");
+    runner.log("已跳过登录。之后可运行 alphafox auth login。");
     return { action: "skipped", reason: "declined" };
   }
 
@@ -380,8 +378,8 @@ async function stepAuth(
     throw new InstallError({
       type: "install",
       subtype: "cli_bin_missing",
-      message: "alphafox binary not found after install.",
-      hint: "Ensure the npm global bin directory is on PATH, then run alphafox auth login --browser.",
+      message: "安装完成后找不到 alphafox 可执行文件。",
+      hint: "请确认 npm 全局 bin 目录在 PATH 中，然后运行 alphafox auth login --browser。",
     });
   }
 
@@ -389,12 +387,10 @@ async function stepAuth(
     await runner.execInherit(bin, ["auth", "login", "--browser"], {
       timeoutMs: 10 * 60_000,
     });
-    runner.log("Login complete");
+    runner.log("登录完成");
     return { action: "completed" };
   } catch (err) {
-    runner.log(
-      "Login failed. Run alphafox auth login --browser to retry."
-    );
+    runner.log("登录失败。请运行 alphafox auth login --browser 重试。");
     return {
       action: "failed",
       reason: err instanceof Error ? err.message : String(err),
@@ -417,7 +413,7 @@ export function installHelpData(): {
       "alphafox install --dry-run",
     ],
     description:
-      "Install @alphafox/cli globally and copy co-versioned Agent Skills into detected agents (Cursor, Claude Code, Codex, …) via npx skills add.",
+      "全局安装 @alphafox/cli，并通过 npx skills add 把同版本 Agent Skills 写入本机已检测到的 Agent（Cursor、Claude Code、Codex 等）的用户级目录。",
     agentGuide: AGENT_INSTALL_GUIDE_BLOB_URL,
   };
 }

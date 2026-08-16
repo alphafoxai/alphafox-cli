@@ -1,7 +1,7 @@
 ---
 name: alphafox-admin
 description: Admin-only operations reusing Web role authorization.
-version: 0.3.2
+version: 0.3.3
 ---
 
 # Admin

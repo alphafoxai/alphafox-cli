@@ -26,6 +26,7 @@ describe("loopback callback server", () => {
       );
       assert.equal(res.status, 200);
       const html = await res.text();
+      assert.match(html, /已登录/);
       assert.equal(html.includes("auth-code-1"), false);
       assert.equal(html.toLowerCase().includes("token"), false);
       assert.equal(html.includes("verifier"), false);

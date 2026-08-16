@@ -65,7 +65,13 @@ export async function confirmTty(message: string): Promise<boolean> {
   try {
     const answer = await rl.question(`${message} [Y/n] `);
     const token = answer.trim().toLowerCase();
-    return token === "" || token === "y" || token === "yes";
+    return (
+      token === "" ||
+      token === "y" ||
+      token === "yes" ||
+      token === "是" ||
+      token === "好"
+    );
   } finally {
     rl.close();
   }

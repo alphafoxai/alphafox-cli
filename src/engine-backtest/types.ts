@@ -331,8 +331,47 @@ export interface EngineBacktestSweepPointRow {
   readonly error?: string;
 }
 
+export interface CreateSweepPointSummary {
+  readonly coordinate: { readonly values: readonly number[] };
+  readonly status: "ok" | "failed";
+  readonly error?: string;
+  readonly metrics?: EngineBacktestSweepPointRow["metrics"];
+}
+
+export interface CreateSweepRequestBody {
+  readonly clientSweepId: string;
+  readonly baseInputSnapshot: PersistedSnapshot;
+  readonly axes: ReadonlyArray<{
+    readonly path: readonly string[];
+    readonly current: number;
+    readonly values: readonly number[];
+  }>;
+  readonly searchMetadata: {
+    readonly mode: SweepMode;
+    readonly searchMode: SweepSearchMode;
+    readonly concurrency: number;
+    readonly requestedCombinationCount: number;
+    readonly sampled: boolean;
+  };
+  readonly aggregateSummary: {
+    readonly successfulCount: number;
+    readonly failedCount: number;
+    readonly liquidatedCount: number;
+    readonly elapsedMs: number;
+    readonly best: {
+      readonly coordinate: { readonly values: readonly number[] };
+      readonly returnPct: number;
+    } | null;
+  };
+  readonly pointSummaries: readonly CreateSweepPointSummary[];
+  readonly engineVersion: string;
+  readonly configSchemaVersion: number;
+}
+
 export interface EngineBacktestSweepSuccess {
-  readonly persisted: false;
+  readonly persisted: boolean;
+  readonly sweepId?: string;
+  readonly clientSweepId?: string;
   readonly mode: SweepMode;
   readonly searchMode: SweepSearchMode;
   readonly requestedCombinationCount: number;

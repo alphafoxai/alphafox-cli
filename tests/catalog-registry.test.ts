@@ -32,6 +32,71 @@ describe("generated operation catalog", () => {
     assert.ok(findCatalogOperation("trading.traders.create"));
     assert.ok(findCatalogOperation("trading.traders.byId.start"));
     assert.equal(findCatalogOperation("backtests.byId.get.get"), undefined);
+    const sweepCreate = findCatalogOperation(
+      "engine_backtest.experiments.byId.sweeps.create"
+    );
+    const sweepList = findCatalogOperation(
+      "engine_backtest.experiments.byId.sweeps.list"
+    );
+    const sweepGet = findCatalogOperation(
+      "engine_backtest.experiments.byId.sweeps.byId.get"
+    );
+    const sweepDelete = findCatalogOperation(
+      "engine_backtest.experiments.byId.sweeps.byId.delete"
+    );
+    assert.ok(sweepCreate);
+    assert.ok(sweepList);
+    assert.ok(sweepGet);
+    assert.ok(sweepDelete);
+    assert.equal(sweepCreate?.method, "POST");
+    assert.equal(sweepCreate?.risk, "write");
+    assert.equal(
+      sweepCreate?.path,
+      "/api/v1/engine-backtest/experiments/{experimentId}/sweeps"
+    );
+    assert.equal(sweepList?.method, "GET");
+    assert.equal(sweepGet?.method, "GET");
+    assert.equal(sweepDelete?.method, "DELETE");
+    assert.equal(sweepDelete?.risk, "high-risk-write");
+    const spaced = resolveTypedCommand([
+      "engine_backtest",
+      "experiments",
+      "sweeps",
+      "list",
+    ]);
+    assert.equal(spaced.kind, "operation");
+    if (spaced.kind === "operation") {
+      assert.equal(
+        spaced.operation.operationId,
+        "engine_backtest.experiments.byId.sweeps.list"
+      );
+    }
+    const deleteCmd = resolveTypedCommand([
+      "engine_backtest",
+      "experiments",
+      "sweeps",
+      "delete",
+    ]);
+    assert.equal(deleteCmd.kind, "operation");
+    if (deleteCmd.kind === "operation") {
+      assert.equal(
+        deleteCmd.operation.operationId,
+        "engine_backtest.experiments.byId.sweeps.byId.delete"
+      );
+      assert.equal(deleteCmd.operation.risk, "high-risk-write");
+    }
+    assert.ok(
+      findCatalogOperationByRoute(
+        "POST",
+        "/api/v1/engine-backtest/experiments/11111111-1111-1111-1111-111111111111/sweeps"
+      )
+    );
+    assert.equal(isFacadeAllowlistedPath("/api/v1/backtests"), true);
+    assert.equal(
+      findCatalogOperation("engine_backtest.experiments.byId.sweeps.create")
+        ?.operationId.includes("backtests."),
+      false
+    );
   });
 
   it("capability manifest and schema documents cover every CLI operationId", () => {

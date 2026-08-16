@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Alphafox CLI</title>
+    <meta
+      name="description"
+      content="仅需一行指令，在任意 Agent 操作 Alphafox。安装 CLI 与 Skills，用 Public Application API 做回测、策略与交易。"
+    />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <style>
+      :root {
+        --bg: #ffffff;
+        --ink: #111111;
+        --muted: #6b7280;
+        --line: #e5e7eb;
+        --panel: #f4f5f7;
+        --blue: #3370ff;
+        --blue-hover: #245bdb;
+        --ok: #12b76a;
+        --shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+        --radius: 16px;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        --sans: Inter, "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--sans);
+      }
+
+      body {
+        min-height: 100vh;
+      }
+
+      .wrap {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 56px 24px 72px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 36px;
+      }
+
+      .logo {
+        width: 40px;
+        height: 40px;
+        flex: 0 0 auto;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+      }
+
+      .lang {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        gap: 4px;
+        font-size: 13px;
+      }
+
+      .lang button {
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font: inherit;
+      }
+
+      .lang button[aria-pressed="true"] {
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      .headline {
+        margin: 0 auto 40px;
+        max-width: 18em;
+        text-align: center;
+        font-size: clamp(28px, 5vw, 40px);
+        line-height: 1.25;
+        font-weight: 700;
+        letter-spacing: -0.04em;
+      }
+
+      .tabs {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        margin-bottom: 28px;
+        border-bottom: 1px solid transparent;
+      }
+
+      .tab {
+        appearance: none;
+        background: none;
+        border: 0;
+        padding: 0 0 12px;
+        font: inherit;
+        font-size: 16px;
+        color: var(--muted);
+        cursor: pointer;
+        position: relative;
+      }
+
+      .tab[aria-selected="true"] {
+        color: var(--blue);
+        font-weight: 600;
+      }
+
+      .tab[aria-selected="true"]::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 2px;
+        background: var(--blue);
+        border-radius: 2px;
+      }
+
+      .panel {
+        display: none;
+        background: var(--panel);
+        border-radius: var(--radius);
+        padding: 36px 28px 32px;
+      }
+
+      .panel.active {
+        display: block;
+      }
+
+      .hint {
+        margin: 0 0 20px;
+        text-align: center;
+        color: #667085;
+        font-size: 15px;
+        line-height: 1.6;
+      }
+
+      .cmd {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #fff;
+        border-radius: 12px;
+        padding: 16px 16px 16px 20px;
+        box-shadow: var(--shadow);
+        border: 1px solid #eef0f3;
+      }
+
+      .cmd code {
+        flex: 1;
+        font-family: var(--mono);
+        font-size: 14px;
+        line-height: 1.55;
+        color: #1d2939;
+        word-break: break-all;
+        white-space: pre-wrap;
+      }
+
+      .copy {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 36px;
+        padding: 0 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        color: #344054;
+        font: inherit;
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      .copy:hover {
+        border-color: #d0d5dd;
+        background: #f9fafb;
+      }
+
+      .copy.copied {
+        color: var(--ok);
+        border-color: #abefc6;
+      }
+
+      .copy svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .status {
+        margin: 28px 0 0;
+        text-align: center;
+        color: #344054;
+        font-size: 14px;
+      }
+
+      .status .ok {
+        color: var(--ok);
+        margin-right: 4px;
+      }
+
+      .links {
+        margin-top: 18px;
+        text-align: center;
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      .links a {
+        color: var(--blue);
+        text-decoration: none;
+      }
+
+      .links a:hover {
+        color: var(--blue-hover);
+        text-decoration: underline;
+      }
+
+      .sep {
+        margin: 0 10px;
+        color: #d0d5dd;
+      }
+
+      @media (max-width: 640px) {
+        .wrap {
+          padding: 40px 16px 56px;
+        }
+
+        .tabs {
+          gap: 24px;
+        }
+
+        .cmd {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .copy {
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" id="lang-zh" aria-pressed="true">中文</button>
+      <button type="button" id="lang-en" aria-pressed="false">EN</button>
+    </div>
+
+    <main class="wrap">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
+          <path fill="#1d4ed8" d="M8 28 20 6l12 22H8z" />
+          <path fill="#0ea5a4" d="M14 28c2.4-6 6-10 6-10s3.6 4 6 10H14z" />
+          <circle cx="17.2" cy="22.2" r="1.35" fill="#fff" />
+          <circle cx="22.8" cy="22.2" r="1.35" fill="#fff" />
+        </svg>
+        <h1>Alphafox CLI</h1>
+      </div>
+
+      <p class="headline" data-i18n="headline">仅需一行指令，在任意 Agent 操作 Alphafox</p>
+
+      <div class="tabs" role="tablist">
+        <button class="tab" id="tab-manual" role="tab" aria-selected="true" aria-controls="panel-manual" data-i18n="tabManual">
+          手动安装
+        </button>
+        <button class="tab" id="tab-agent" role="tab" aria-selected="false" aria-controls="panel-agent" data-i18n="tabAgent">
+          通过 AI Agent 安装
+        </button>
+      </div>
+
+      <section class="panel active" id="panel-manual" role="tabpanel" aria-labelledby="tab-manual">
+        <p class="hint" data-i18n="manualHint">复制以下命令到终端运行即可完成安装：</p>
+        <div class="cmd">
+          <code id="manual-cmd">npx @alphafox/cli@latest install</code>
+          <button class="copy" type="button" data-copy="manual-cmd">
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <rect x="5.5" y="5.5" width="8" height="8" rx="1.5" stroke="currentColor" />
+              <path d="M10.5 5.5V4A1.5 1.5 0 0 0 9 2.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5" stroke="currentColor" />
+            </svg>
+            <span data-i18n="copy">复制</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-agent" role="tabpanel" aria-labelledby="tab-agent" hidden>
+        <p class="hint" data-i18n="agentHint">把下面这段话发给任意 AI Agent，它会按安装指南完成配置：</p>
+        <div class="cmd">
+          <code id="agent-cmd">帮我安装 Alphafox CLI：https://github.com/alphafoxai/alphafox-cli/blob/main/docs/alphafox-cli-installation-guide.md</code>
+          <button class="copy" type="button" data-copy="agent-cmd">
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <rect x="5.5" y="5.5" width="8" height="8" rx="1.5" stroke="currentColor" />
+              <path d="M10.5 5.5V4A1.5 1.5 0 0 0 9 2.5H4A1.5 1.5 0 0 0 2.5 4v5A1.5 1.5 0 0 0 4 10.5h1.5" stroke="currentColor" />
+            </svg>
+            <span data-i18n="copy">复制</span>
+          </button>
+        </div>
+      </section>
+
+      <p class="status">
+        <span class="ok">✅</span>
+        <span data-i18n="status">配置完成后，重启你的 AI Agent 即可开始使用</span>
+      </p>
+      <nav class="links">
+        <a href="https://github.com/alphafoxai/alphafox-cli/blob/main/docs/alphafox-cli-installation-guide.md" data-i18n="guide">→ 使用指南</a>
+        <span class="sep">·</span>
+        <a href="https://github.com/alphafoxai/alphafox-cli" data-i18n="source">开源地址</a>
+        <span class="sep">·</span>
+        <a href="https://github.com/alphafoxai/alphafox-cli/releases" data-i18n="changelog">更新日志</a>
+      </nav>
+    </main>
+
+    <script>
+      const copyLabels = { zh: { idle: "复制", done: "已复制" }, en: { idle: "Copy", done: "Copied" } };
+      const i18n = {
+        zh: {
+          headline: "仅需一行指令，在任意 Agent 操作 Alphafox",
+          tabManual: "手动安装",
+          tabAgent: "通过 AI Agent 安装",
+          manualHint: "复制以下命令到终端运行即可完成安装：",
+          agentHint: "把下面这段话发给任意 AI Agent，它会按安装指南完成配置：",
+          copy: "复制",
+          status: "配置完成后，重启你的 AI Agent 即可开始使用",
+          guide: "→ 使用指南",
+          source: "开源地址",
+          changelog: "更新日志",
+          agentCmd:
+            "帮我安装 Alphafox CLI：https://github.com/alphafoxai/alphafox-cli/blob/main/docs/alphafox-cli-installation-guide.md",
+        },
+        en: {
+          headline: "One command to operate Alphafox from any Agent",
+          tabManual: "Manual install",
+          tabAgent: "Install via AI Agent",
+          manualHint: "Copy this command into your terminal to finish install:",
+          agentHint: "Paste this prompt into any AI Agent. It will follow the install guide:",
+          copy: "Copy",
+          status: "After setup, restart your AI Agent and start using it",
+          guide: "→ Usage guide",
+          source: "Source",
+          changelog: "Changelog",
+          agentCmd:
+            "Install Alphafox CLI for me: https://github.com/alphafoxai/alphafox-cli/blob/main/docs/alphafox-cli-installation-guide.md",
+        },
+      };
+
+      let lang = "zh";
+
+      function applyLang(next) {
+        lang = next;
+        document.documentElement.lang = next === "zh" ? "zh-CN" : "en";
+        document.getElementById("lang-zh").setAttribute("aria-pressed", String(next === "zh"));
+        document.getElementById("lang-en").setAttribute("aria-pressed", String(next === "en"));
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          if (i18n[next][key]) el.textContent = i18n[next][key];
+        });
+        document.getElementById("agent-cmd").textContent = i18n[next].agentCmd;
+        document.querySelectorAll(".copy span").forEach((span) => {
+          span.textContent = copyLabels[next].idle;
+        });
+      }
+
+      document.getElementById("lang-zh").addEventListener("click", () => applyLang("zh"));
+      document.getElementById("lang-en").addEventListener("click", () => applyLang("en"));
+
+      const tabs = [
+        { btn: document.getElementById("tab-manual"), panel: document.getElementById("panel-manual") },
+        { btn: document.getElementById("tab-agent"), panel: document.getElementById("panel-agent") },
+      ];
+
+      function selectTab(target) {
+        tabs.forEach(({ btn, panel }) => {
+          const on = btn === target;
+          btn.setAttribute("aria-selected", String(on));
+          panel.classList.toggle("active", on);
+          panel.hidden = !on;
+        });
+      }
+
+      tabs.forEach(({ btn }) => btn.addEventListener("click", () => selectTab(btn)));
+
+      document.querySelectorAll("[data-copy]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const id = button.getAttribute("data-copy");
+          const text = document.getElementById(id).textContent;
+          try {
+            await navigator.clipboard.writeText(text);
+          } catch {
+            const area = document.createElement("textarea");
+            area.value = text;
+            document.body.appendChild(area);
+            area.select();
+            document.execCommand("copy");
+            area.remove();
+          }
+          button.classList.add("copied");
+          const label = button.querySelector("span");
+          label.textContent = copyLabels[lang].done;
+          setTimeout(() => {
+            button.classList.remove("copied");
+            label.textContent = copyLabels[lang].idle;
+          }, 1600);
+        });
+      });
+    </script>
+  </body>
+</html>

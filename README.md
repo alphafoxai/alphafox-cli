@@ -2,6 +2,8 @@
 
 Alphafox CLI (`alphafox`) — Agent and human entry for the versioned Public Application API on alphafox-web.
 
+Homepage: https://alphafoxai.github.io/alphafox-cli/
+
 ## Install
 
 Pick **one** of the following. Both install the CLI **and** register Agent
@@ -69,6 +71,7 @@ run `npx skills add` so those files land in Agent skill directories
 
 ## Docs
 
+- [Homepage](https://alphafoxai.github.io/alphafox-cli/)
 - [Release / supply chain](docs/release-supply-chain.md)
 - [Agent install guide](docs/alphafox-cli-installation-guide.md)
 - [Staging E2E checklist](docs/e2e-staging.md)

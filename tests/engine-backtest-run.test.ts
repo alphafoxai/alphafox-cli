@@ -139,6 +139,15 @@ function fakeClient(overrides: Partial<BacktestClientLike> = {}): BacktestClient
       orders: [],
       openPositions: [],
     }),
+    runBacktestBatch: async (batch) => ({
+      batchId: batch.batchId,
+      status: "completed",
+      results: batch.variants.map((variant) => ({
+        runId: variant.runId,
+        status: "completed" as const,
+        metrics: METRICS,
+      })),
+    }),
     terminate: () => undefined,
     ...overrides,
   };

@@ -38,6 +38,16 @@ export interface EngineBacktestRunArgs {
   readonly replayTimeframe: string;
 }
 
+export type SweepMode = "neighborhood" | "range";
+export type SweepSearchMode = "standard" | "fast";
+
+export interface EngineBacktestSweepArgs extends EngineBacktestRunArgs {
+  readonly axesRaw?: string;
+  readonly mode: SweepMode;
+  readonly searchMode: SweepSearchMode;
+  readonly concurrency: number;
+}
+
 export interface EngineBacktestSeriesRequirement {
   readonly symbol: string;
   readonly timeframe: string;
@@ -109,6 +119,33 @@ export interface EngineBacktestResult {
   readonly openPositions?: unknown[];
   readonly errors?: Array<{ code: string; message: string; path?: string }>;
   readonly warnings?: string[];
+}
+
+export interface EngineBacktestBatchVariant {
+  readonly runId: string;
+  readonly config: unknown;
+}
+
+export interface EngineBacktestBatchRequest {
+  readonly version: 1;
+  readonly batchId: string;
+  readonly baseScenario: Omit<EngineBacktestScenario, "tape">;
+  readonly variants: readonly EngineBacktestBatchVariant[];
+  readonly tape: EngineBacktestTapeInput;
+}
+
+export interface EngineBacktestBatchPointResult {
+  readonly runId: string;
+  readonly status: "completed" | "failed";
+  readonly metrics: EngineBacktestMetrics;
+  readonly errors?: Array<{ code: string; message: string; path?: string }>;
+}
+
+export interface EngineBacktestBatchResult {
+  readonly batchId: string;
+  readonly status: "completed" | "failed";
+  readonly results: readonly EngineBacktestBatchPointResult[];
+  readonly errors?: Array<{ code: string; message: string; path?: string }>;
 }
 
 export interface EngineBacktestSupportReason {
@@ -194,6 +231,11 @@ export interface BacktestClientLike {
     buffers: Record<string, ArrayBuffer>,
     onProgress?: (fraction: number) => void
   ): Promise<EngineBacktestResult>;
+  runBacktestBatch(
+    batch: EngineBacktestBatchRequest,
+    buffers: Record<string, ArrayBuffer>,
+    onProgress?: (fraction: number) => void
+  ): Promise<EngineBacktestBatchResult>;
   terminate(): void;
 }
 
@@ -270,4 +312,49 @@ export interface EngineBacktestRunSuccess {
   readonly experimentUrl: string;
   readonly persisted: boolean;
   readonly coverageWarnings: readonly string[];
+}
+
+export interface EngineBacktestSweepPointRow {
+  readonly coordinate: { readonly values: readonly number[] };
+  readonly status: "ok" | "failed";
+  readonly metrics?: {
+    readonly returnPct: number;
+    readonly maxDrawdownPct: number;
+    readonly sharpeRatio: number;
+    readonly winRatePct: number;
+    readonly maxLeverage?: number;
+    readonly liquidationCount: number;
+    readonly netPnl: number;
+    readonly finalEquity: number;
+    readonly tradeCount: number;
+  };
+  readonly error?: string;
+}
+
+export interface EngineBacktestSweepSuccess {
+  readonly persisted: false;
+  readonly mode: SweepMode;
+  readonly searchMode: SweepSearchMode;
+  readonly requestedCombinationCount: number;
+  readonly sampled: boolean;
+  readonly combinationCount: number;
+  readonly successfulCount: number;
+  readonly failedCount: number;
+  readonly liquidatedCount: number;
+  readonly elapsedMs: number;
+  readonly best: {
+    readonly coordinate: { readonly values: readonly number[] };
+    readonly returnPct: number;
+    readonly config: unknown;
+  } | null;
+  readonly points: readonly EngineBacktestSweepPointRow[];
+  readonly engineVersion: string;
+  readonly experimentId?: string;
+  readonly experimentUrl?: string;
+  readonly coverageWarnings: readonly string[];
+  readonly axes: ReadonlyArray<{
+    readonly path: readonly string[];
+    readonly current: number;
+    readonly values: readonly number[];
+  }>;
 }

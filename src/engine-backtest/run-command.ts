@@ -1,6 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { readFileSync } from "node:fs";
-import { isAbsolute, resolve as resolvePath } from "node:path";
 
 import type { ProfileConfig } from "../config/profiles";
 import { resolveProfile, type ProfileName } from "../config/profiles";
@@ -9,10 +7,14 @@ import type { ApiRequestOptions, ApiResponse } from "../http/client";
 import { apiRequest as defaultApiRequest } from "../http/client";
 import { loadTokens } from "../keychain/store";
 import { EngineBacktestError, isEngineBacktestError } from "./errors";
+import { loadConfigValue } from "./load-config";
 import {
   ENGINE_BACKTEST_RUN_USAGE,
+  ENGINE_BACKTEST_SWEEP_USAGE,
   parseEngineBacktestRunArgs,
+  parseEngineBacktestSweepArgs,
 } from "./parse-args";
+import { executeEngineBacktestSweep } from "./sweep-command";
 import {
   buildCreateRunRequest,
   DEFAULT_EXECUTION_MODEL,
@@ -35,6 +37,8 @@ import type {
   SubscriptionTier,
   TapeLoadProgress,
 } from "./types";
+
+export { loadConfigValue } from "./load-config";
 
 export interface EngineBacktestCliFlags {
   readonly profile?: string;
@@ -74,46 +78,6 @@ const SUBSCRIPTION_TIERS = new Set<SubscriptionTier>([
 
 function runsPath(experimentId: string): string {
   return `/api/v1/engine-backtest/experiments/${encodeURIComponent(experimentId)}/runs`;
-}
-
-export function loadConfigValue(
-  raw: string,
-  options: { readonly cwd?: string; readonly readFile?: (path: string) => string } = {}
-): unknown {
-  const cwd = options.cwd ?? process.cwd();
-  const read = options.readFile ?? ((p: string) => readFileSync(p, "utf8"));
-  if (raw.startsWith("@")) {
-    const rel = raw.slice(1);
-    if (!rel) {
-      throw new EngineBacktestError({
-        type: "usage",
-        subtype: "missing_config",
-        message: "--config @path is empty",
-        status: 400,
-      });
-    }
-    const abs = isAbsolute(rel) ? rel : resolvePath(cwd, rel);
-    try {
-      return JSON.parse(read(abs));
-    } catch (err) {
-      throw new EngineBacktestError({
-        type: "usage",
-        subtype: "invalid_config",
-        message: `Cannot read --config file ${abs}: ${err instanceof Error ? err.message : String(err)}`,
-        status: 400,
-      });
-    }
-  }
-  try {
-    return JSON.parse(raw);
-  } catch {
-    throw new EngineBacktestError({
-      type: "usage",
-      subtype: "invalid_config",
-      message: "--config must be JSON or @path-to.json",
-      status: 400,
-    });
-  }
 }
 
 function extractErrorMessage(json: unknown, fallback: string): string {
@@ -600,10 +564,12 @@ export function engineBacktestHelpData(): {
     name: "engine-backtest",
     usage: [
       ...ENGINE_BACKTEST_RUN_USAGE,
+      ...ENGINE_BACKTEST_SWEEP_USAGE,
       "Catalog CRUD (underscore domain): alphafox engine_backtest experiments list|create|...",
     ],
     notes: [
-      "Local WASM run is hyphenated engine-backtest so it does not steal typed catalog engine_backtest.*",
+      "Local WASM run/sweep is hyphenated engine-backtest so it does not steal typed catalog engine_backtest.*",
+      "Sweep persist is not implemented; local search requires --no-persist and never writes Sweep or Run",
       "runs.create is write (not high-risk-write); --yes is not required",
       "Do not pass --token; use alphafox auth login",
       "--replay-timeframe defaults to 1m (min 1m). Indicator series still download their native plan timeframes.",
@@ -630,13 +596,17 @@ export async function cmdEngineBacktest(
     });
     return 0;
   }
-  if (sub !== "run") {
+  if (sub !== "run" && sub !== "sweep") {
     writeError({
       type: "usage",
       subtype: "unknown_subcommand",
       message: `Unknown engine-backtest subcommand "${sub}"`,
-      hint: "Local WASM: alphafox engine-backtest run. Catalog CRUD: alphafox engine_backtest experiments list",
+      hint: "Local WASM: alphafox engine-backtest run|sweep. Catalog CRUD: alphafox engine_backtest experiments list",
     });
+  }
+
+  if (sub === "sweep") {
+    return await invokeSweep(rest, flags, env, deps);
   }
 
   let parsed: EngineBacktestRunArgs;
@@ -669,6 +639,63 @@ export async function cmdEngineBacktest(
 
   try {
     const result = await executeEngineBacktestRun(parsed, flags, env, deps);
+    writeSuccess(result, { format: flags.format, jq: flags.jq });
+    return 0;
+  } catch (err) {
+    if (isEngineBacktestError(err)) {
+      writeError(
+        {
+          type: err.type,
+          subtype: err.subtype,
+          message: err.message,
+          hint: err.hint,
+          status: err.status,
+          code: err.code,
+          details: err.details,
+        },
+        { exitCode: err.status === 401 || err.status === 403 ? 77 : undefined }
+      );
+    }
+    throw err;
+  }
+}
+
+async function invokeSweep(
+  rest: string[],
+  flags: EngineBacktestCliFlags,
+  env: NodeJS.ProcessEnv,
+  deps: EngineBacktestRunDeps
+): Promise<number> {
+  let parsed;
+  try {
+    parsed = parseEngineBacktestSweepArgs(rest);
+  } catch (err) {
+    if (isEngineBacktestError(err)) {
+      writeError(
+        {
+          type: err.type,
+          subtype: err.subtype,
+          message: err.message,
+          hint: err.hint,
+          status: err.status,
+          details: err.details,
+        },
+        { exitCode: err.status === 401 || err.status === 403 ? 77 : undefined }
+      );
+    }
+    throw err;
+  }
+
+  if (parsed.help) {
+    writeSuccess(engineBacktestHelpData(), {
+      format: flags.format,
+      jq: flags.jq,
+    });
+    return 0;
+  }
+
+  try {
+    const result = await executeEngineBacktestSweep(parsed, flags, env, deps);
     writeSuccess(result, { format: flags.format, jq: flags.jq });
     return 0;
   } catch (err) {

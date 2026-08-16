@@ -5,12 +5,16 @@ import {
   isEngineBacktestReplayTimeframe,
   type EngineBacktestReplayTimeframe,
 } from "./replay-timeframe";
+import { DEFAULT_SWEEP_CONCURRENCY } from "./sweep-kernel";
 import type {
   DataQualityMode,
   EngineBacktestRunArgs,
+  EngineBacktestSweepArgs,
   ExecutionModel,
   InclusiveUtcDateRange,
   SubscriptionTier,
+  SweepMode,
+  SweepSearchMode,
 } from "./types";
 
 const DAY_MS = 86_400_000;
@@ -24,12 +28,23 @@ export const ENGINE_BACKTEST_RUN_USAGE = [
   "alphafox engine-backtest run --create-experiment --name <name> --definition <id> --config @file.json --exchange <id> --from YYYY-MM-DD --to YYYY-MM-DD --initial-equity N",
 ];
 
-function usage(message: string, subtype = "invalid_args"): never {
+export const ENGINE_BACKTEST_SWEEP_USAGE = [
+  "alphafox engine-backtest sweep --experiment <uuid> --definition <id> --config @file.json --axes @axes.json --exchange <id> --range YYYY-MM-DD..YYYY-MM-DD --initial-equity N --no-persist [--mode neighborhood|range] [--search-mode standard|fast] [--concurrency N]",
+];
+
+const SWEEP_MODES = new Set<SweepMode>(["neighborhood", "range"]);
+const SEARCH_MODES = new Set<SweepSearchMode>(["standard", "fast"]);
+
+function usage(
+  message: string,
+  subtype = "invalid_args",
+  hint = ENGINE_BACKTEST_RUN_USAGE[0]
+): never {
   throw new EngineBacktestError({
     type: "usage",
     subtype,
     message,
-    hint: ENGINE_BACKTEST_RUN_USAGE[0],
+    hint,
     status: 400,
   });
 }
@@ -334,5 +349,104 @@ export function parseEngineBacktestRunArgs(
     executionModelOverride,
     persist,
     replayTimeframe,
+  };
+}
+
+export function parseEngineBacktestSweepArgs(
+  args: readonly string[]
+): EngineBacktestSweepArgs {
+  let axesRaw: string | undefined;
+  let mode: SweepMode = "neighborhood";
+  let searchMode: SweepSearchMode = "standard";
+  let concurrency = DEFAULT_SWEEP_CONCURRENCY;
+  let help = false;
+  const rest: string[] = [];
+
+  for (let i = 0; i < args.length; i += 1) {
+    const a = args[i]!;
+    if (a === "--help" || a === "-h") {
+      help = true;
+      continue;
+    }
+    const eq = a.indexOf("=");
+    const flag = eq >= 0 ? a.slice(0, eq) : a;
+    const inline = eq >= 0 ? a.slice(eq + 1) : undefined;
+    const read = (): string => {
+      if (inline !== undefined) return inline;
+      const taken = takeValue(args as string[], i, flag);
+      i = taken.next;
+      return taken.value;
+    };
+    if (flag === "--axes") {
+      axesRaw = read();
+      continue;
+    }
+    if (flag === "--mode") {
+      const raw = read().trim() as SweepMode;
+      if (!SWEEP_MODES.has(raw)) {
+        usage(
+          "--mode must be neighborhood|range",
+          "invalid_sweep_mode",
+          ENGINE_BACKTEST_SWEEP_USAGE[0]
+        );
+      }
+      mode = raw;
+      continue;
+    }
+    if (flag === "--search-mode") {
+      const raw = read().trim() as SweepSearchMode;
+      if (!SEARCH_MODES.has(raw)) {
+        usage(
+          "--search-mode must be standard|fast",
+          "invalid_search_mode",
+          ENGINE_BACKTEST_SWEEP_USAGE[0]
+        );
+      }
+      searchMode = raw;
+      continue;
+    }
+    if (flag === "--concurrency") {
+      const n = Number(read());
+      if (!Number.isInteger(n) || n < 1) {
+        usage(
+          "--concurrency must be a positive integer",
+          "invalid_concurrency",
+          ENGINE_BACKTEST_SWEEP_USAGE[0]
+        );
+      }
+      concurrency = n;
+      continue;
+    }
+    rest.push(a);
+  }
+
+  if (help) {
+    return {
+      help: true,
+      createExperiment: false,
+      dataQualityMode: "strict",
+      persist: true,
+      replayTimeframe: ENGINE_BACKTEST_DEFAULT_REPLAY_TIMEFRAME,
+      axesRaw,
+      mode,
+      searchMode,
+      concurrency,
+    };
+  }
+
+  if (!axesRaw) {
+    usage(
+      "--axes is required (@file.json or JSON)",
+      "missing_axes",
+      ENGINE_BACKTEST_SWEEP_USAGE[0]
+    );
+  }
+
+  return {
+    ...parseEngineBacktestRunArgs(rest),
+    axesRaw,
+    mode,
+    searchMode,
+    concurrency,
   };
 }

@@ -36,6 +36,10 @@ import {
   resolveOpenBrowser,
   runBrowserPkceLogin,
 } from "../auth/browser-login";
+import {
+  accessTokenNeedsRefresh,
+  refreshStoredTokens,
+} from "../auth/refresh";
 import { apiRequest } from "../http/client";
 import {
   deleteTokens,
@@ -454,18 +458,39 @@ async function cmdAuth(
 
   if (sub === "status") {
     const verify = args.includes("--verify");
-    const tokens = loadTokens(profile.name, env);
+    let tokens = loadTokens(profile.name, env);
     if (!tokens) {
       writeSuccess(
         {
           authenticated: false,
+          session: "none",
           profile: profile.name,
           verified: false,
+          refresh: "no_session",
+          accessTokenExpired: null,
+          hasRefreshToken: false,
         },
         { format: flags.format, jq: flags.jq }
       );
       return 0;
     }
+
+    let refresh:
+      | "refreshed"
+      | "unchanged"
+      | "failed"
+      | "no_session"
+      | "skipped" = "skipped";
+    if (accessTokenNeedsRefresh(tokens)) {
+      const outcome = await refreshStoredTokens(profile, env);
+      refresh = outcome.status;
+      if (outcome.status === "refreshed" || outcome.status === "unchanged") {
+        tokens = outcome.tokens;
+      } else {
+        tokens = loadTokens(profile.name, env) ?? tokens;
+      }
+    }
+
     let verified: boolean | null = null;
     let whoami: unknown = null;
     if (verify) {
@@ -479,10 +504,22 @@ async function cmdAuth(
       );
       verified = res.status >= 200 && res.status < 300;
       whoami = verified ? res.json : { status: res.status, body: res.json };
+      tokens = loadTokens(profile.name, env) ?? tokens;
     }
+
+    const accessTokenExpired = tokens.expiresAt <= Date.now();
+    const hasRefreshToken = Boolean(tokens.refreshToken?.trim());
+    const session =
+      !accessTokenExpired
+        ? "active"
+        : refresh === "failed"
+          ? "refresh_failed"
+          : "expired";
+
     writeSuccess(
       {
-        authenticated: true,
+        authenticated: session === "active",
+        session,
         profile: profile.name,
         environment: tokens.environment,
         issuer: tokens.issuer,
@@ -491,6 +528,9 @@ async function cmdAuth(
         scopes: tokens.scopes,
         accessTokenFingerprint: tokenFingerprint(tokens.accessToken),
         expiresAt: tokens.expiresAt,
+        accessTokenExpired,
+        hasRefreshToken,
+        refresh,
         verified,
         whoami,
       },

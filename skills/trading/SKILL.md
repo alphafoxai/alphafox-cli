@@ -1,7 +1,7 @@
 ---
 name: alphafox-trading
 description: Running strategies (traders) — create, list, start, and stop. A trader is a live or paper strategy instance (grid, dca, copy, …), not a person.
-version: 0.3.7
+version: 0.3.8
 ---
 
 # Running strategies (traders)

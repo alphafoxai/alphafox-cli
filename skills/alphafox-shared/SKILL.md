@@ -1,7 +1,7 @@
 ---
 name: alphafox-shared
 description: Shared AlphaFox CLI rules for Agents — auth, profiles, envelopes, risk gates, and public operationIds only.
-version: 0.3.7
+version: 0.3.8
 ---
 
 # AlphaFox shared Agent contract
@@ -67,8 +67,9 @@ alphafox auth login --no-wait --format json --no-input
 # show verification_uri / user_code to the human, then:
 alphafox auth login --device-code <device_code> --format json --no-input
 alphafox auth status --verify --format json --no-input
-alphafox whoami --format json --no-input
 ```
+
+Access tokens last ~10 minutes; the CLI refreshes them. After idle, run **one** `auth status --verify` — not `whoami` in parallel. `session: active` means logged in. A past `expiresAt` is not logout. Re-login only when `session` is `none` or `refresh_failed`.
 
 Local browser: `alphafox auth login --browser --format json --no-input` (loopback 127.0.0.1). If the browser cannot open, copy `authorizeUrl` from the error; do not invent a Device Flow retry unless the operator is headless.
 

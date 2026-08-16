@@ -5,6 +5,18 @@
  * Outcomes are explicit: callers must not treat a failed refresh as a healthy session.
  */
 
+import {
+  closeSync,
+  constants,
+  mkdirSync,
+  openSync,
+  statSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
+import { dirname, join } from "node:path";
+import { homedir } from "node:os";
+
 import type { ProfileConfig } from "../config/profiles";
 import { CLI_VERSION } from "../version";
 import {
@@ -15,6 +27,9 @@ import {
 
 /** Refresh when access token expires within this window. */
 export const ACCESS_TOKEN_REFRESH_SKEW_MS = 60_000;
+
+/** Drop a stale inter-process refresh lock after this long. */
+export const REFRESH_LOCK_STALE_MS = 30_000;
 
 export type RefreshOutcome =
   | {
@@ -70,24 +85,42 @@ export async function refreshStoredTokens(
       tokens: null,
     };
   }
-  if (
-    !options.force &&
-    !accessTokenNeedsRefresh(existing, options.now ?? Date.now())
-  ) {
+  const now = options.now ?? Date.now();
+  if (!options.force && !accessTokenNeedsRefresh(existing, now)) {
     return { status: "unchanged", tokens: existing };
   }
 
-  const key = profile.name;
-  const pending = inflightByProfile.get(key);
-  if (pending) {
-    return pending;
-  }
+  return withRefreshLock(profile.name, env, async () => {
+    const latest = loadTokens(profile.name, env) ?? existing;
+    if (!latest?.refreshToken?.trim()) {
+      return {
+        status: "no_session" as const,
+        reason: "no_refresh_token",
+        tokens: null,
+      };
+    }
+    const someoneElseRefreshed =
+      latest.refreshToken !== existing.refreshToken ||
+      latest.expiresAt > existing.expiresAt;
+    if (someoneElseRefreshed && !accessTokenNeedsRefresh(latest, now)) {
+      return { status: "unchanged" as const, tokens: latest };
+    }
+    if (!options.force && !accessTokenNeedsRefresh(latest, now)) {
+      return { status: "unchanged" as const, tokens: latest };
+    }
 
-  const work = performRefresh(profile, existing, env, fetchImpl).finally(() => {
-    inflightByProfile.delete(key);
+    const key = profile.name;
+    const pending = inflightByProfile.get(key);
+    if (pending) {
+      return pending;
+    }
+
+    const work = performRefresh(profile, latest, env, fetchImpl).finally(() => {
+      inflightByProfile.delete(key);
+    });
+    inflightByProfile.set(key, work);
+    return work;
   });
-  inflightByProfile.set(key, work);
-  return work;
 }
 
 /**
@@ -108,6 +141,73 @@ export async function refreshStoredTokensOrNull(
     return outcome.tokens;
   }
   return null;
+}
+
+export function refreshLockFilePath(
+  profile: string,
+  env: NodeJS.ProcessEnv = process.env
+): string {
+  const base =
+    env.ALPHAFOX_KEYCHAIN_DIR?.trim() ||
+    join(homedir(), ".config", "alphafox", "keychain");
+  return join(base, `${profile}.refresh.lock`);
+}
+
+async function withRefreshLock<T>(
+  profile: string,
+  env: NodeJS.ProcessEnv,
+  work: () => Promise<T>
+): Promise<T> {
+  const path = refreshLockFilePath(profile, env);
+  mkdirSync(dirname(path), { recursive: true });
+  const started = Date.now();
+  while (true) {
+    try {
+      const fd = openSync(path, constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY);
+      try {
+        writeFileSync(fd, `${process.pid}\n${Date.now()}\n`);
+      } finally {
+        closeSync(fd);
+      }
+      try {
+        return await work();
+      } finally {
+        try {
+          unlinkSync(path);
+        } catch {
+          // another process stole a stale lock
+        }
+      }
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code !== "EEXIST") {
+        throw err;
+      }
+      try {
+        if (Date.now() - statSync(path).mtimeMs > REFRESH_LOCK_STALE_MS) {
+          unlinkSync(path);
+          continue;
+        }
+      } catch {
+        // lock disappeared; retry acquire
+      }
+      if (Date.now() - started > REFRESH_LOCK_STALE_MS + 5_000) {
+        try {
+          unlinkSync(path);
+        } catch {
+          // raced
+        }
+        continue;
+      }
+      await sleep(50);
+    }
+  }
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 async function performRefresh(

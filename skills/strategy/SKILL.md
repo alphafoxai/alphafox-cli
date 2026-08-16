@@ -1,7 +1,7 @@
 ---
 name: alphafox-strategy
 description: Strategy definitions — list types (grid, dca, copy, …) and validate config. Creating a running strategy is creating a trader; use alphafox-trading for that.
-version: 0.3.7
+version: 0.3.8
 ---
 
 # Strategy definitions

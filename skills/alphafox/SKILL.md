@@ -1,7 +1,7 @@
 ---
 name: alphafox
 description: AlphaFox CLI entry router. Use for any AlphaFox request — install, update, login, whoami, 回测, engine backtest, strategy definitions, create/list/start/stop a running strategy (trader), ticker/标的 resolve (美股 or crypto), market data, exchange connectors, wallet, subscriptions, notifications, or admin. If a CLI command prints `[alphafox] update available`, ask the user「检测到新的版本，是否需要我帮你升级？」and only then run `alphafox update --format json --no-input`. Start here, then open the routed domain skill. Do not guess alphafox-engine-backtest vs alphafox-strategy vs alphafox-trading from memory.
-version: 0.3.7
+version: 0.3.8
 ---
 
 # AlphaFox
@@ -36,7 +36,7 @@ If several rows apply, load **all** of them (typical: `alphafox-shared` + `alpha
 The CLI may print this on **stderr** at most once every 24 hours:
 
 ```text
-[alphafox] update available: 0.3.6 -> 0.3.7. After the user confirms, run: alphafox update --format json --no-input,
+[alphafox] update available: 0.3.7 -> 0.3.8. After the user confirms, run: alphafox update --format json --no-input,
 ```
 
 If you see that notice (or `updateAvailable: true` from `alphafox update --check`):

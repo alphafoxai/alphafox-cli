@@ -21,6 +21,19 @@ describe("Skills surface", () => {
     assert.match(market, /--asset-class equity_perp/);
   });
 
+  it("treats access-token expiry as refresh, not logout", () => {
+    const auth = readFileSync(join(skillsRoot, "auth", "SKILL.md"), "utf8");
+    const shared = readFileSync(
+      join(skillsRoot, "alphafox-shared", "SKILL.md"),
+      "utf8"
+    );
+    for (const text of [auth, shared]) {
+      assert.match(text, /session.*active/);
+      assert.match(text, /refresh_failed/);
+      assert.match(text, /whoami.*parallel/i);
+    }
+  });
+
   it("does not teach chat product commands or paths", () => {
     const banned = [
       /chats\./,

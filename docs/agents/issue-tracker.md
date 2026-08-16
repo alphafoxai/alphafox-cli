@@ -1,6 +1,6 @@
 # Issue tracker: Feishu Tasks
 
-Issues and specs for this repo live as tasks in the **Alphafox-Issues** Feishu (Lark) tasklist. Use the `lark-cli` CLI ([`@larksuite/cli`](https://github.com/larksuite/cli)) for all operations, always with `--as user` — a task created by the bot identity is invisible in the human's task centre.
+Issues and specs for this repo live as tasks in the **AlphaFox-Issues** Feishu (Lark) tasklist. Use the `lark-cli` CLI ([`@larksuite/cli`](https://github.com/larksuite/cli)) for all operations, always with `--as user` — a task created by the bot identity is invisible in the human's task centre.
 
 List: <https://applink.feishu.cn/client/todo/task_list?guid=6d628d79-cdfe-47cc-98f7-35561944494b>
 
@@ -46,7 +46,7 @@ Every other label is an option on the single-select `Type` field. Address an opt
 ## Conventions
 
 - **Shared-list title** — prefix every issue/task title with `[alphafox-cli]` so the repository remains identifiable on the shared board.
-- **Tracker boundary** — Matt Skills issues, specs, tickets, triage items, and wayfinder maps belong in `Alphafox-Issues`, not a quarterly execution list. If quarterly planning initiated the work, link its absolute Feishu task URL instead of duplicating workflow state.
+- **Tracker boundary** — Matt Skills issues, specs, tickets, triage items, and wayfinder maps belong in `AlphaFox-Issues`, not a quarterly execution list. If quarterly planning initiated the work, link its absolute Feishu task URL instead of duplicating workflow state.
 
 - **Create an issue** — one call sets body, section (triage role) and `Type`:
 

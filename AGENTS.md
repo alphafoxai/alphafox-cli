@@ -10,7 +10,7 @@ Agent and human entry for the versioned Public Application API on alphafox-web.
 
 ### Issue tracker
 
-Matt Skills engineering issues, specs, and tickets live in the shared Feishu `Alphafox-Issues` tasklist; prefix titles with `[alphafox-cli]`. See `docs/agents/issue-tracker.md`.
+Matt Skills engineering issues, specs, and tickets live in the shared Feishu `AlphaFox-Issues` tasklist; prefix titles with `[alphafox-cli]`. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 

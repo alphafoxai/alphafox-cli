@@ -8,6 +8,7 @@ on:
     paths:
       - docs/index.html
       - docs/favicon.svg
+      - docs/logo/**
       - docs/.nojekyll
       - .github/workflows/pages.yml
   workflow_dispatch:
@@ -34,8 +35,9 @@ jobs:
       - name: Prepare site
         run: |
           set -euo pipefail
-          mkdir -p _site
+          mkdir -p _site/logo
           cp docs/index.html docs/favicon.svg docs/.nojekyll _site/
+          cp docs/logo/*.svg _site/logo/
 
       - uses: actions/configure-pages@v5
 

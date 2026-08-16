@@ -1,6 +1,6 @@
 ---
 name: alphafox-engine-backtest
-description: Local Engine WASM backtest (alphafox engine-backtest run) vs catalog experiment CRUD vs chat backtests stub.
+description: Local Engine WASM backtest (alphafox engine-backtest run|sweep) vs catalog experiment CRUD vs chat backtests stub.
 version: 0.3.3
 ---
 
@@ -13,6 +13,7 @@ Always `--format json --no-input` (or `--format jsonl` when you need progress). 
 | Intent | Use | Do not |
 |---|---|---|
 | Iterate a strategy locally (pull tape + run wasm + optional persist) | `alphafox engine-backtest run` (hyphen, built-in) | Do not treat this as server-side execution of `engine_backtest.experiments.byId.runs.create` |
+| Local parameter search with explicit axes (no server write) | `alphafox engine-backtest sweep ... --no-persist` | Do not invent `engine_backtest.*.sweeps.*`. Persist is not implemented; never loop `runs.create` per coordinate |
 | List / get / create / rename / delete experiments and persisted runs | Catalog `engine_backtest.*` (underscore) | Do not invent a second catalog |
 | Chat-attached `/api/v1/backtests` job | `skills/strategy` + `backtests.*` | That stub is **not** the Engine WASM runner |
 
@@ -49,6 +50,27 @@ alphafox engine-backtest run \
 Also valid: `--from` / `--to` instead of `--range`. `--create-experiment --name "..."` when there is no `--experiment` (needs `strategyDefinitionId` + `strategyDefinitionDisplay` `{zh,en}`; pass `--definition-label-zh` / `--definition-label-en` or the CLI falls back to the definition id). Persisted runs use the account tier from `subscriptions.me.get`; if `--tier` is supplied, it must match. With `--no-persist`, `runs.create` is skipped and `--tier` may simulate `free|pro|pro_max` (default `pro`). `--data-quality` defaults to `strict`. `--replay-timeframe` defaults to `1m` (allowed `1m|3m|5m|15m|30m|1h|4h`); this is the replay/download bar and is merged with plan indicator timeframes so a 4h RSI grid still replays on 1m. `runs.create` is `write`, not `high-risk-write` — do not add `--yes`. Do not update or delete experiments through this command.
 
 `--format jsonl` writes one JSON object per progress line (`{event:"progress",stage,fraction}`), then a final `{ok:true,data:{...}}` envelope.
+
+## Local sweep (`--no-persist`)
+
+`alphafox engine-backtest sweep` reuses the same Experiment / definition / config / exchange / range / initial equity / replay timeframe / data quality / execution model / tier flags as `run`. Axes are explicit JSON (`--axes @file`); each axis must name a config path and `min`/`max`/`step` or `values`. The command does not guess parameter paths.
+
+```bash
+alphafox engine-backtest sweep \
+  --experiment <uuid> \
+  --definition grid \
+  --config @./grid.json \
+  --axes @./axes.json \
+  --exchange binance \
+  --range 2026-08-01..2026-08-08 \
+  --initial-equity 10000 \
+  --no-persist \
+  --mode neighborhood \
+  --search-mode standard \
+  --format jsonl --no-input
+```
+
+`--mode` is `neighborhood|range`. `--search-mode` is `standard|fast`. `--concurrency` is 1–8; Free is always serial. Without `--no-persist` the command fails with persist-not-implemented and writes nothing. `--no-persist` loads one broad Tape, batches through Engine WASM, and returns every point row plus the best non-liquidated coordinate and applied config. Do not call Sweep create or `runs.create` from this path.
 
 ## Iterate
 

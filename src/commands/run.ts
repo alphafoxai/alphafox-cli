@@ -152,6 +152,7 @@ export async function runCli(
           "alphafox catalog",
           "alphafox api METHOD PATH [--body JSON|--config @file]",
           "alphafox engine-backtest run --experiment <uuid> --definition <id> --config @file --exchange <id> --range FROM..TO --initial-equity N",
+          "alphafox engine-backtest sweep --experiment <uuid> --definition <id> --config @file --axes @file --exchange <id> --range FROM..TO --initial-equity N --no-persist",
           "alphafox <domain> <resource> <action> [flags]",
         ],
       },
@@ -188,13 +189,14 @@ export async function runCli(
         if (
           !sub ||
           sub === "run" ||
+          sub === "sweep" ||
           sub === "help" ||
           sub === "--help" ||
           sub === "-h"
         ) {
           return await cmdEngineBacktest(args, flags, env);
         }
-        // Hyphen built-in only owns `run`. Underscore/hyphen catalog CRUD
+        // Hyphen built-in owns `run` and `sweep`. Underscore/hyphen catalog CRUD
         // (engine_backtest.experiments.*) still goes through the typed tree.
         return await cmdTyped(cmd, args, flags, env);
       }

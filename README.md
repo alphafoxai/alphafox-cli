@@ -32,8 +32,24 @@ Copy and send this to Cursor / Claude Code / Codex / Trae:
 Help me install AlphaFox CLI: https://github.com/alphafoxai/alphafox-cli/blob/main/docs/alphafox-cli-installation-guide.md
 ```
 
-The Agent follows that guide (`npm install -g`, `npx skills add`, login,
+The Agent follows that guide (`npm install -g`, `alphafox skills sync`, login,
 `doctor`). **Restart the AI tool** when it finishes.
+
+## Update
+
+CLI and Skills are one verified release unit:
+
+```bash
+alphafox update --check
+alphafox update
+alphafox skills status
+```
+
+`alphafox update` upgrades the npm package and then syncs the exact Skills
+bundle shipped inside it. It never updates Skills independently from GitHub.
+Locally modified Skills are reported and preserved; use
+`alphafox skills sync --force --yes` only when you intend to replace them.
+Restart the AI tool after a sync.
 
 ## Quick start
 
@@ -67,8 +83,10 @@ skills then use public `operationId`s; an explicit local-execution skill may
 call its co-versioned built-in command.
 
 `alphafox install` (and the [Agent install guide](docs/alphafox-cli-installation-guide.md))
-run `npx skills add` so those files land in Agent skill directories
-(`.cursor/skills`, `.claude/skills`, `~/.agents/skills`, …).
+verify the packaged Skills manifest and sync managed files into Agent skill
+directories (`.cursor/skills`, `.claude/skills`, `~/.agents/skills`, …).
+Use `alphafox skills status` to inspect missing, stale, or modified Skills and
+`alphafox skills sync` to repair safe drift.
 
 ## Docs
 

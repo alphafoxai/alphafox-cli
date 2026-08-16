@@ -1,7 +1,7 @@
 ---
 name: alphafox-strategy
 description: Strategy definitions and chats via public operationIds.
-version: 0.3.4
+version: 0.3.5
 ---
 
 # Strategy / Chat

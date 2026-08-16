@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { mkdtempSync, rmSync } from "node:fs";
 import { describe, it } from "node:test";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 // Works from both source (tests/) and compiled (dist-test/tests/) layouts.
@@ -40,7 +42,7 @@ describe("cli launch", () => {
         line.includes("npx @alphafox/cli@latest install")
       )
     );
-    assert.match(String(json.data.description), /npx skills add/);
+    assert.match(String(json.data.description), /Skills manifest/);
   });
 
   it("install rejects unknown flags without contacting npm", () => {
@@ -49,6 +51,35 @@ describe("cli launch", () => {
     const err = JSON.parse(r.stderr);
     assert.equal(err.ok, false);
     assert.equal(err.error.subtype, "unknown_install_flag");
+  });
+
+  it("skills status reports the co-versioned local bundle without mutation", () => {
+    const root = mkdtempSync(join(tmpdir(), "alphafox-cli-skills-status-"));
+    const r = run(["skills", "status"], {
+      ALPHAFOX_CONFIG_DIR: join(root, "config"),
+      ALPHAFOX_SKILLS_DIR: join(root, "installed"),
+    });
+    assert.equal(r.status, 0, r.stderr);
+    const json = JSON.parse(r.stdout);
+    assert.equal(json.ok, true);
+    assert.equal(json.data.bundleVersion, json.data.skills[0].expectedVersion);
+    assert.ok(json.data.summary.missing > 0);
+    assert.equal(json.data.restartRequired, true);
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  it("update help exposes check and pinned-version modes without contacting npm", () => {
+    const r = run(["update", "--help"]);
+    assert.equal(r.status, 0, r.stderr);
+    const json = JSON.parse(r.stdout);
+    assert.equal(json.ok, true);
+    assert.equal(json.data.name, "update");
+    assert.ok(
+      json.data.usage.some((line: string) => line.includes("--check"))
+    );
+    assert.ok(
+      json.data.usage.some((line: string) => line.includes("--version"))
+    );
   });
 
   it("doctor exits 0 and reports profile", () => {

@@ -2,6 +2,14 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 import { CLI_PACKAGE, CLI_VERSION } from "../version";
+import {
+  loadAndVerifySkillsManifest,
+  syncSkills,
+} from "../skills/manager";
+import {
+  installedSkillsRoot,
+  skillsStatePath,
+} from "../skills/run-command";
 import { createDefaultInstallRunner } from "./exec";
 import {
   findAlphafoxPackageRoot,
@@ -12,7 +20,6 @@ import {
 import {
   AGENT_INSTALL_GUIDE_BLOB_URL,
   InstallError,
-  SKILLS_GITHUB_SOURCE,
   type InstallAuthStep,
   type InstallCliStep,
   type InstallFlags,
@@ -236,89 +243,132 @@ async function stepInstallCli(
   };
 }
 
-async function resolveSkillsSources(
+async function resolveSkillsSource(
   runner: InstallRunner
-): Promise<string[]> {
+): Promise<string> {
   const override = runner.env.ALPHAFOX_SKILLS_SOURCE?.trim();
-  if (override) return [override];
+  if (override) {
+    if (packageHasSkills(override)) return override;
+    throw new InstallError({
+      type: "install",
+      subtype: "skills_source_invalid",
+      message:
+        "ALPHAFOX_SKILLS_SOURCE must point to a local @alphafox/cli package with bundled Skills.",
+      details: override,
+    });
+  }
 
-  const sources: string[] = [];
   const npmRoot = await npmRootGlobal(runner);
   if (npmRoot) {
     const globalRoot = globalPackageRoot(npmRoot);
-    if (packageHasSkills(globalRoot)) sources.push(globalRoot);
+    if (packageHasSkills(globalRoot)) return globalRoot;
   }
 
   const localRoot = findAlphafoxPackageRoot(runner.packageSearchDirs());
-  if (localRoot && !sources.includes(localRoot) && packageHasSkills(localRoot)) {
-    sources.push(localRoot);
+  if (localRoot && packageHasSkills(localRoot)) {
+    return localRoot;
   }
 
-  sources.push(SKILLS_GITHUB_SOURCE);
-  return sources;
-}
-
-async function skillsAlreadyInstalled(runner: InstallRunner): Promise<boolean> {
-  try {
-    const { stdout, stderr } = await runner.exec(
-      "npx",
-      ["-y", "skills", "ls", "-g"],
-      { timeoutMs: SKILLS_TIMEOUT_MS }
-    );
-    return skillsListHasAlphafox(`${stdout}\n${stderr}`);
-  } catch {
-    return false;
-  }
+  throw new InstallError({
+    type: "install",
+    subtype: "skills_package_missing",
+    message:
+      "Could not locate the verified Skills bundle inside @alphafox/cli.",
+    hint: `npm install -g ${CLI_PACKAGE}`,
+  });
 }
 
 async function stepInstallSkills(
   flags: InstallFlags,
   runner: InstallRunner
 ): Promise<InstallSkillsStep> {
-  const sources = await resolveSkillsSources(runner);
-  const already = flags.dryRun ? false : await skillsAlreadyInstalled(runner);
-  if (already) {
-    runner.log("Skills 已安装，已跳过");
+  const source = await resolveSkillsSource(runner);
+  const manifest = loadAndVerifySkillsManifest(source);
+  runner.log(
+    flags.dryRun
+      ? `将同步 Skills ${manifest.packageVersion}（${source}）`
+      : `正在同步 AI Skills ${manifest.packageVersion}…`
+  );
+  try {
+    const result = await syncSkills(
+      {
+        manifest,
+        packageRoot: source,
+        installedRoot: installedSkillsRoot(runner.env),
+        statePath: skillsStatePath(runner.env),
+        dryRun: flags.dryRun,
+        force: false,
+      },
+      {
+        install: async (names) => {
+          await runner.exec(
+            "npx",
+            [
+              "-y",
+              "skills",
+              "add",
+              source,
+              "-y",
+              "-g",
+              "--skill",
+              ...names,
+            ],
+            { timeoutMs: SKILLS_TIMEOUT_MS }
+          );
+        },
+        remove: async (names) => {
+          await runner.exec(
+            "npx",
+            ["-y", "skills", "remove", ...names, "-y", "-g"],
+            { timeoutMs: SKILLS_TIMEOUT_MS }
+          );
+        },
+      }
+    );
+    const action: InstallSkillsStep["action"] =
+      result.blocked.length > 0
+        ? "blocked"
+        : result.action === "planned"
+          ? "planned"
+          : result.action === "skipped"
+            ? "skipped"
+            : result.backupDir
+              ? "updated"
+              : "installed";
+    runner.log(
+      action === "skipped"
+        ? "Skills 已是当前版本，已跳过"
+        : action === "blocked"
+          ? `检测到本地修改，未覆盖：${result.blocked.join(", ")}`
+          : flags.dryRun
+            ? `将同步 ${result.updated.length} 个 Skills`
+            : `Skills 已同步（${source}）`
+    );
     return {
-      action: "skipped",
-      source: sources[0],
+      action,
+      source,
       scope: "global",
-      alreadyPresent: true,
+      alreadyPresent: result.status.summary.current > 0,
+      version: manifest.packageVersion,
+      updated: result.updated,
+      removed: result.removed,
+      blocked: result.blocked,
+      backupDir: result.backupDir,
+      restartRequired: result.restartRequired,
     };
+  } catch (err) {
+    if (err instanceof InstallError) throw err;
+    throw new InstallError({
+      type: "install",
+      subtype:
+        err && typeof err === "object" && "subtype" in err
+          ? String((err as { subtype: unknown }).subtype)
+          : "skills_sync_failed",
+      message: "同步 Agent Skills 失败。",
+      hint: `alphafox skills sync --format json --no-input`,
+      details: err instanceof Error ? err.message : String(err),
+    });
   }
-
-  if (flags.dryRun) {
-    runner.log(`将从 ${sources[0] ?? SKILLS_GITHUB_SOURCE} 安装 Skills`);
-    return {
-      action: "planned",
-      source: sources[0] ?? SKILLS_GITHUB_SOURCE,
-      scope: "global",
-    };
-  }
-
-  runner.log("正在安装 AI Skills…");
-  let lastError: unknown;
-  for (const source of sources) {
-    try {
-      await runner.exec(
-        "npx",
-        ["-y", "skills", "add", source, "-y", "-g"],
-        { timeoutMs: SKILLS_TIMEOUT_MS }
-      );
-      runner.log(`Skills 已安装（${source}）`);
-      return { action: "installed", source, scope: "global" };
-    } catch (err) {
-      lastError = err;
-    }
-  }
-
-  throw new InstallError({
-    type: "install",
-    subtype: "skills_add_failed",
-    message: "安装 Agent Skills 失败。",
-    hint: `npx skills add ${SKILLS_GITHUB_SOURCE} -y -g`,
-    details: lastError instanceof Error ? lastError.message : String(lastError),
-  });
 }
 
 async function resolveAlphafoxBin(
@@ -411,7 +461,7 @@ export function installHelpData(): {
       "alphafox install --dry-run",
     ],
     description:
-      "全局安装 @alphafox/cli，并通过 npx skills add 把同版本 Agent Skills 写入本机已检测到的 Agent（Cursor、Claude Code、Codex 等）的用户级目录。",
+      "全局安装 @alphafox/cli，校验包内 Skills manifest，并把同版本 Agent Skills 同步到本机已检测到的 Agent（Cursor、Claude Code、Codex 等）的用户级目录。",
     agentGuide: AGENT_INSTALL_GUIDE_BLOB_URL,
   };
 }

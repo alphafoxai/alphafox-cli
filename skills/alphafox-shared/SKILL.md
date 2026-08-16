@@ -1,7 +1,7 @@
 ---
 name: alphafox-shared
 description: Shared AlphaFox CLI rules for Agents — auth, profiles, envelopes, risk gates, and public operationIds only.
-version: 0.3.4
+version: 0.3.5
 ---
 
 # AlphaFox shared Agent contract
@@ -14,7 +14,7 @@ Co-versioned with `@alphafox/cli`. Query compatibility with `alphafox version --
 
 Prefer the wizard (CLI + Agent Skills) or the Agent install guide. Do not treat
 `npm install -g @alphafox/cli` as enough for Agents — Skills must be registered
-with `npx skills add`.
+with `alphafox skills sync`.
 
 ```bash
 npx @alphafox/cli@latest install
@@ -23,6 +23,18 @@ npx @alphafox/cli@latest install
 npx @alphafox/cli version --format json --no-input
 npx @alphafox/cli doctor --format json --no-input
 ```
+
+Update checks are read-only. A real update keeps CLI and Skills co-versioned:
+
+```bash
+alphafox update --check --format json --no-input
+alphafox update --format json --no-input
+alphafox skills status --format json --no-input
+```
+
+Never update AlphaFox Skills independently from GitHub. If `skills status`
+reports local modifications, stop and ask before using
+`alphafox skills sync --force --yes`; the CLI backs up replaced files.
 
 - Default profile: `production`. Use `--profile staging|local` explicitly.
 - Tokens: OS keychain only (macOS Keychain, Linux Secret Service, Windows Credential Manager). Never pass `--token`. Never read tokens from config JSON.

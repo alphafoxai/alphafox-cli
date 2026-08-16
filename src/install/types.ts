@@ -1,3 +1,4 @@
+/** @deprecated AlphaFox Skills updates must use the verified npm package bundle. */
 export const SKILLS_GITHUB_SOURCE = "alphafoxai/alphafox-cli";
 export const SKILLS_NAME_PREFIX = "alphafox-";
 export const AGENT_INSTALL_GUIDE_URL =
@@ -8,9 +9,11 @@ export const AGENT_INSTALL_GUIDE_BLOB_URL =
 export type InstallCliAction = "installed" | "upgraded" | "skipped" | "planned";
 export type InstallSkillsAction =
   | "installed"
+  | "updated"
   | "skipped"
   | "planned"
-  | "failed";
+  | "failed"
+  | "blocked";
 export type InstallAuthAction =
   | "completed"
   | "skipped"
@@ -29,6 +32,12 @@ export interface InstallSkillsStep {
   readonly source?: string;
   readonly scope: "global";
   readonly alreadyPresent?: boolean;
+  readonly version?: string;
+  readonly updated?: readonly string[];
+  readonly removed?: readonly string[];
+  readonly blocked?: readonly string[];
+  readonly backupDir?: string;
+  readonly restartRequired?: boolean;
 }
 
 export interface InstallAuthStep {

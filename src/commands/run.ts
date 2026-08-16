@@ -56,6 +56,8 @@ import {
 } from "../version";
 import { cmdEngineBacktest } from "../engine-backtest/run-command";
 import { cmdResolveSymbols } from "../resolve-symbols/run-command";
+import { cmdSkills } from "../skills/run-command";
+import { cmdUpdate } from "../update/run-command";
 import { validateCatalogWriteBody } from "../catalog/validate-body";
 import { isInstallError } from "../install/types";
 import {
@@ -144,6 +146,8 @@ export async function runCli(
           "alphafox version",
           "alphafox doctor",
           "alphafox install [--no-auth|--dry-run]",
+          "alphafox update [--check|--version VERSION]",
+          "alphafox skills status|sync [--force --yes]",
           "alphafox auth login [--no-wait|--device-code CODE|--browser]",
           "alphafox auth status [--verify]",
           "alphafox auth logout",
@@ -164,7 +168,12 @@ export async function runCli(
   }
 
   try {
-    if (cmd !== "version" && cmd !== "install") {
+    if (
+      cmd !== "version" &&
+      cmd !== "install" &&
+      cmd !== "update" &&
+      cmd !== "skills"
+    ) {
       assertCatalogCompatible();
     }
     switch (cmd) {
@@ -172,6 +181,10 @@ export async function runCli(
         return cmdVersion(flags);
       case "install":
         return await cmdInstall(args, flags, env);
+      case "update":
+        return await cmdUpdate(args, flags, env);
+      case "skills":
+        return await cmdSkills(args, flags, env);
       case "doctor":
         return cmdDoctor(flags, env);
       case "whoami":
@@ -276,7 +289,11 @@ async function cmdInstall(
       env
     );
     writeSuccess(data, { format: flags.format, jq: flags.jq });
-    return data.auth.action === "failed" ? 1 : 0;
+    return data.auth.action === "failed" ||
+      data.skills.action === "blocked" ||
+      (data.skills.blocked?.length ?? 0) > 0
+      ? 1
+      : 0;
   } catch (err) {
     if (isInstallError(err)) {
       writeError({

@@ -79,3 +79,21 @@ export {
   AGENT_INSTALL_GUIDE_URL,
   SKILLS_GITHUB_SOURCE,
 } from "./install/types";
+export {
+  buildSkillsManifest,
+  inspectSkills,
+  loadAndVerifySkillsManifest,
+  loadSkillsState,
+  syncSkills,
+  writeSkillsManifest,
+} from "./skills/manager";
+export {
+  inspectCurrentSkills,
+  installedSkillsRoot,
+  skillsStatePath,
+  syncCurrentSkills,
+} from "./skills/run-command";
+export {
+  executeCliUpdate,
+  parseUpdateArgs,
+} from "./update/run-command";

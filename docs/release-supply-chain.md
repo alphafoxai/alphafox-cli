@@ -58,12 +58,17 @@ OIDC-provenance release.
 - Skills major aligns with CLI major. There is no separate Skills registry
   in v1 and no silent download of a different Skills version at runtime.
 - `npm install -g @alphafox/cli` places `skills/` next to the binary only.
-  Agents do not load that directory. `alphafox install` (and the Agent
-  install guide) copy those files into Agent skill dirs via
-  `npx skills add`:
-  1. the globally installed package path (co-versioned with the CLI)
-  2. the running package / checkout `skills/` tree
-  3. GitHub `alphafoxai/alphafox-cli` as a last-resort fallback
+  Agents do not load that directory. `alphafox install`, `alphafox update`,
+  and `alphafox skills sync` verify `dist/skills-manifest.json`, then copy
+  only from that exact package into global Agent skill dirs.
+- GitHub `main` is not an update fallback. A missing or invalid package
+  manifest fails closed instead of silently changing the Skills version.
+- Sync state and per-Skill hashes live under the AlphaFox config directory.
+  Missing or unchanged stale Skills may update automatically. Modified Skills
+  require `alphafox skills sync --force --yes` and are backed up first.
+- Retired Skills are removed only when the state proves they are AlphaFox
+  managed and unmodified. Failed copy/removal verification does not advance
+  sync state.
 - `contractVersion` on the CLI profile MUST match the Public API
   `contractVersion` (or the documented compatible range). Mismatch → fail
   closed; do not download an older contract or degrade quietly.

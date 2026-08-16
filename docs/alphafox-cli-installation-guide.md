@@ -20,26 +20,25 @@ Skills do **not** register with Cursor / Claude Code / Codex from
 # Install CLI
 npm install -g @alphafox/cli
 
-# Install CLI SKILL (required) — project-local, current workspace
-npx -y skills add "$(npm root -g)/@alphafox/cli" -y
+# Verify and globally sync the exact co-versioned Skills bundle
+alphafox skills sync --format json --no-input
 ```
 
-If the local package path fails (older tarball without `skills/`, or
-`npm root -g` is wrong), fall back to the public GitHub source:
+Do not install Skills from GitHub `main` as a fallback. The CLI verifies the
+manifest and hashes inside the npm package before syncing. If sync fails, stop
+and report the error rather than downloading a different Skills version.
+
+For future updates:
 
 ```shell
-npx -y skills add alphafoxai/alphafox-cli -y
+alphafox update --check --format json --no-input
+alphafox update --format json --no-input
 ```
 
-To install Skills for every project on this machine instead of the current
-repo, add `-g`:
-
-```shell
-npx -y skills add "$(npm root -g)/@alphafox/cli" -y -g
-```
-
-Do not invent a second catalog. Skills must stay co-versioned with the CLI
-that was just installed.
+`alphafox update` upgrades the npm CLI first, then syncs its bundled Skills.
+Modified Skills are preserved and reported. Only use
+`alphafox skills sync --force --yes` when the user explicitly wants to replace
+them; a backup is created before replacement.
 
 ## Step 2: Login
 
@@ -100,6 +99,6 @@ stepping through the commands above:
 npx @alphafox/cli@latest install
 ```
 
-That wizard installs the CLI globally, runs `npx skills add … -y -g`,
+That wizard installs the CLI globally, verifies and syncs the packaged Skills,
 and may prompt for `alphafox auth login --browser`. It is TTY-oriented.
 Agents must follow Steps 1–4 in this document rather than the wizard.

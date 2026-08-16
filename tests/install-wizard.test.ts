@@ -1,10 +1,20 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  mkdtempSync,
+  mkdirSync,
+  readdirSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 
 import { wrapWindowsCommand } from "../src/install/exec";
+import {
+  readSkillName,
+  writeSkillsManifest,
+} from "../src/skills/manager";
 import {
   findAlphafoxPackageRoot,
   globalBinPath,
@@ -13,7 +23,6 @@ import {
 } from "../src/install/package-root";
 import {
   AGENT_INSTALL_GUIDE_BLOB_URL,
-  SKILLS_GITHUB_SOURCE,
   type ExecResult,
   type InstallRunner,
 } from "../src/install/types";
@@ -48,9 +57,25 @@ function fakeRunner(input: {
   const logs: string[] = [];
   const execCalls: { command: string; args: readonly string[] }[] = [];
   const inheritCalls: { command: string; args: readonly string[] }[] = [];
+  const sandbox = mkdtempSync(join(tmpdir(), "alphafox-install-runner-"));
+  const installedSkills = join(sandbox, "skills");
+  mkdirSync(installedSkills, { recursive: true });
+  const sourceSkills = join(process.cwd(), "skills");
+  for (const entry of readdirSync(sourceSkills, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const source = join(sourceSkills, entry.name);
+    const name = readSkillName(join(source, "SKILL.md"));
+    if (!name) continue;
+    cpSync(source, join(installedSkills, name), { recursive: true });
+  }
+  const runnerEnv = {
+    ALPHAFOX_SKILLS_DIR: installedSkills,
+    ALPHAFOX_CONFIG_DIR: join(sandbox, "config"),
+    ...(input.env ?? {}),
+  };
   const runner: InstallRunner = {
-    env: input.env ?? {},
-    packageSearchDirs: () => input.searchDirs ?? [],
+    env: runnerEnv,
+    packageSearchDirs: () => input.searchDirs ?? [process.cwd()],
     isTty: () => input.isTty ?? false,
     log: (message) => {
       logs.push(message);
@@ -157,7 +182,12 @@ describe("install helpers", () => {
 
 describe("install wizard", () => {
   it("dry-run plans global CLI + skills without writing", async () => {
+    const root = mkdtempSync(join(tmpdir(), "alphafox-install-dry-run-"));
     const { runner, execCalls, inheritCalls } = fakeRunner({
+      env: {
+        ALPHAFOX_SKILLS_DIR: join(root, "skills"),
+        ALPHAFOX_CONFIG_DIR: join(root, "config"),
+      },
       exec: async (command, args) => {
         if (command === "npm" && args[0] === "list") {
           return { stdout: "(empty)", stderr: "" };
@@ -175,7 +205,7 @@ describe("install wizard", () => {
     assert.equal(result.cli.action, "planned");
     assert.equal(result.skills.action, "planned");
     assert.equal(result.skills.scope, "global");
-    assert.equal(result.skills.source, SKILLS_GITHUB_SOURCE);
+    assert.equal(result.skills.source, process.cwd());
     assert.equal(result.auth.action, "skipped");
     assert.equal(result.auth.reason, "no-auth");
     assert.equal(
@@ -184,6 +214,8 @@ describe("install wizard", () => {
     );
     assert.equal(inheritCalls.length, 0);
     assert.ok(result.next[0]?.includes("dry-run"));
+    const { rmSync } = await import("node:fs");
+    rmSync(root, { recursive: true, force: true });
   });
 
   it("skips npm install when the global CLI is already latest", async () => {
@@ -226,7 +258,14 @@ describe("install wizard", () => {
       join(pkg, "package.json"),
       JSON.stringify({ name: "@alphafox/cli", version: "0.2.0" })
     );
-    writeFileSync(join(pkg, "skills", "alphafox-shared", "SKILL.md"), "# skill\n");
+    writeFileSync(
+      join(pkg, "skills", "alphafox-shared", "SKILL.md"),
+      "---\nname: alphafox-shared\nversion: 0.2.0\n---\n\n# skill\n"
+    );
+    writeSkillsManifest(pkg, join(pkg, "dist", "skills-manifest.json"), {
+      packageVersion: "0.2.0",
+      contractVersion: "2026-08-13",
+    });
     const npmRoot = join(pkg, "node_modules");
     mkdirSync(join(npmRoot, "@alphafox"), { recursive: true });
     // globalPackageRoot(npmRoot) => npmRoot/@alphafox/cli — point a real tree there
@@ -243,11 +282,20 @@ describe("install wizard", () => {
       );
       writeFileSync(
         join(dest, "skills", "alphafox-shared", "SKILL.md"),
-        "# skill\n"
+        "---\nname: alphafox-shared\nversion: 0.2.0\n---\n\n# skill\n"
       );
+      writeSkillsManifest(dest, join(dest, "dist", "skills-manifest.json"), {
+        packageVersion: "0.2.0",
+        contractVersion: "2026-08-13",
+      });
     }
 
+    const installedRoot = join(pkg, "installed-skills");
     const { runner, execCalls } = fakeRunner({
+      env: {
+        ALPHAFOX_SKILLS_DIR: installedRoot,
+        ALPHAFOX_CONFIG_DIR: join(pkg, "config"),
+      },
       exec: async (command, args) => {
         if (command === "npm" && args[0] === "list") {
           const already = execCalls.some(
@@ -271,6 +319,11 @@ describe("install wizard", () => {
           return { stdout: "", stderr: "" };
         }
         if (command === "npx" && args.includes("add")) {
+          cpSync(
+            join(pkg, "skills", "alphafox-shared"),
+            join(installedRoot, "alphafox-shared"),
+            { recursive: true, force: true }
+          );
           return { stdout: "installed\n", stderr: "" };
         }
         throw new Error(`unexpected ${command} ${args.join(" ")}`);
@@ -283,12 +336,88 @@ describe("install wizard", () => {
     assert.equal(result.skills.source, dest);
     const add = execCalls.find((c) => c.command === "npx" && argsHas(c.args, "add"));
     assert.ok(add);
-    assert.deepEqual(add!.args, ["-y", "skills", "add", dest, "-y", "-g"]);
+    assert.deepEqual(add!.args, [
+      "-y",
+      "skills",
+      "add",
+      dest,
+      "-y",
+      "-g",
+      "--skill",
+      "alphafox-shared",
+    ]);
     rmSync(pkg, { recursive: true, force: true });
   });
 
-  it("falls back to GitHub when local skills add fails", async () => {
+  it("refreshes stale installed Skills from the co-versioned global package", async () => {
+    const root = mkdtempSync(join(tmpdir(), "alphafox-cli-refresh-"));
+    const npmRoot = join(root, "node_modules");
+    const pkg = join(npmRoot, "@alphafox", "cli");
+    const installedRoot = join(root, "installed-skills");
+    mkdirSync(join(pkg, "skills", "alphafox"), { recursive: true });
+    mkdirSync(join(installedRoot, "alphafox"), { recursive: true });
+    writeFileSync(
+      join(pkg, "package.json"),
+      JSON.stringify({ name: "@alphafox/cli", version: "0.3.5" })
+    );
+    writeFileSync(
+      join(pkg, "skills", "alphafox", "SKILL.md"),
+      "---\nname: alphafox\nversion: 0.3.5\n---\n\n# New\n"
+    );
+    writeFileSync(
+      join(installedRoot, "alphafox", "SKILL.md"),
+      "---\nname: alphafox\nversion: 0.3.4\n---\n\n# Old\n"
+    );
+    writeSkillsManifest(pkg, join(pkg, "dist", "skills-manifest.json"), {
+      packageVersion: "0.3.5",
+      contractVersion: "2026-08-13",
+    });
+
     const { runner, execCalls } = fakeRunner({
+      env: {
+        ALPHAFOX_SKILLS_DIR: installedRoot,
+        ALPHAFOX_CONFIG_DIR: join(root, "config"),
+      },
+      exec: async (command, args) => {
+        if (command === "npm" && args[0] === "list") {
+          return { stdout: "└── @alphafox/cli@0.3.5\n", stderr: "" };
+        }
+        if (command === "npm" && args[0] === "view") {
+          return { stdout: "0.3.5\n", stderr: "" };
+        }
+        if (command === "npm" && args[0] === "root") {
+          return { stdout: `${npmRoot}\n`, stderr: "" };
+        }
+        if (command === "npx" && args.includes("add")) {
+          cpSync(
+            join(pkg, "skills", "alphafox"),
+            join(installedRoot, "alphafox"),
+            { recursive: true, force: true }
+          );
+          return { stdout: "updated\n", stderr: "" };
+        }
+        throw new Error(`unexpected ${command} ${args.join(" ")}`);
+      },
+    });
+
+    const result = await runInstallWizard(flags(), runner.env, runner);
+    assert.equal(result.cli.action, "skipped");
+    assert.equal(result.skills.action, "updated");
+    assert.deepEqual(result.skills.updated, ["alphafox"]);
+    assert.ok(
+      execCalls.some((call) => call.command === "npx" && call.args.includes("add"))
+    );
+    const { rmSync } = await import("node:fs");
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  it("does not fall back to mutable GitHub when verified local sync fails", async () => {
+    const root = mkdtempSync(join(tmpdir(), "alphafox-no-github-fallback-"));
+    const { runner, execCalls } = fakeRunner({
+      env: {
+        ALPHAFOX_SKILLS_DIR: join(root, "skills"),
+        ALPHAFOX_CONFIG_DIR: join(root, "config"),
+      },
       searchDirs: [process.cwd()],
       exec: async (command, args) => {
         if (command === "npm" && args[0] === "list") {
@@ -300,31 +429,32 @@ describe("install wizard", () => {
         if (command === "npm" && args[0] === "root") {
           return { stdout: "/missing-root\n", stderr: "" };
         }
-        if (command === "npx" && args.includes("ls")) {
-          return { stdout: "", stderr: "" };
-        }
         if (command === "npx" && args.includes("add")) {
-          const source = args[3];
-          if (source !== SKILLS_GITHUB_SOURCE) {
-            throw new Error("local add failed");
-          }
-          return { stdout: "ok\n", stderr: "" };
+          throw new Error("local add failed");
         }
         throw new Error(`unexpected ${command} ${args.join(" ")}`);
       },
     });
-    const result = await runInstallWizard(flags(), {}, runner);
-    assert.equal(result.skills.action, "installed");
-    assert.equal(result.skills.source, SKILLS_GITHUB_SOURCE);
+    await assert.rejects(
+      () => runInstallWizard(flags(), runner.env, runner),
+      (err: unknown) => {
+        assert.equal(
+          (err as { subtype?: string }).subtype,
+          "skills_sync_failed"
+        );
+        return true;
+      }
+    );
     const adds = execCalls.filter((c) => c.command === "npx" && argsHas(c.args, "add"));
-    assert.ok(adds.length >= 2);
-    assert.equal(adds[adds.length - 1]?.args[3], SKILLS_GITHUB_SOURCE);
-    assert.notEqual(adds[0]?.args[3], SKILLS_GITHUB_SOURCE);
+    assert.equal(adds.length, 1);
+    assert.equal(adds[0]?.args[3], process.cwd());
+    const { rmSync } = await import("node:fs");
+    rmSync(root, { recursive: true, force: true });
   });
 
   it("honors ALPHAFOX_SKILLS_SOURCE and skips auth when --no-auth", async () => {
     const { runner, inheritCalls } = fakeRunner({
-      env: { ALPHAFOX_SKILLS_SOURCE: "/tmp/custom-skills" },
+      env: { ALPHAFOX_SKILLS_SOURCE: process.cwd() },
       isTty: true,
       confirm: true,
       exec: async (command, args) => {
@@ -334,17 +464,11 @@ describe("install wizard", () => {
         if (command === "npm" && args[0] === "view") {
           return { stdout: "0.2.0\n", stderr: "" };
         }
-        if (command === "npx" && args.includes("ls")) {
-          return { stdout: "", stderr: "" };
-        }
-        if (command === "npx" && args.includes("add")) {
-          return { stdout: "ok\n", stderr: "" };
-        }
         throw new Error(`unexpected ${command} ${args.join(" ")}`);
       },
     });
-    const result = await runInstallWizard(flags({ noAuth: true }), {}, runner);
-    assert.equal(result.skills.source, "/tmp/custom-skills");
+    const result = await runInstallWizard(flags({ noAuth: true }), runner.env, runner);
+    assert.equal(result.skills.source, process.cwd());
     assert.equal(result.auth.action, "skipped");
     assert.equal(result.auth.reason, "no-auth");
     assert.equal(inheritCalls.length, 0);
@@ -352,7 +476,7 @@ describe("install wizard", () => {
 
   it("runs browser login on TTY when the user confirms", async () => {
     const { runner, inheritCalls } = fakeRunner({
-      env: { ALPHAFOX_SKILLS_SOURCE: "alphafoxai/alphafox-cli" },
+      env: { ALPHAFOX_SKILLS_SOURCE: process.cwd() },
       isTty: true,
       confirm: true,
       exec: async (command, args) => {
@@ -365,10 +489,6 @@ describe("install wizard", () => {
         if (command === "npm" && args[0] === "prefix") {
           return { stdout: "/usr/local\n", stderr: "" };
         }
-        if (command === "npx") {
-          if (args.includes("ls")) return { stdout: "alphafox-shared\n", stderr: "" };
-          return { stdout: "", stderr: "" };
-        }
         if (command === "which") {
           return { stdout: "/usr/local/bin/alphafox\n", stderr: "" };
         }
@@ -377,7 +497,7 @@ describe("install wizard", () => {
     });
     const result = await runInstallWizard(
       flags({ noAuth: false, noInput: false }),
-      {},
+      runner.env,
       runner
     );
     assert.equal(result.auth.action, "completed");

@@ -1,7 +1,7 @@
 ---
 name: alphafox
-description: AlphaFox CLI entry router. Use for any AlphaFox request — install, login, whoami, 回测, engine backtest, strategy chat, traders, ticker/标的 resolve, market data, exchange connectors, wallet, subscriptions, notifications, or admin. Start here, then open the routed domain skill. Do not guess alphafox-engine-backtest vs alphafox-strategy from memory.
-version: 0.3.4
+description: AlphaFox CLI entry router. Use for any AlphaFox request — install, update, login, whoami, 回测, engine backtest, strategy chat, traders, ticker/标的 resolve, market data, exchange connectors, wallet, subscriptions, notifications, or admin. Start here, then open the routed domain skill. Do not guess alphafox-engine-backtest vs alphafox-strategy from memory.
+version: 0.3.5
 ---
 
 # AlphaFox
@@ -16,7 +16,7 @@ Human-mentioned tickers go through `alphafox-market` (`alphafox resolve-symbols`
 
 | User intent | Skill |
 |---|---|
-| Install, doctor, version, catalog, how to call the CLI | `alphafox-shared` |
+| Install, update, Skills status/sync, doctor, version, catalog, how to call the CLI | `alphafox-shared` |
 | Login, logout, whoami, profile, staging vs production | `alphafox-auth` |
 | Coin / ticker / 标的 / `BTC/USDT:USDT` / resolve a misspelled symbol | `alphafox-market` |
 | Engine WASM backtest, experiment, `engine-backtest run`, persist a local run | `alphafox-engine-backtest` |

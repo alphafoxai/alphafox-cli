@@ -89,7 +89,7 @@ export async function runInstallWizard(
   env: NodeJS.ProcessEnv = process.env,
   runner: InstallRunner = createDefaultInstallRunner(env, defaultSearchDirs())
 ): Promise<InstallResult> {
-  runner.log("正在安装 Alphafox CLI…");
+  runner.log("正在安装 AlphaFox CLI…");
 
   const installedVer = await readGloballyInstalledVersion(runner);
   const latestVer = await readLatestVersion(runner);

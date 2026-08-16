@@ -11,7 +11,7 @@ import { join } from "node:path";
 /** CRED_MAX_CREDENTIAL_BLOB_SIZE is 5*512 = 2560. */
 export const WINDOWS_CRED_MAX_BYTES = 2560;
 
-export const WINDOWS_CRED_PS1 = `# Alphafox CLI — Windows Credential Manager helper (t101360)
+export const WINDOWS_CRED_PS1 = `# AlphaFox CLI — Windows Credential Manager helper (t101360)
 param(
   [Parameter(Mandatory = $true)][ValidateSet('write','read','delete')][string]$Action,
   [Parameter(Mandatory = $true)][string]$Target

@@ -1,4 +1,4 @@
-# Alphafox CLI installation guide
+# AlphaFox CLI installation guide
 
 The following steps are designed for AI Agents. Some steps require the user
 to complete a browser or Device Flow approval. Always use
@@ -88,7 +88,7 @@ Parse the JSON envelope: `ok === true` means success. Errors land on
 ## Step 4: Tell the user to restart
 
 Ask the user to **restart the AI tool** so the new Skills are loaded.
-Then they can ask the Agent to use Alphafox. The entry skill `alphafox` routes
+Then they can ask the Agent to use AlphaFox. The entry skill `alphafox` routes
 to auth, market, engine-backtest, strategy, trading, and the rest.
 
 ## Human wizard (do not run this from an Agent)

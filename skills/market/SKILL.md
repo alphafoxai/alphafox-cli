@@ -1,7 +1,7 @@
 ---
 name: alphafox-market
 description: Market data, ticker resolution, and spread-radar readonly queries.
-version: 0.3.5
+version: 0.3.6
 ---
 
 # Market

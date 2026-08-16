@@ -183,6 +183,7 @@ describe("credential honesty", () => {
     const env: NodeJS.ProcessEnv = {
       ...process.env,
       ALPHAFOX_FORCE_FILE_KEYCHAIN: "1",
+      ALPHAFOX_SKIP_UPDATE_CHECK: "1",
       ALPHAFOX_KEYCHAIN_DIR: dir,
       ALPHAFOX_CONFIG_DIR: join(dir, "cfg"),
     };
@@ -228,6 +229,7 @@ describe("credential honesty", () => {
     const env: NodeJS.ProcessEnv = {
       ...process.env,
       ALPHAFOX_FORCE_FILE_KEYCHAIN: "1",
+      ALPHAFOX_SKIP_UPDATE_CHECK: "1",
       ALPHAFOX_KEYCHAIN_DIR: dir,
       ALPHAFOX_CONFIG_DIR: join(dir, "cfg"),
     };

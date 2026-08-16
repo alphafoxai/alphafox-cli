@@ -1,7 +1,7 @@
 ---
 name: alphafox
-description: AlphaFox CLI entry router. Use for any AlphaFox request — install, update, login, whoami, 回测, engine backtest, strategy chat, traders, ticker/标的 resolve, market data, exchange connectors, wallet, subscriptions, notifications, or admin. Start here, then open the routed domain skill. Do not guess alphafox-engine-backtest vs alphafox-strategy from memory.
-version: 0.3.5
+description: AlphaFox CLI entry router. Use for any AlphaFox request — install, update, login, whoami, 回测, engine backtest, strategy chat, traders, ticker/标的 resolve, market data, exchange connectors, wallet, subscriptions, notifications, or admin. If a CLI command prints `[alphafox] update available`, ask the user「检测到新的版本，是否需要我帮你升级？」and only then run `alphafox update --format json --no-input`. Start here, then open the routed domain skill. Do not guess alphafox-engine-backtest vs alphafox-strategy from memory.
+version: 0.3.6
 ---
 
 # AlphaFox
@@ -28,6 +28,28 @@ Human-mentioned tickers go through `alphafox-market` (`alphafox resolve-symbols`
 | Admin-only operations | `alphafox-admin` |
 
 If several rows apply, load **all** of them (typical: `alphafox-shared` + `alphafox-market` + one domain skill).
+
+## Upgrade reminder
+
+The CLI may print this on **stderr** at most once every 24 hours:
+
+```text
+[alphafox] update available: 0.3.5 -> 0.3.6. After the user confirms, run: alphafox update --format json --no-input
+```
+
+If you see that notice (or `updateAvailable: true` from `alphafox update --check`):
+
+1. Ask the user: **检测到新的版本，是否需要我帮你升级？**
+2. Wait for an explicit yes. Do not upgrade on your own.
+3. After they confirm:
+
+```bash
+alphafox update --format json --no-input
+```
+
+4. Tell the user to **restart the AI tool** so the new Skills load.
+
+Do not install Skills from GitHub. Details and dry-run / check commands live in `alphafox-shared`.
 
 ## Do not mix these backtest paths
 

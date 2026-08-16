@@ -1191,6 +1191,7 @@ describe("engine-backtest orchestration", () => {
         env: {
           ...process.env,
           ALPHAFOX_FORCE_FILE_KEYCHAIN: "1",
+          ALPHAFOX_SKIP_UPDATE_CHECK: "1",
           ALPHAFOX_CONFIG_DIR: mkdtempSync(join(tmpdir(), "alphafox-cfg-")),
         },
       }

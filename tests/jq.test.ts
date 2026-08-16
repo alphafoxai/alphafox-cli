@@ -44,6 +44,7 @@ describe("jq output filter", () => {
         ...process.env,
         ALPHAFOX_JQ: fakeJq,
         ALPHAFOX_FORCE_FILE_KEYCHAIN: "1",
+        ALPHAFOX_SKIP_UPDATE_CHECK: "1",
       },
     });
     assert.equal(r.status, 0, r.stderr);

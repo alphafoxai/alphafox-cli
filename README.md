@@ -45,6 +45,9 @@ alphafox update
 alphafox skills status
 ```
 
+Ordinary CLI commands check npm at most once every 24 hours and only print a
+stderr notice when a newer version exists. They never auto-upgrade.
+
 `alphafox update` upgrades the npm package and then syncs the exact Skills
 bundle shipped inside it. It never updates Skills independently from GitHub.
 Locally modified Skills are reported and preserved; use

@@ -97,3 +97,8 @@ export {
   executeCliUpdate,
   parseUpdateArgs,
 } from "./update/run-command";
+export {
+  formatUpdateNotice,
+  maybeNotifyCliUpdate,
+  shouldSkipUpdateCheck,
+} from "./update/notify";

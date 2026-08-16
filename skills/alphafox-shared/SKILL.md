@@ -1,7 +1,7 @@
 ---
 name: alphafox-shared
 description: Shared AlphaFox CLI rules for Agents — auth, profiles, envelopes, risk gates, and public operationIds only.
-version: 0.3.5
+version: 0.3.6
 ---
 
 # AlphaFox shared Agent contract
@@ -24,13 +24,21 @@ npx @alphafox/cli version --format json --no-input
 npx @alphafox/cli doctor --format json --no-input
 ```
 
-Update checks are read-only. A real update keeps CLI and Skills co-versioned:
+The CLI checks npm at most once every 24 hours and only prints a notice on
+**stderr**. It never auto-upgrades. If you see
+`[alphafox] update available` (or `updateAvailable: true`), ask the user:
+
+**检测到新的版本，是否需要我帮你升级？**
+
+Wait for an explicit yes. Then keep CLI and Skills co-versioned:
 
 ```bash
 alphafox update --check --format json --no-input
 alphafox update --format json --no-input
 alphafox skills status --format json --no-input
 ```
+
+After a successful `alphafox update`, tell the user to restart the AI tool.
 
 Never update AlphaFox Skills independently from GitHub. If `skills status`
 reports local modifications, stop and ask before using

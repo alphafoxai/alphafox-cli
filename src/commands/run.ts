@@ -57,6 +57,10 @@ import {
 import { cmdEngineBacktest } from "../engine-backtest/run-command";
 import { cmdResolveSymbols } from "../resolve-symbols/run-command";
 import { cmdSkills } from "../skills/run-command";
+import {
+  maybeNotifyCliUpdate,
+  shouldSkipUpdateCheck,
+} from "../update/notify";
 import { cmdUpdate } from "../update/run-command";
 import { validateCatalogWriteBody } from "../catalog/validate-body";
 import { isInstallError } from "../install/types";
@@ -168,6 +172,13 @@ export async function runCli(
   }
 
   try {
+    if (!shouldSkipUpdateCheck(cmd, env)) {
+      try {
+        await maybeNotifyCliUpdate({ env, currentVersion: CLI_VERSION });
+      } catch {
+        // Update notices must never fail a command.
+      }
+    }
     if (
       cmd !== "version" &&
       cmd !== "install" &&

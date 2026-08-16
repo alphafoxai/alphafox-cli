@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -14,6 +14,7 @@ function run(args: string[], extraEnv: NodeJS.ProcessEnv = {}) {
     env: {
       ...process.env,
       ALPHAFOX_FORCE_FILE_KEYCHAIN: "1",
+      ALPHAFOX_SKIP_UPDATE_CHECK: extraEnv.ALPHAFOX_SKIP_UPDATE_CHECK ?? "1",
       ...extraEnv,
     },
   });
@@ -65,6 +66,30 @@ describe("cli launch", () => {
     assert.equal(json.data.bundleVersion, json.data.skills[0].expectedVersion);
     assert.ok(json.data.summary.missing > 0);
     assert.equal(json.data.restartRequired, true);
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  it("keeps version JSON clean when a recent update check is already cached", () => {
+    const root = mkdtempSync(join(tmpdir(), "alphafox-cli-update-cache-"));
+    writeFileSync(
+      join(root, "update-check.json"),
+      JSON.stringify({
+        schemaVersion: 1,
+        checkedAt: new Date().toISOString(),
+        currentVersion: "0.3.5",
+        latestVersion: "0.3.6",
+        updateAvailable: true,
+      })
+    );
+    const r = run(["version"], {
+      ALPHAFOX_CONFIG_DIR: root,
+      ALPHAFOX_SKIP_UPDATE_CHECK: "0",
+    });
+    assert.equal(r.status, 0, r.stderr);
+    const json = JSON.parse(r.stdout);
+    assert.equal(json.ok, true);
+    assert.equal(json.data.name, "alphafox");
+    assert.equal(r.stderr.includes("update available"), false);
     rmSync(root, { recursive: true, force: true });
   });
 

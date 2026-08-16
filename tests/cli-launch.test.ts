@@ -29,6 +29,28 @@ describe("cli launch", () => {
     assert.equal(r.stdout.toLowerCase().includes("bearer "), false);
   });
 
+  it("install --help describes the wizard and skills path", () => {
+    const r = run(["install", "--help"]);
+    assert.equal(r.status, 0, r.stderr);
+    const json = JSON.parse(r.stdout);
+    assert.equal(json.ok, true);
+    assert.equal(json.data.name, "install");
+    assert.ok(
+      json.data.usage.some((line: string) =>
+        line.includes("npx @alphafox/cli@latest install")
+      )
+    );
+    assert.match(String(json.data.description), /skills add/i);
+  });
+
+  it("install rejects unknown flags without contacting npm", () => {
+    const r = run(["install", "--please-break"]);
+    assert.equal(r.status, 64, r.stderr + r.stdout);
+    const err = JSON.parse(r.stderr);
+    assert.equal(err.ok, false);
+    assert.equal(err.error.subtype, "unknown_install_flag");
+  });
+
   it("doctor exits 0 and reports profile", () => {
     const r = run(["doctor"]);
     assert.equal(r.status, 0, r.stderr);

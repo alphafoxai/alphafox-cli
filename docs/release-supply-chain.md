@@ -57,6 +57,13 @@ OIDC-provenance release.
 - Skills ship **inside** the same npm tarball under `skills/` (co-versioned).
 - Skills major aligns with CLI major. There is no separate Skills registry
   in v1 and no silent download of a different Skills version at runtime.
+- `npm install -g @alphafox/cli` places `skills/` next to the binary only.
+  Agents do not load that directory. `alphafox install` (and the Agent
+  install guide) copy those files into Agent skill dirs via
+  `npx skills add`:
+  1. the globally installed package path (co-versioned with the CLI)
+  2. the running package / checkout `skills/` tree
+  3. GitHub `alphafoxai/alphafox-cli` as a last-resort fallback
 - `contractVersion` on the CLI profile MUST match the Public API
   `contractVersion` (or the documented compatible range). Mismatch → fail
   closed; do not download an older contract or degrade quietly.

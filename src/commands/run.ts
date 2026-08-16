@@ -56,6 +56,12 @@ import {
 } from "../version";
 import { cmdEngineBacktest } from "../engine-backtest/run-command";
 import { validateCatalogWriteBody } from "../catalog/validate-body";
+import { isInstallError } from "../install/types";
+import {
+  installHelpData,
+  parseInstallArgs,
+  runInstallWizard,
+} from "../install/wizard";
 import {
   isRequestBodyError,
   parseRequestBodyFlags,
@@ -136,6 +142,7 @@ export async function runCli(
         usage: [
           "alphafox version",
           "alphafox doctor",
+          "alphafox install [--no-auth|--dry-run]",
           "alphafox auth login [--no-wait|--device-code CODE|--browser]",
           "alphafox auth status [--verify]",
           "alphafox auth logout",
@@ -154,12 +161,14 @@ export async function runCli(
   }
 
   try {
-    if (cmd !== "version") {
+    if (cmd !== "version" && cmd !== "install") {
       assertCatalogCompatible();
     }
     switch (cmd) {
       case "version":
         return cmdVersion(flags);
+      case "install":
+        return await cmdInstall(args, flags, env);
       case "doctor":
         return cmdDoctor(flags, env);
       case "whoami":
@@ -226,6 +235,53 @@ function assertCatalogCompatible(): void {
     message: result.message,
     hint: "Upgrade or pin @alphafox/cli to the catalog minCliVersion/maxCliVersion range.",
   });
+}
+
+async function cmdInstall(
+  args: string[],
+  flags: GlobalFlags,
+  env: NodeJS.ProcessEnv
+): Promise<number> {
+  const parsed = parseInstallArgs(args);
+  if (parsed.unknown.length > 0) {
+    writeError({
+      type: "usage",
+      subtype: "unknown_install_flag",
+      message: `Unknown install flag: ${parsed.unknown.join(" ")}`,
+      hint: "Usage: alphafox install [--no-auth] [--dry-run]",
+    });
+  }
+  if (parsed.help) {
+    writeSuccess(installHelpData(), { format: flags.format, jq: flags.jq });
+    return 0;
+  }
+  try {
+    const data = await runInstallWizard(
+      {
+        format: flags.format,
+        yes: flags.yes,
+        dryRun: flags.dryRun,
+        noInput: flags.noInput,
+        jq: flags.jq,
+        noAuth: parsed.noAuth,
+        help: false,
+      },
+      env
+    );
+    writeSuccess(data, { format: flags.format, jq: flags.jq });
+    return data.auth.action === "failed" ? 1 : 0;
+  } catch (err) {
+    if (isInstallError(err)) {
+      writeError({
+        type: err.type,
+        subtype: err.subtype,
+        message: err.message,
+        hint: err.hint,
+        details: err.details,
+      });
+    }
+    throw err;
+  }
 }
 
 function cmdVersion(flags: GlobalFlags): number {

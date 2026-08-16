@@ -1,6 +1,6 @@
 # Triage Labels
 
-The skills speak in terms of five canonical triage roles. On this repo's tracker (Feishu Tasks) a role is not a label but a **section** of the Alphafox-Issues tasklist — a task sits in exactly one, so the state machine can't be violated. `issue-tracker.md` holds the section GUIDs and the command that moves a task between them.
+The skills speak in terms of five canonical triage roles. On this repo's tracker (Feishu Tasks) a role is not a label but a **section** of the AlphaFox-Issues tasklist — a task sits in exactly one, so the state machine can't be violated. `issue-tracker.md` holds the section GUIDs and the command that moves a task between them.
 
 | Label in mattpocock/skills | Section in our tracker | Meaning                                  |
 | -------------------------- | ---------------------- | ---------------------------------------- |

@@ -1,10 +1,10 @@
 ---
 name: alphafox
-description: Alphafox CLI entry router. Use for any Alphafox request — install, login, whoami, 回测, engine backtest, strategy chat, traders, ticker/标的 resolve, market data, exchange connectors, wallet, subscriptions, notifications, or admin. Start here, then open the routed domain skill. Do not guess alphafox-engine-backtest vs alphafox-strategy from memory.
+description: AlphaFox CLI entry router. Use for any AlphaFox request — install, login, whoami, 回测, engine backtest, strategy chat, traders, ticker/标的 resolve, market data, exchange connectors, wallet, subscriptions, notifications, or admin. Start here, then open the routed domain skill. Do not guess alphafox-engine-backtest vs alphafox-strategy from memory.
 version: 0.3.4
 ---
 
-# Alphafox
+# AlphaFox
 
 This skill only routes. After choosing a row, **read that skill's `SKILL.md` and follow it**. Do not improvise domain procedures from this file.
 

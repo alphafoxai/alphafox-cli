@@ -1,4 +1,4 @@
-# Publish the Alphafox CLI homepage to GitHub Pages.
+# Publish the AlphaFox CLI homepage to GitHub Pages.
 name: pages
 
 on:

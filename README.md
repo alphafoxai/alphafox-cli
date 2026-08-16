@@ -1,6 +1,6 @@
 # alphafox-cli
 
-Alphafox CLI (`alphafox`) — Agent and human entry for the versioned Public Application API on alphafox-web.
+AlphaFox CLI (`alphafox`) — Agent and human entry for the versioned Public Application API on alphafox-web.
 
 Homepage: https://alphafoxai.github.io/alphafox-cli/
 
@@ -25,11 +25,11 @@ load.
 Copy and send this to Cursor / Claude Code / Codex / Trae:
 
 ```
-帮我安装 Alphafox CLI：https://github.com/alphafoxai/alphafox-cli/blob/main/docs/alphafox-cli-installation-guide.md
+帮我安装 AlphaFox CLI：https://github.com/alphafoxai/alphafox-cli/blob/main/docs/alphafox-cli-installation-guide.md
 ```
 
 ```
-Help me install Alphafox CLI: https://github.com/alphafoxai/alphafox-cli/blob/main/docs/alphafox-cli-installation-guide.md
+Help me install AlphaFox CLI: https://github.com/alphafoxai/alphafox-cli/blob/main/docs/alphafox-cli-installation-guide.md
 ```
 
 The Agent follows that guide (`npm install -g`, `npx skills add`, login,

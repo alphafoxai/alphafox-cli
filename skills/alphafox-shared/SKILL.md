@@ -1,10 +1,10 @@
 ---
 name: alphafox-shared
-description: Shared Alphafox CLI rules for Agents — auth, profiles, envelopes, risk gates, and public operationIds only.
+description: Shared AlphaFox CLI rules for Agents — auth, profiles, envelopes, risk gates, and public operationIds only.
 version: 0.3.4
 ---
 
-# Alphafox shared Agent contract
+# AlphaFox shared Agent contract
 
 User-facing entry is skill `alphafox` (router). This file is the shared CLI contract every domain skill assumes.
 

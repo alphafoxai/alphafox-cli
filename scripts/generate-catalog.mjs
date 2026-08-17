@@ -4,8 +4,12 @@
  * Does not invent a second registry: listCliOperations, buildCapabilityManifest,
  * buildOperationSchemaDocument, and getCompatibilityRange are the only inputs.
  *
- * Contracts root resolution (same sibling pattern as build-mvp-web-bundle.mjs):
- *   ALPHAFOX_CONTRACTS_ROOT, else ../alphafox-contracts, else node_modules.
+ * Contracts root resolution:
+ *   ALPHAFOX_CONTRACTS_ROOT, else the candidate with the largest Operation
+ *   Registry (sibling ../alphafox-contracts, ../alphafox-web node_modules,
+ *   CLI node_modules). Sibling createTrader is overlaid when it is already
+ *   Engine-shaped (strategyDefinitionId + config) so a stale sibling registry
+ *   does not drop newer ops such as engine_backtest sweeps.
  *
  * Usage:
  *   node scripts/generate-catalog.mjs           # write generated JSON
@@ -16,6 +20,7 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
+  realpathSync,
   writeFileSync,
 } from "node:fs";
 import { createRequire } from "node:module";
@@ -30,31 +35,65 @@ const schemasPath = join(outDir, "schemas.json");
 const checkOnly = process.argv.includes("--check");
 const require = createRequire(import.meta.url);
 
-function resolveContractsRoot() {
+function existingPackageRoot(path) {
+  if (!existsSync(join(path, "package.json"))) {
+    return null;
+  }
+  return realpathSync(path);
+}
+
+function siblingContractsRoot() {
+  return existingPackageRoot(join(cliRoot, "..", "alphafox-contracts"));
+}
+
+function listContractsCandidates() {
+  const found = [];
+  const seen = new Set();
+  const add = (path) => {
+    const resolved = existingPackageRoot(path);
+    if (!resolved || seen.has(resolved)) {
+      return;
+    }
+    seen.add(resolved);
+    found.push(resolved);
+  };
+
   if (process.env.ALPHAFOX_CONTRACTS_ROOT) {
-    return process.env.ALPHAFOX_CONTRACTS_ROOT;
+    add(process.env.ALPHAFOX_CONTRACTS_ROOT);
   }
-  const sibling = join(cliRoot, "..", "alphafox-contracts");
-  if (existsSync(join(sibling, "package.json"))) {
-    return sibling;
-  }
+  add(join(cliRoot, "..", "alphafox-contracts"));
+  add(
+    join(
+      cliRoot,
+      "..",
+      "alphafox-web",
+      "node_modules",
+      "@alphafoxai",
+      "contracts"
+    )
+  );
+  add(
+    join(cliRoot, "..", "alphafox-web", "node_modules", "@alphafox", "contracts")
+  );
   try {
-    return dirname(require.resolve("@alphafoxai/contracts/package.json"));
+    add(dirname(require.resolve("@alphafoxai/contracts/package.json")));
   } catch {
-    throw new Error(
-      "Cannot find alphafox-contracts. Set ALPHAFOX_CONTRACTS_ROOT or clone it as ../alphafox-contracts (same layout as alphafox-web for MVP tests)."
-    );
+    // CLI does not depend on the contracts package at runtime.
   }
+  return found;
 }
 
 function loadPublicApi(contractsRoot) {
+  const requireFromContracts = createRequire(
+    join(contractsRoot, "package.json")
+  );
   const candidates = [
     join(contractsRoot, "dist/public-api/index.js"),
     join(contractsRoot, "dist/public-api.js"),
   ];
   for (const file of candidates) {
     if (existsSync(file)) {
-      return require(file);
+      return requireFromContracts(file);
     }
   }
   throw new Error(
@@ -62,22 +101,120 @@ function loadPublicApi(contractsRoot) {
   );
 }
 
-function contractsSha(contractsRoot) {
+function registryOperationCount(contractsRoot) {
   try {
-    return execFileSync("git", ["rev-parse", "HEAD"], {
-      cwd: contractsRoot,
-      encoding: "utf8",
-    }).trim();
+    return loadPublicApi(contractsRoot).OPERATION_REGISTRY.operations.length;
+  } catch {
+    return -1;
+  }
+}
+
+function resolveContractsRoot() {
+  const candidates = listContractsCandidates();
+  if (candidates.length === 0) {
+    throw new Error(
+      "Cannot find alphafox-contracts. Set ALPHAFOX_CONTRACTS_ROOT or clone it as ../alphafox-contracts (same layout as alphafox-web for MVP tests)."
+    );
+  }
+  let best = candidates[0];
+  let bestCount = registryOperationCount(best);
+  for (const candidate of candidates.slice(1)) {
+    const count = registryOperationCount(candidate);
+    if (count > bestCount) {
+      best = candidate;
+      bestCount = count;
+    }
+  }
+  if (bestCount < 0) {
+    throw new Error(
+      `alphafox-contracts public-api build missing under ${best}. Run pnpm build there first.`
+    );
+  }
+  return best;
+}
+
+function contractsSha(contractsRoot) {
+  if (existsSync(join(contractsRoot, ".git"))) {
+    try {
+      return execFileSync("git", ["rev-parse", "HEAD"], {
+        cwd: contractsRoot,
+        encoding: "utf8",
+      }).trim();
+    } catch {
+      // Published packages are not git checkouts.
+    }
+  }
+  try {
+    const pkg = JSON.parse(
+      readFileSync(join(contractsRoot, "package.json"), "utf8")
+    );
+    const match = String(pkg.version ?? "").match(/git\.([0-9a-f]+)/i);
+    return match ? match[1] : "";
   } catch {
     return "";
   }
+}
+
+function isEngineCreateTraderDocument(document) {
+  const properties = document?.request?.body?.properties;
+  return Boolean(
+    properties?.strategyDefinitionId &&
+      properties?.config &&
+      properties?.exchangeConnectorId &&
+      !properties?.chatId &&
+      !properties?.strategyId
+  );
+}
+
+function overlayEngineCreateTrader(schemas, primaryRoot) {
+  const sibling = siblingContractsRoot();
+  if (!sibling || sibling === primaryRoot) {
+    return schemas;
+  }
+  let siblingApi;
+  try {
+    siblingApi = loadPublicApi(sibling);
+  } catch {
+    return schemas;
+  }
+  const op = siblingApi.findOperationById(
+    "trading.traders.create",
+    siblingApi.OPERATION_REGISTRY
+  );
+  if (!op) {
+    return schemas;
+  }
+  const document = siblingApi.buildOperationSchemaDocument(
+    op,
+    siblingApi.OPERATION_REGISTRY
+  );
+  if (!isEngineCreateTraderDocument(document)) {
+    return schemas;
+  }
+  return { ...schemas, "trading.traders.create": document };
 }
 
 function stableStringify(value) {
   return `${JSON.stringify(value, null, 2)}\n`;
 }
 
-function buildArtifacts(publicApi, sourceMeta) {
+/**
+ * Keep in sync with src/catalog/omit.ts.
+ * Chat product and web /api/v1/backtests are not a CLI surface.
+ * Match backtests / backtests.* only — never engine_backtest.*.
+ */
+function isOmittedCatalogOperation(operationId) {
+  return (
+    operationId === "backtests" ||
+    operationId.startsWith("backtests.") ||
+    operationId === "chats" ||
+    operationId.startsWith("chats.") ||
+    operationId === "chat_summaries" ||
+    operationId.startsWith("chat_summaries.")
+  );
+}
+
+function buildArtifacts(publicApi, sourceMeta, contractsRoot) {
   const {
     OPERATION_REGISTRY,
     buildCapabilityManifest,
@@ -89,39 +226,44 @@ function buildArtifacts(publicApi, sourceMeta) {
 
   const compatibility = getCompatibilityRange(OPERATION_REGISTRY);
   const manifest = buildCapabilityManifest(OPERATION_REGISTRY);
-  const cliOps = listCliOperations(OPERATION_REGISTRY);
+  const cliOps = listCliOperations(OPERATION_REGISTRY).filter(
+    (op) => !isOmittedCatalogOperation(op.operationId)
+  );
 
-  const operations = manifest.operations.map((row) => {
-    const full = findOperationById(row.operationId, OPERATION_REGISTRY);
-    return {
-      operationId: row.operationId,
-      method: row.method,
-      path: row.path,
-      role: row.role,
-      risk: row.risk,
-      auth: row.auth,
-      scopes: row.scopes,
-      stream: row.stream,
-      file: row.file,
-      pagination: row.pagination,
-      idempotent: row.idempotent,
-      mvp: row.mvp,
-      catchAll: Boolean(full?.catchAll),
-      contractStatus: row.contractStatus,
-      requestBodySchema: row.requestBodySchema ?? null,
-      querySchema: row.querySchema ?? null,
-      responseSchema: row.responseSchema,
-      errorSchema: row.errorSchema,
-    };
-  });
+  const operations = manifest.operations
+    .filter((row) => !isOmittedCatalogOperation(row.operationId))
+    .map((row) => {
+      const full = findOperationById(row.operationId, OPERATION_REGISTRY);
+      return {
+        operationId: row.operationId,
+        method: row.method,
+        path: row.path,
+        role: row.role,
+        risk: row.risk,
+        auth: row.auth,
+        scopes: row.scopes,
+        stream: row.stream,
+        file: row.file,
+        pagination: row.pagination,
+        idempotent: row.idempotent,
+        mvp: row.mvp,
+        catchAll: Boolean(full?.catchAll),
+        contractStatus: row.contractStatus,
+        requestBodySchema: row.requestBodySchema ?? null,
+        querySchema: row.querySchema ?? null,
+        responseSchema: row.responseSchema,
+        errorSchema: row.errorSchema,
+      };
+    });
 
-  const schemas = {};
+  let schemas = {};
   for (const op of cliOps) {
     schemas[op.operationId] = buildOperationSchemaDocument(
       op,
       OPERATION_REGISTRY
     );
   }
+  schemas = overlayEngineCreateTrader(schemas, contractsRoot);
 
   const registry = {
     source: {
@@ -150,9 +292,13 @@ function readIfExists(path) {
 
 const contractsRoot = resolveContractsRoot();
 const publicApi = loadPublicApi(contractsRoot);
-const artifacts = buildArtifacts(publicApi, {
-  contractsSha: contractsSha(contractsRoot),
-});
+const artifacts = buildArtifacts(
+  publicApi,
+  {
+    contractsSha: contractsSha(contractsRoot),
+  },
+  contractsRoot
+);
 
 if (checkOnly) {
   const registryOnDisk = readIfExists(registryPath);

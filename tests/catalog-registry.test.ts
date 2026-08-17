@@ -31,11 +31,9 @@ describe("generated operation catalog", () => {
       registryJson as { operations: readonly { operationId: string }[] }
     ).operations.map((op) => op.operationId);
     const omittedIds = generatedIds.filter(isOmittedCatalogOperation);
+    assert.equal(omittedIds.length, 0);
     assert.equal(generatedIds.length, CATALOG_SOURCE.cliOperations);
-    assert.equal(
-      CATALOG_OPERATIONS.length + omittedIds.length,
-      CATALOG_SOURCE.cliOperations
-    );
+    assert.equal(CATALOG_OPERATIONS.length, CATALOG_SOURCE.cliOperations);
     const ids = CATALOG_OPERATIONS.map((op) => op.operationId);
     assert.equal(new Set(ids).size, ids.length);
     assert.ok(findCatalogOperation("me.whoami"));
@@ -113,12 +111,16 @@ describe("generated operation catalog", () => {
     const generatedIds = (
       registryJson as { operations: readonly { operationId: string }[] }
     ).operations.map((op) => op.operationId);
-    const omittedIds = generatedIds.filter(isOmittedCatalogOperation);
-    assert.ok(omittedIds.includes("backtests.create"));
-    assert.ok(omittedIds.includes("chats.create"));
-    assert.ok(omittedIds.includes("chats.byId.get"));
-    assert.ok(omittedIds.includes("chat_summaries.list"));
-    for (const id of omittedIds) {
+    assert.equal(generatedIds.includes("backtests.create"), false);
+    assert.equal(generatedIds.includes("chats.create"), false);
+    assert.equal(generatedIds.includes("chats.byId.get"), false);
+    assert.equal(generatedIds.includes("chat_summaries.list"), false);
+    for (const id of [
+      "backtests.create",
+      "chats.create",
+      "chats.byId.get",
+      "chat_summaries.list",
+    ]) {
       assert.equal(findCatalogOperation(id), undefined, id);
       assert.equal(getOperationSchemaDocument(id), undefined, id);
     }
@@ -166,6 +168,21 @@ describe("generated operation catalog", () => {
     }
     const create = getOperationSchemaDocument("trading.traders.create");
     assert.ok(create?.request.body);
+    const createBody = create.request.body as {
+      required?: string[];
+      properties?: Record<string, unknown>;
+    };
+    assert.ok(createBody.properties?.strategyDefinitionId);
+    assert.ok(createBody.properties?.config);
+    assert.ok(createBody.properties?.exchangeConnectorId);
+    assert.equal(createBody.properties?.chatId, undefined);
+    assert.equal(createBody.properties?.strategyId, undefined);
+    assert.ok(
+      Array.isArray(createBody.required) &&
+        createBody.required.includes("strategyDefinitionId") &&
+        createBody.required.includes("config") &&
+        createBody.required.includes("exchangeConnectorId")
+    );
     const start = getOperationSchemaDocument("trading.traders.byId.start");
     assert.deepEqual(start?.request.pathParamNames, ["traderId"]);
   });

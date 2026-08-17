@@ -10,13 +10,15 @@ Staging CLI issuer: `https://staging.alphafox.app`. Test login (staging-only, ga
 2. Device Flow split (`--no-wait` + `--device-code`)
 3. `whoami` / `auth status --verify`
 4. Readonly: strategy definitions, connectors, traders
-5. Write: create chat with idempotency
-6. Backtest create → watch stream → cancel
+5. ~~Write: create chat with idempotency~~ **historical** — chat is not a CLI surface; do not use `chats.create` as the trader-create path
+6. ~~Backtest create → watch stream → cancel~~ **historical** — web `/api/v1/backtests` is not a CLI surface; use `engine-backtest`
 7. High-risk without `--yes` → exit 10
 8. Logout / revoke
 9. Cross-env token rejection (prod token on staging)
 
-## Evidence (2026-08-13) — vertical slice pass
+## Evidence (2026-08-13) — vertical slice pass (historical chat / web-backtest slice)
+
+The chat and `POST /api/v1/backtests` steps below are a **historical** facade record. They are not the CLI trader-create path. Current create is Engine `trading.traders.create` (`strategyDefinitionId` + `config`). Do not treat this section as a playbook.
 
 Anonymous `GET https://staging.alphafox.app/api/v1/meta` → **HTTP 200**, `environment=staging`, `contractVersion=2026-08-13`, `commitSha=65d1f816007adc7acc09db5e86671931737e0379`, `x-request-id=66511bcf-dda9-4974-9378-3aacd8d938ff`. No 302 to `vercel.com/sso-api`. Vercel Authentication is disabled for the whole `alphafox-web` project (Preview `*.vercel.app` is also public; accepted).
 
@@ -66,7 +68,7 @@ Reused staging Device Flow session `userId=019f3073-307f-76e9-adf1-0203af9ab22b`
 - **Backtest vertical slice:** cannot `create → stream → cancel` until a chat has an integer `strategyId`, and until the facade body matches contracts (`backtestSettings`) or the catalog is updated to `{chatId, strategyId}`.
 - Parent Feishu task and t101364 (production publish / npm `latest` / production OAuth) stay **todo**. Do not merge web PR 448 to production `main` from this evidence.
 
-## Evidence (2026-08-13) — gapfix retest (idempotency + backtests.create)
+## Evidence (2026-08-13) — gapfix retest (historical; idempotency + backtests.create)
 
 Anonymous `GET https://staging.alphafox.app/api/v1/meta` → **HTTP 200**, `environment=staging`, `contractVersion=2026-08-13`, `commitSha=fba21ef4b2c3909c51a5a19e2d2a45b30d1d598c`, `x-request-id=8702a21b-a749-4007-82eb-76ca1dd0caaf`. No SSO redirect. Device Flow `test@local.com`: approve `requestId=77293035-ebfd-4b03-b0e1-0779dce81fdd`, token `requestId=9dcc28c1-c1cc-49fc-9435-687dfdb591c2`, `whoami` `userId=019f3073-307f-76e9-adf1-0203af9ab22b` `requestId=1473f107-d742-42eb-99e7-b60c6b583928`. CLI local `92c8610250b30e7881f79a2fde60b00fe50b4628`, catalog `contractsSha=d1f184e3d72581f155497978880d9ab3029ff858`. Staging llm-gateway image `0a10d8e3a1304b04eff2f21c503922a5b7c11491` (workflow `31683345740` failed after the container was healthy: `/opt/alphafox/images/alphafox-llm-gateway.env` permission denied). Do not merge web PR 448 to production `main`.
 

@@ -126,10 +126,6 @@ const bffStubs = [
   ["trading/traders", ["GET", "POST"]],
   ["trading/strategy-definitions", ["GET"]],
   ["exchange-connectors", ["GET", "POST"]],
-  ["chats", ["GET", "POST"]],
-  ["backtests", ["POST"]],
-  ["backtests/[backtestId]", ["GET"]],
-  ["backtests/[backtestId]/cancel", ["POST"]],
 ];
 for (const [rel, names] of bffStubs) {
   writeStubBffRoute(rel, names);
@@ -140,10 +136,6 @@ const v1Paths = [
   "trading/strategy-definitions",
   "trading/traders",
   "exchange-connectors",
-  "chats",
-  "backtests",
-  "backtests/[backtestId]",
-  "backtests/[backtestId]/cancel",
 ];
 for (const p of v1Paths) {
   const src = join(webRoot, "app/api/v1", p, "route.ts");
@@ -154,32 +146,6 @@ for (const p of v1Paths) {
   const dest = join(compileRoot, "app/api/v1", p, "route.ts");
   copyFile(src, dest);
 }
-
-// Product backtest create pulls BFF/control-plane; MVP tests only exercise
-// the isPublicApiMvpMode() branch, so keep a thin wrapper in the bundle.
-writeFileSync(
-  join(compileRoot, "app/api/v1/backtests/route.ts"),
-  `export const runtime = "nodejs";
-
-import { isPublicApiMvpMode } from "@/server/public-api/mode";
-import { handleBacktestCreate } from "@/server/public-api/mvp-handlers";
-import { rejectIfPublicApiRateLimited } from "@/server/public-api/rate-limit";
-
-export async function POST(request: Request): Promise<Response> {
-  const limited = await rejectIfPublicApiRateLimited(request);
-  if (limited) {
-    return limited;
-  }
-  if (isPublicApiMvpMode()) {
-    return handleBacktestCreate(request);
-  }
-  return new Response(
-    JSON.stringify({ error: "bff_not_in_mvp_bundle" }),
-    { status: 501, headers: { "content-type": "application/json" } }
-  );
-}
-`
-);
 
 writeFileSync(
   join(compileRoot, "lib/auth/client.ts"),

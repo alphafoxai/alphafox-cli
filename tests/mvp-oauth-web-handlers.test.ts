@@ -1,7 +1,8 @@
 /**
- * Integration: device approve → token → whoami → lists → chat → backtest
+ * Integration: device approve → token → whoami → lists
  * + authorization_code PKCE, driving compiled copies of shipped web handlers
  * (built by scripts/build-mvp-web-bundle.mjs from alphafox-web sources).
+ * Chat / web backtests are not a CLI surface.
  */
 import assert from "node:assert/strict";
 import { createHash, randomBytes } from "node:crypto";
@@ -39,7 +40,6 @@ describe("shipped web OAuth + MVP handlers", () => {
     const deviceStore = req("lib/auth/oauth/device-store.js");
     const tokenModel = req("lib/auth/oauth/token-model.js");
     const authCodeStore = req("lib/auth/oauth/authorization-code-store.js");
-    const mvp = req("server/public-api/mvp-handlers.js");
     const { POST: deviceCodePost } = req(
       "app/api/auth/oauth/device/code/route.js"
     );
@@ -57,22 +57,12 @@ describe("shipped web OAuth + MVP handlers", () => {
       "app/api/v1/exchange-connectors/route.js"
     );
     const { GET: tradersGet } = req("app/api/v1/trading/traders/route.js");
-    const { POST: chatsPost } = req("app/api/v1/chats/route.js");
-    const { POST: backtestsPost } = req("app/api/v1/backtests/route.js");
-    const { GET: backtestGet } = req(
-      "app/api/v1/backtests/[backtestId]/route.js"
-    );
-    const { POST: backtestCancel } = req(
-      "app/api/v1/backtests/[backtestId]/cancel/route.js"
-    );
     const { getAuthenticatedRequestContext } = req(
       "lib/auth/request-guard.js"
     );
 
     deviceStore.clearDeviceCodeStoreForTesting();
     authCodeStore.clearAuthorizationCodeStoreForTesting();
-    mvp.clearMvpChatStoreForTesting();
-    mvp.clearMvpBacktestStoreForTesting();
     (
       globalThis as { __alphafoxOAuthTokenStore?: unknown }
     ).__alphafoxOAuthTokenStore = tokenModel.createMemoryTokenStore();
@@ -174,70 +164,6 @@ describe("shipped web OAuth + MVP handlers", () => {
       assert.ok(Array.isArray(body.items));
       assert.equal(body.meta.userId, USER_ID);
     }
-
-    const chatRes = await chatsPost(
-      new Request("http://127.0.0.1:3000/api/v1/chats", {
-        method: "POST",
-        headers: bearerHeaders(tokens.access_token, {
-          "idempotency-key": "idem-1",
-        }),
-        body: JSON.stringify({ strategyGenerationMode: "simple" }),
-      })
-    );
-    assert.equal(chatRes.status, 201);
-    const chat = (await chatRes.json()) as {
-      chat: { id: string; userId: string };
-    };
-    assert.equal(chat.chat.userId, USER_ID);
-
-    const chatReplay = await chatsPost(
-      new Request("http://127.0.0.1:3000/api/v1/chats", {
-        method: "POST",
-        headers: bearerHeaders(tokens.access_token, {
-          "idempotency-key": "idem-1",
-        }),
-        body: JSON.stringify({ strategyGenerationMode: "simple" }),
-      })
-    );
-    assert.equal(chatReplay.status, 200);
-    assert.equal(
-      ((await chatReplay.json()) as { replayed: boolean }).replayed,
-      true
-    );
-
-    const btCreate = await backtestsPost(
-      new Request("http://127.0.0.1:3000/api/v1/backtests", {
-        method: "POST",
-        headers: bearerHeaders(tokens.access_token),
-        body: "{}",
-      })
-    );
-    assert.equal(btCreate.status, 201);
-    const btId = ((await btCreate.json()) as { backtest: { id: string } })
-      .backtest.id;
-
-    const btGet = await backtestGet(
-      new Request("http://127.0.0.1:3000/api/v1/backtests/x", {
-        headers: bearerHeaders(tokens.access_token),
-      }),
-      { params: Promise.resolve({ backtestId: btId }) }
-    );
-    assert.equal(btGet.status, 200);
-
-    const btCancel = await backtestCancel(
-      new Request("http://127.0.0.1:3000/api/v1/backtests/x/cancel", {
-        method: "POST",
-        headers: bearerHeaders(tokens.access_token),
-        body: "{}",
-      }),
-      { params: Promise.resolve({ backtestId: btId }) }
-    );
-    assert.equal(btCancel.status, 200);
-    assert.equal(
-      ((await btCancel.json()) as { backtest: { status: string } }).backtest
-        .status,
-      "cancelled"
-    );
 
     const unauth = await meGet(new Request("http://127.0.0.1:3000/api/v1/me"));
     assert.equal(unauth.status, 401);

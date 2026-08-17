@@ -44,6 +44,40 @@ describe("catalog write-body validation", () => {
     }
   });
 
+  it("accepts Engine create body and rejects chatId / strategyId", () => {
+    const engine = validateCatalogWriteBody({
+      method: "POST",
+      operationId: "trading.traders.create",
+      body: {
+        name: "跌了就追",
+        strategyDefinitionId: "momentum_dump",
+        exchangeConnectorId: "01a00af5-db8d-761a-86f4-9a283914e9ae",
+        configSchemaVersion: 1,
+        config: { leverage: 10 },
+      },
+    });
+    assert.equal(engine.ok, true);
+
+    const chatLegacy = validateCatalogWriteBody({
+      method: "POST",
+      operationId: "trading.traders.create",
+      body: {
+        chatId: "chat-1",
+        strategyId: 1,
+        name: "跌了就追",
+        mode: "paper",
+        exchangeConnectId: "01a00af5-db8d-761a-86f4-9a283914e9ae",
+        runtimeSettings: {},
+        strategyParamValues: {},
+        riskSettings: { enabled: false },
+      },
+    });
+    assert.equal(chatLegacy.ok, false);
+    if (!chatLegacy.ok) {
+      assert.equal(chatLegacy.error.subtype, "body_schema");
+    }
+  });
+
   it("rejects invented enum values", () => {
     const result = validateCatalogWriteBody({
       method: "POST",

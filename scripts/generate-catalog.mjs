@@ -136,7 +136,7 @@ function resolveContractsRoot() {
 function contractsSha(contractsRoot) {
   if (existsSync(join(contractsRoot, ".git"))) {
     try {
-      return execFileSync("git", ["rev-parse", "HEAD"], {
+      return execFileSync("git", ["rev-parse", "--short=8", "HEAD"], {
         cwd: contractsRoot,
         encoding: "utf8",
       }).trim();

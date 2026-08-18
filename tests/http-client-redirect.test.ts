@@ -12,7 +12,7 @@ const profile: ProfileConfig = {
   clientId: "alphafox-cli-prod",
 };
 
-test("apiRequest re-attaches Authorization across apex→www redirects", async () => {
+test("apiRequest never hops cross-origin redirects with bearer auth", async () => {
   const seen: Array<{ url: string; authorization: string | null }> = [];
   const fetchImpl: typeof fetch = async (input, init) => {
     const url = String(input);
@@ -21,24 +21,10 @@ test("apiRequest re-attaches Authorization across apex→www redirects", async (
       url,
       authorization: headers.get("authorization"),
     });
-    if (url === "https://alphafox.app/api/v1/me") {
-      return new Response(null, {
-        status: 308,
-        headers: { location: "https://www.alphafox.app/api/v1/me" },
-      });
-    }
-    if (url === "https://www.alphafox.app/api/v1/me") {
-      assert.equal(
-        headers.get("authorization"),
-        "Bearer test-access-token",
-        "Authorization must survive apex→www redirect"
-      );
-      return new Response(
-        JSON.stringify({ userId: "user-1", sessionId: "oauth-access:user-1" }),
-        { status: 200, headers: { "content-type": "application/json" } }
-      );
-    }
-    return new Response("not found", { status: 404 });
+    return new Response(null, {
+      status: 308,
+      headers: { location: "https://www.alphafox.app/api/v1/me" },
+    });
   };
 
   const env = {
@@ -50,22 +36,66 @@ test("apiRequest re-attaches Authorization across apex→www redirects", async (
   };
 
   const res = await apiRequest(
-    {
-      method: "GET",
-      path: "/api/v1/me",
-      profile,
-    },
+    { method: "GET", path: "/api/v1/me", profile },
     env,
     fetchImpl
   );
 
-  assert.equal(res.status, 200);
-  assert.equal((res.json as { userId: string }).userId, "user-1");
-  assert.equal(seen.length, 2);
+  assert.equal(res.status, 308);
+  assert.equal(seen.length, 1);
   assert.equal(seen[0]?.url, "https://alphafox.app/api/v1/me");
-  assert.equal(seen[1]?.url, "https://www.alphafox.app/api/v1/me");
   assert.equal(seen[0]?.authorization, "Bearer test-access-token");
-  assert.equal(seen[1]?.authorization, "Bearer test-access-token");
+});
+
+test("mutation redirects are outcome_unknown after one fetch", async () => {
+  for (const status of [301, 302, 303, 307, 308]) {
+    let calls = 0;
+    const res = await apiRequest(
+      {
+        method: "POST",
+        path: "/api/v1/engine-backtest/experiments",
+        body: { name: "x" },
+        profile,
+        skipAuth: true,
+        idempotencyKey: `key-${status}`,
+      },
+      {},
+      async () => {
+        calls += 1;
+        return new Response(null, {
+          status,
+          headers: { location: "https://alphafox.app/other" },
+        });
+      }
+    );
+    assert.equal(calls, 1);
+    assert.equal(res.status, status);
+    assert.equal(res.outcome, "outcome_unknown");
+  }
+});
+
+test("mutation transport errors are outcome_unknown after one fetch", async () => {
+  let calls = 0;
+  await assert.rejects(
+    () =>
+      apiRequest(
+        {
+          method: "POST",
+          path: "/api/v1/engine-backtest/experiments",
+          body: { name: "x" },
+          profile,
+          skipAuth: true,
+          idempotencyKey: "transport-key",
+        },
+        {},
+        async () => {
+          calls += 1;
+          throw new Error("socket closed");
+        }
+      ),
+    (err: Error & { subtype?: string }) => err.subtype === "outcome_unknown"
+  );
+  assert.equal(calls, 1);
 });
 
 test("apiRequest preserves query string on the request URL", async () => {

@@ -216,3 +216,111 @@ test("apiRequest retries once after 401 via refresh_token", async () => {
     clearRefreshInflightForTests();
   }
 });
+
+test("mutation 401 does not replay without keyed catalog idempotency", async () => {
+  clearRefreshInflightForTests();
+  const env = fileKeychainEnv();
+  try {
+    saveTokens(
+      profile.name,
+      {
+        accessToken: "stale-access",
+        refreshToken: "live-refresh",
+        expiresAt: Date.now() + 10 * 60_000,
+        environment: "production",
+        issuer: profile.issuer,
+        audience: profile.audience,
+        clientId: profile.clientId,
+        scopes: ["openid", "profile", "offline_access"],
+      },
+      env
+    );
+    let calls = 0;
+    const res = await apiRequest(
+      {
+        method: "POST",
+        path: "/api/v1/engine-backtest/experiments",
+        body: { name: "x" },
+        profile,
+      },
+      env,
+      async () => {
+        calls += 1;
+        return new Response(JSON.stringify({ code: "unauthorized" }), {
+          status: 401,
+          headers: { "content-type": "application/json" },
+        });
+      }
+    );
+    assert.equal(res.status, 401);
+    assert.equal(calls, 1);
+  } finally {
+    rmSync(env.ALPHAFOX_KEYCHAIN_DIR!, { recursive: true, force: true });
+    clearRefreshInflightForTests();
+  }
+});
+
+test("keyed catalog-idempotent mutation refreshes once and replays with same key", async () => {
+  clearRefreshInflightForTests();
+  const env = fileKeychainEnv();
+  try {
+    saveTokens(
+      profile.name,
+      {
+        accessToken: "stale-access",
+        refreshToken: "live-refresh",
+        expiresAt: Date.now() + 10 * 60_000,
+        environment: "production",
+        issuer: profile.issuer,
+        audience: profile.audience,
+        clientId: profile.clientId,
+        scopes: ["openid", "profile", "offline_access"],
+      },
+      env
+    );
+    const seen: Array<{ url: string; key: string | null }> = [];
+    const fetchImpl: typeof fetch = async (input, init) => {
+      const url = String(input);
+      const headers = new Headers(init?.headers);
+      if (url.includes("/api/auth/oauth/token")) {
+        return new Response(
+          JSON.stringify({
+            access_token: "fresh-access",
+            refresh_token: "rotated-refresh",
+            expires_in: 600,
+          }),
+          { status: 200, headers: { "content-type": "application/json" } }
+        );
+      }
+      seen.push({ url, key: headers.get("idempotency-key") });
+      if (seen.length === 1) {
+        return new Response(JSON.stringify({ code: "unauthorized" }), {
+          status: 401,
+          headers: { "content-type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ id: "experiment-1" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    };
+    const res = await apiRequest(
+      {
+        method: "POST",
+        path: "/api/v1/engine-backtest/experiments",
+        body: { name: "x" },
+        profile,
+        catalogIdempotent: true,
+        operationId: "engine_backtest.experiments.create",
+        idempotencyKey: "stable-key",
+      },
+      env,
+      fetchImpl
+    );
+    assert.equal(res.status, 200);
+    assert.deepEqual(seen.map((item) => item.key), ["stable-key", "stable-key"]);
+  } finally {
+    rmSync(env.ALPHAFOX_KEYCHAIN_DIR!, { recursive: true, force: true });
+    clearRefreshInflightForTests();
+  }
+});

@@ -102,6 +102,26 @@ function extractErrorCode(json: unknown): string | number | undefined {
   }
   return undefined;
 }
+function extractErrorSubtype(json: unknown): string | undefined {
+  if (!json || typeof json !== "object") return undefined;
+  const o = json as Record<string, unknown>;
+  if (typeof o.subtype === "string") return o.subtype;
+  if (o.error && typeof o.error === "object") {
+    const e = o.error as Record<string, unknown>;
+    if (typeof e.subtype === "string") return e.subtype;
+  }
+  return undefined;
+}
+
+function extractErrorDetails(json: unknown): unknown {
+  if (!json || typeof json !== "object") return undefined;
+  const o = json as Record<string, unknown>;
+  if ("details" in o) return o.details;
+  if (o.error && typeof o.error === "object" && "details" in o.error) {
+    return o.error.details;
+  }
+  return undefined;
+}
 
 function extractEntityId(json: unknown): string | undefined {
   if (!json || typeof json !== "object") return undefined;
@@ -158,7 +178,8 @@ async function postJson(
   env: NodeJS.ProcessEnv,
   path: string,
   body: unknown,
-  mintId: () => string
+  mintId: () => string,
+  operationId: string
 ): Promise<ApiResponse> {
   const res = await api(
     {
@@ -166,17 +187,20 @@ async function postJson(
       path,
       body,
       profile,
+      operationId,
+      catalogIdempotent: false,
       idempotencyKey: mintId(),
     },
     env
   );
-  if (res.status >= 400) {
+  if (res.status < 200 || res.status >= 300) {
     throw new EngineBacktestError({
       type: "http",
       status: res.status,
+      subtype: res.outcome ?? extractErrorSubtype(res.json),
       message: extractErrorMessage(res.json, res.bodyText),
       code: extractErrorCode(res.json),
-      details: res.json,
+      details: extractErrorDetails(res.json),
     });
   }
   return res;
@@ -500,7 +524,8 @@ export async function executeEngineBacktestRun(
         env,
         CREATE_EXPERIMENT_PATH,
         body,
-        mintId
+        mintId,
+        "engine_backtest.experiments.create"
       );
       experimentId = extractEntityId(res.json);
       if (!experimentId) {
@@ -532,7 +557,15 @@ export async function executeEngineBacktestRun(
         engineVersion,
         equityCurve: result.equityCurve,
       });
-      const res = await postJson(api, profile, env, runsPath(experimentId), body, mintId);
+      const res = await postJson(
+        api,
+        profile,
+        env,
+        runsPath(experimentId),
+        body,
+        mintId,
+        "engine_backtest.experiments.byId.runs.create"
+      );
       persistedRunId = extractEntityId(res.json);
       if (!persistedRunId) {
         throw new EngineBacktestError({

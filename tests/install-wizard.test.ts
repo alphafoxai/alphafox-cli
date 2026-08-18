@@ -350,6 +350,29 @@ describe("install wizard", () => {
     rmSync(pkg, { recursive: true, force: true });
   });
 
+  it("refuses to sync Skills when the installed CLI version cannot be verified", async () => {
+    const { runner, execCalls } = fakeRunner({
+      exec: async (command, args) => {
+        if (command === "npm" && args[0] === "list") return { stdout: "", stderr: "" };
+        if (command === "npm" && args[0] === "view") return { stdout: "0.2.0\n", stderr: "" };
+        if (command === "npm" && args[0] === "install") return { stdout: "added\n", stderr: "" };
+        throw new Error(`unexpected ${command} ${args.join(" ")}`);
+      },
+    });
+
+    await assert.rejects(
+      runInstallWizard(flags(), {}, runner),
+      (error: unknown) => {
+        assert.equal((error as { subtype?: string }).subtype, "npm_global_verify_failed");
+        return true;
+      }
+    );
+    assert.equal(
+      execCalls.some((call) => call.command === "npm" && call.args[0] === "root"),
+      false
+    );
+  });
+
   it("refreshes stale installed Skills from the co-versioned global package", async () => {
     const root = mkdtempSync(join(tmpdir(), "alphafox-cli-refresh-"));
     const npmRoot = join(root, "node_modules");

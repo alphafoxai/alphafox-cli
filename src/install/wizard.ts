@@ -240,7 +240,16 @@ async function stepInstallCli(
       details: err instanceof Error ? err.message : String(err),
     });
   }
-  const after = (await readGloballyInstalledVersion(runner)) ?? latestVer;
+  const after = await readGloballyInstalledVersion(runner);
+  if (after !== latestVer) {
+    throw new InstallError({
+      type: "install",
+      subtype: "npm_global_verify_failed",
+      message: `无法验证已安装的 ${CLI_PACKAGE}@${latestVer}。`,
+      hint: `npm list -g ${CLI_PACKAGE} --depth=0`,
+      details: { expected: latestVer, actual: after },
+    });
+  }
   runner.log(needsUpgrade ? `已升级到 ${after}` : "已全局安装");
   return {
     action: needsUpgrade ? "upgraded" : "installed",

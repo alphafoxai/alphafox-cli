@@ -9,6 +9,15 @@ import { newRequestId } from "../envelope";
 
 export const DEPLOYED_METADATA_PATH = "/api/v1/meta";
 export const DEPLOYED_METADATA_TIMEOUT_MS = 3_000;
+export const DEPLOYED_METADATA_CACHE_TTL_MS = 5 * 60_000;
+
+interface CachedMetadata {
+  readonly expiresAt: number;
+  readonly value: DeployedMetadata;
+}
+
+const metadataCache = new Map<string, CachedMetadata>();
+const metadataChecks = new Map<string, Promise<DeployedMetadata>>();
 
 export interface DeployedMetadata {
   readonly environment: string;
@@ -139,19 +148,60 @@ export async function verifyDeployedMetadata(
   env: NodeJS.ProcessEnv = process.env,
   fetchImpl: typeof fetch = fetch
 ): Promise<DeployedMetadata> {
+  const key = [
+    metadataUrl(profile),
+    profile.name,
+    profile.issuer,
+    profile.audience,
+    profile.clientId,
+    profile.contractVersion ?? "",
+    env.ALPHAFOX_CLI_VERSION ?? CLI_VERSION,
+    CATALOG_SOURCE.contractsSha,
+  ].join("\0");
+  const cached = metadataCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+  const pending = metadataChecks.get(key);
+  if (pending) return pending;
+
+  const check = fetchAndValidateDeployedMetadata(profile, env, fetchImpl).then(
+    (value) => {
+      metadataCache.set(key, {
+        value,
+        expiresAt: Date.now() + DEPLOYED_METADATA_CACHE_TTL_MS,
+      });
+      return value;
+    }
+  );
+  metadataChecks.set(key, check);
+  try {
+    return await check;
+  } finally {
+    metadataChecks.delete(key);
+  }
+}
+
+async function fetchAndValidateDeployedMetadata(
+  profile: ProfileConfig,
+  env: NodeJS.ProcessEnv,
+  fetchImpl: typeof fetch
+): Promise<DeployedMetadata> {
   const requestId = newRequestId();
   let response: Response;
   try {
-    response = await fetchImpl(metadataUrl(profile), {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-        "X-Request-Id": requestId,
-        "X-Alphafox-Client": "alphafox-cli",
-        "X-Alphafox-Client-Version": env.ALPHAFOX_CLI_VERSION ?? CLI_VERSION,
-      },
-      signal: AbortSignal.timeout(DEPLOYED_METADATA_TIMEOUT_MS),
-    });
+    response = await fetchMetadataFollowingProductionRedirect(
+      fetchImpl,
+      metadataUrl(profile),
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "X-Request-Id": requestId,
+          "X-Alphafox-Client": "alphafox-cli",
+          "X-Alphafox-Client-Version": env.ALPHAFOX_CLI_VERSION ?? CLI_VERSION,
+        },
+        signal: AbortSignal.timeout(DEPLOYED_METADATA_TIMEOUT_MS),
+      }
+    );
   } catch (err) {
     throw compatibilityError(
       "metadata_unavailable",
@@ -178,5 +228,34 @@ export async function verifyDeployedMetadata(
       { path: DEPLOYED_METADATA_PATH, cause: err instanceof Error ? err.message : String(err) }
     );
   }
-  return validateDeployedMetadata(json, profile);
+  return validateDeployedMetadata(json, profile, env.ALPHAFOX_CLI_VERSION ?? CLI_VERSION);
+}
+
+async function fetchMetadataFollowingProductionRedirect(
+  fetchImpl: typeof fetch,
+  startUrl: string,
+  init: RequestInit,
+  maxHops = 2
+): Promise<Response> {
+  let url = startUrl;
+  let response = await fetchImpl(url, { ...init, redirect: "manual" });
+  for (let hop = 0; hop < maxHops && [301, 302, 303, 307, 308].includes(response.status); hop += 1) {
+    const location = response.headers.get("location");
+    if (!location) break;
+    let next: URL;
+    try { next = new URL(location, url); } catch { break; }
+    const current = new URL(url);
+    if (
+      current.protocol !== "https:" ||
+      next.protocol !== "https:" ||
+      current.port !== "" ||
+      next.port !== "" ||
+      ![current.hostname, next.hostname].every(
+        (host) => host === "alphafox.app" || host === "www.alphafox.app"
+      )
+    ) break;
+    url = next.toString();
+    response = await fetchImpl(url, { ...init, redirect: "manual" });
+  }
+  return response;
 }

@@ -6,6 +6,7 @@ import {
   mkdtempSync,
   readFileSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -198,6 +199,60 @@ describe("Skills bundle status", () => {
       /Released/
     );
     rmSync(root, { recursive: true, force: true });
+  });
+  it("rejects traversal names before touching files outside the install root", () => {
+    const root = mkdtempSync(join(tmpdir(), "alphafox-skills-traversal-"));
+    const packageRoot = join(root, "package");
+    const installedRoot = join(root, "installed", "skills");
+    const sentinel = join(root, "sentinel");
+    writeSkill(packageRoot, "evil", "0.3.5");
+    writeFileSync(
+      join(packageRoot, "skills", "evil", "SKILL.md"),
+      "---\nname: ../../sentinel\nversion: 0.3.5\n---\n\n# Evil\n"
+    );
+    writeFileSync(sentinel, "keep");
+    try {
+      assert.throws(
+        () =>
+          buildSkillsManifest(packageRoot, {
+            packageVersion: "0.3.5",
+            contractVersion: "2026-08-13",
+          }),
+        (error: unknown) => {
+          assert.equal((error as { subtype?: string }).subtype, "skills_name_invalid");
+          return true;
+        }
+      );
+      assert.equal(readFileSync(sentinel, "utf8"), "keep");
+      assert.equal(existsSync(installedRoot), false);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("rejects symbolic links in bundled Skill sources", () => {
+    const root = mkdtempSync(join(tmpdir(), "alphafox-skills-symlink-"));
+    const packageRoot = join(root, "package");
+    const external = join(root, "external");
+    try {
+      writeSkill(packageRoot, "alphafox", "0.3.5");
+      mkdirSync(external);
+      writeFileSync(join(external, "secret.md"), "outside");
+      symlinkSync(external, join(packageRoot, "skills", "alphafox", "linked"));
+
+      assert.throws(
+        () => buildSkillsManifest(packageRoot, {
+          packageVersion: "0.3.5",
+          contractVersion: "2026-08-13",
+        }),
+        (error: unknown) => {
+          assert.equal((error as { subtype?: string }).subtype, "skills_bundle_symlink");
+          return true;
+        }
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 
   it("verifies the generated bundle manifest before installing instructions", () => {

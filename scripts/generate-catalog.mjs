@@ -133,25 +133,30 @@ function resolveContractsRoot() {
   return best;
 }
 
-function contractsSha(contractsRoot) {
-  if (existsSync(join(contractsRoot, ".git"))) {
-    try {
-      return execFileSync("git", ["rev-parse", "--short=8", "HEAD"], {
-        cwd: contractsRoot,
-        encoding: "utf8",
-      }).trim();
-    } catch {
-      // Published packages are not git checkouts.
-    }
+function contractsSha(publicApi, contractsRoot) {
+  const exported = String(publicApi.PUBLIC_API_CONTRACTS_SHA ?? "").trim();
+  if (/^[0-9a-f]{8}$/i.test(exported)) {
+    return exported.toLowerCase();
+  }
+  if (process.env.ALPHAFOX_REQUIRE_RELEASE_CONTRACTS === "1") {
+    throw new Error(
+      `Release catalog generation requires an immutable PUBLIC_API_CONTRACTS_SHA; got ${JSON.stringify(exported)}.`
+    );
+  }
+  if (exported !== "development") {
+    throw new Error(
+      `alphafox-contracts must export PUBLIC_API_CONTRACTS_SHA; got ${JSON.stringify(exported)}.`
+    );
   }
   try {
-    const pkg = JSON.parse(
-      readFileSync(join(contractsRoot, "package.json"), "utf8")
-    );
-    const match = String(pkg.version ?? "").match(/git\.([0-9a-f]+)/i);
-    return match ? match[1] : "";
+    return execFileSync("git", ["rev-parse", "--short=8", "HEAD"], {
+      cwd: contractsRoot,
+      encoding: "utf8",
+    }).trim();
   } catch {
-    return "";
+    throw new Error(
+      "Development contracts provenance requires a git checkout."
+    );
   }
 }
 
@@ -295,7 +300,7 @@ const publicApi = loadPublicApi(contractsRoot);
 const artifacts = buildArtifacts(
   publicApi,
   {
-    contractsSha: contractsSha(contractsRoot),
+    contractsSha: contractsSha(publicApi, contractsRoot),
   },
   contractsRoot
 );

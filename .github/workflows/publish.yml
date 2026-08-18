@@ -36,9 +36,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: alphafoxai/alphafox-contracts
-          ref: ffa4bc3b
+          ref: 74673c2b
           path: .release/alphafox-contracts
           token: ${{ secrets.ALPHAFOX_CONTRACTS_READ_TOKEN }}
+
+      - name: Embed pinned contracts source identity
+        working-directory: .release/alphafox-contracts
+        run: |
+          sha="$(git rev-parse --short=8 HEAD)"
+          printf '// Generated for the pinned release source.\nexport const PUBLIC_API_CONTRACTS_SHA = "%s";\n' "$sha" > src/public-api/source.ts
 
       - name: Build pinned contracts source
         working-directory: .release/alphafox-contracts
@@ -50,6 +56,7 @@ jobs:
       - name: Test
         env:
           ALPHAFOX_CONTRACTS_ROOT: ${{ github.workspace }}/.release/alphafox-contracts
+          ALPHAFOX_REQUIRE_RELEASE_CONTRACTS: "1"
         run: pnpm test:release
 
       - name: Verify packed artifact

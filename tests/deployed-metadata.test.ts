@@ -76,28 +76,76 @@ function assertFailure(value: unknown, subtype: string, cliVersion?: string): vo
   );
 }
 
-test("metadata verifier accepts matching deployment and operational request follows", async () => {
+test("metadata verifier caches successful checks for repeated operational requests", async () => {
   const seen: string[] = [];
   const fetchImpl: typeof fetch = async (input, init) => {
     seen.push(String(input));
-    if (seen.length === 1) {
+    if (String(input).endsWith("/api/v1/meta")) {
       assert.ok(init?.signal, "metadata request must be bounded by an AbortSignal");
       return new Response(JSON.stringify(metadata()), { status: 200 });
     }
     return new Response(JSON.stringify({ userId: "user-1" }), { status: 200 });
   };
 
-  const response = await apiRequest(
-    { method: "GET", path: "/api/v1/me", profile },
-    testEnv(),
-    fetchImpl
-  );
+  const cacheProfile = { ...profile, clientId: `cache-${Date.now()}` };
+  const [first, second] = await Promise.all([
+    apiRequest(
+      { method: "GET", path: "/api/v1/me", profile: cacheProfile },
+      testEnv(),
+      fetchImpl
+    ),
+    apiRequest(
+      { method: "GET", path: "/api/v1/me", profile: cacheProfile },
+      testEnv(),
+      fetchImpl
+    ),
+  ]);
 
-  assert.equal(response.status, 200);
+  assert.equal(first.status, 200);
+  assert.equal(second.status, 200);
+  assert.equal(seen.filter((url) => url.endsWith("/api/v1/meta")).length, 1);
+  assert.equal(seen.filter((url) => url.endsWith("/api/v1/me")).length, 2);
+});
+
+test("metadata preflight follows only the known AlphaFox apex-to-www redirect", async () => {
+  const seen: string[] = [];
+  const redirectProfile = { ...profile, clientId: `redirect-${Date.now()}` };
+  const result = await verifyDeployedMetadata(redirectProfile, testEnv(), async (input, init) => {
+    seen.push(String(input));
+    assert.equal(init?.redirect, "manual");
+    if (String(input).startsWith("https://alphafox.app/")) {
+      return new Response(null, {
+        status: 308,
+        headers: { location: "https://www.alphafox.app/api/v1/meta" },
+      });
+    }
+    return new Response(JSON.stringify(metadata()), { status: 200 });
+  });
+  assert.equal(result.contractsSha, CATALOG_SOURCE.contractsSha);
   assert.deepEqual(seen, [
     "https://alphafox.app/api/v1/meta",
-    "https://alphafox.app/api/v1/me",
+    "https://www.alphafox.app/api/v1/meta",
   ]);
+
+  const customProfile = {
+    ...profile,
+    apiBaseUrl: "https://custom.example/api/v1",
+    issuer: "https://custom.example/api/auth",
+    audience: "https://custom.example/api/v1",
+    clientId: `custom-${Date.now()}`,
+  };
+  let calls = 0;
+  await assert.rejects(
+    verifyDeployedMetadata(customProfile, testEnv(), async () => {
+      calls += 1;
+      return new Response(null, {
+        status: 308,
+        headers: { location: "https://www.custom.example/api/v1/meta" },
+      });
+    }),
+    (error: unknown) => subtypeOf(error) === "metadata_unavailable"
+  );
+  assert.equal(calls, 1);
 });
 
 test("unreachable and malformed metadata fail closed", async () => {
@@ -129,6 +177,22 @@ test("metadata validation rejects malformed payloads and every mismatch class", 
   assertFailure(metadata({ maxCliVersion: "0.2.0" }), "metadata_cli_range_mismatch");
   assertFailure(metadata({ contractsSha: "different" }), "metadata_source_mismatch");
   assertFailure(metadata(), "metadata_cli_version_mismatch", "1.0.0");
+});
+
+test("metadata preflight validates and caches by the effective CLI version", async () => {
+  const headers: string[] = [];
+  const versionProfile = { ...profile, clientId: `version-${Date.now()}` };
+  const fetchImpl: typeof fetch = async (_input, init) => {
+    headers.push(new Headers(init?.headers).get("x-alphafox-client-version") ?? "");
+    return new Response(JSON.stringify(metadata()), { status: 200 });
+  };
+
+  await assert.rejects(
+    verifyDeployedMetadata(versionProfile, { ALPHAFOX_CLI_VERSION: "1.0.0" }, fetchImpl),
+    (error: unknown) => subtypeOf(error) === "metadata_cli_version_mismatch"
+  );
+  await verifyDeployedMetadata(versionProfile, { ALPHAFOX_CLI_VERSION: "0.3.10" }, fetchImpl);
+  assert.deepEqual(headers, ["1.0.0", "0.3.10"]);
 });
 
 test("metadata mismatch prevents the downstream operational request", async () => {

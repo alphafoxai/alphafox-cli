@@ -19,7 +19,6 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v4
         with:
           version: 10.33.0
@@ -33,12 +32,28 @@ jobs:
       - name: Require npm CLI that supports trusted publishing
         run: npm install -g npm@^11.10.0
 
+      - name: Check out pinned contracts source
+        uses: actions/checkout@v4
+        with:
+          repository: alphafoxai/alphafox-contracts
+          ref: ffa4bc3b
+          path: .release/alphafox-contracts
+          token: ${{ secrets.ALPHAFOX_CONTRACTS_READ_TOKEN }}
+
+      - name: Build pinned contracts source
+        working-directory: .release/alphafox-contracts
+        run: corepack pnpm install --frozen-lockfile && corepack pnpm build
+
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      # Full `pnpm test` needs sibling alphafox-contracts + alphafox-web.
       - name: Test
+        env:
+          ALPHAFOX_CONTRACTS_ROOT: ${{ github.workspace }}/.release/alphafox-contracts
         run: pnpm test:release
+
+      - name: Verify packed artifact
+        run: pnpm --silent verify:package > package-path
 
       - name: SBOM
         run: node scripts/generate-sbom.mjs
@@ -67,7 +82,7 @@ jobs:
             echo "Already on npmjs: ${NAME}@${VER} — skipping (idempotent)."
             exit 0
           fi
-          npm publish --access public
+          npm publish "$(cat package-path)" --access public
 
       - name: Upload SBOM
         if: always()

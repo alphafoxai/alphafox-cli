@@ -1,9 +1,11 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
-import { CLI_PACKAGE, CLI_VERSION } from "../version";
+import { CLI_PACKAGE } from "../version";
 import {
+  installSkillsFromBundle,
   loadAndVerifySkillsManifest,
+  removeInstalledSkills,
   syncSkills,
 } from "../skills/manager";
 import {
@@ -29,7 +31,6 @@ import {
 } from "./types";
 
 const NPM_TIMEOUT_MS = 120_000;
-const SKILLS_TIMEOUT_MS = 120_000;
 
 export function parseInstallArgs(args: readonly string[]): {
   readonly noAuth: boolean;
@@ -97,13 +98,18 @@ export async function runInstallWizard(
   runner: InstallRunner = createDefaultInstallRunner(env, defaultSearchDirs())
 ): Promise<InstallResult> {
   runner.log("正在安装 AlphaFox CLI…");
-
   const installedVer = await readGloballyInstalledVersion(runner);
   const latestVer = await readLatestVersion(runner);
+  if (!latestVer) {
+    throw new InstallError({
+      type: "install",
+      subtype: "npm_latest_unresolved",
+      message: `无法解析 ${CLI_PACKAGE} 的 latest 版本，已停止安装。`,
+      hint: `npm view ${CLI_PACKAGE}@latest version`,
+    });
+  }
   const needsUpgrade =
-    Boolean(installedVer) &&
-    Boolean(latestVer) &&
-    semverLessThan(installedVer!, latestVer!);
+    Boolean(installedVer) && semverLessThan(installedVer!, latestVer);
 
   const cli = await stepInstallCli(flags, runner, {
     installedVer,
@@ -149,11 +155,13 @@ async function readLatestVersion(
   runner: InstallRunner
 ): Promise<string | null> {
   try {
-    const { stdout } = await runner.exec("npm", ["view", CLI_PACKAGE, "version"], {
-      timeoutMs: 15_000,
-    });
+    const { stdout } = await runner.exec(
+      "npm",
+      ["view", `${CLI_PACKAGE}@latest`, "version"],
+      { timeoutMs: 15_000 }
+    );
     const ver = stdout.trim();
-    return /^\d+\.\d+\.\d+/.test(ver) ? ver : null;
+    return /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(ver) ? ver : null;
   } catch {
     return null;
   }
@@ -188,7 +196,7 @@ async function stepInstallCli(
   runner: InstallRunner,
   versions: {
     readonly installedVer: string | null;
-    readonly latestVer: string | null;
+    readonly latestVer: string;
     readonly needsUpgrade: boolean;
   }
 ): Promise<InstallCliStep> {
@@ -205,35 +213,34 @@ async function stepInstallCli(
   if (flags.dryRun) {
     runner.log(
       needsUpgrade
-        ? `将升级 ${CLI_PACKAGE}（${installedVer} → ${latestVer ?? "latest"}）`
-        : `将全局安装 ${CLI_PACKAGE}`
+        ? `将升级 ${CLI_PACKAGE}（${installedVer} → ${latestVer}）`
+        : `将全局安装 ${CLI_PACKAGE}@${latestVer}`
     );
     return {
       action: "planned",
       previousVersion: installedVer ?? undefined,
-      latestVersion: latestVer ?? undefined,
+      latestVersion: latestVer,
     };
   }
-
   runner.log(
     needsUpgrade
       ? `正在升级 ${CLI_PACKAGE}（${installedVer} → ${latestVer}）…`
-      : `正在全局安装 ${CLI_PACKAGE}…`
+      : `正在全局安装 ${CLI_PACKAGE}@${latestVer}…`
   );
   try {
-    await runner.exec("npm", ["install", "-g", CLI_PACKAGE], {
+    await runner.exec("npm", ["install", "-g", `${CLI_PACKAGE}@${latestVer}`], {
       timeoutMs: NPM_TIMEOUT_MS,
     });
   } catch (err) {
     throw new InstallError({
       type: "install",
       subtype: "npm_global_failed",
-      message: `全局安装 ${CLI_PACKAGE} 失败。`,
-      hint: `npm install -g ${CLI_PACKAGE}`,
+      message: `全局安装 ${CLI_PACKAGE}@${latestVer} 失败。`,
+      hint: `npm install -g ${CLI_PACKAGE}@${latestVer}`,
       details: err instanceof Error ? err.message : String(err),
     });
   }
-  const after = (await readGloballyInstalledVersion(runner)) ?? latestVer ?? CLI_VERSION;
+  const after = (await readGloballyInstalledVersion(runner)) ?? latestVer;
   runner.log(needsUpgrade ? `已升级到 ${after}` : "已全局安装");
   return {
     action: needsUpgrade ? "upgraded" : "installed",
@@ -301,27 +308,15 @@ async function stepInstallSkills(
       },
       {
         install: async (names) => {
-          await runner.exec(
-            "npx",
-            [
-              "-y",
-              "skills",
-              "add",
-              source,
-              "-y",
-              "-g",
-              "--skill",
-              ...names,
-            ],
-            { timeoutMs: SKILLS_TIMEOUT_MS }
+          installSkillsFromBundle(
+            source,
+            installedSkillsRoot(runner.env),
+            manifest,
+            names
           );
         },
         remove: async (names) => {
-          await runner.exec(
-            "npx",
-            ["-y", "skills", "remove", ...names, "-y", "-g"],
-            { timeoutMs: SKILLS_TIMEOUT_MS }
-          );
+          removeInstalledSkills(installedSkillsRoot(runner.env), names);
         },
       }
     );

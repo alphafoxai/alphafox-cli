@@ -16,13 +16,31 @@ https://raw.githubusercontent.com/alphafoxai/alphafox-cli/main/docs/alphafox-cli
 Skills do **not** register with Cursor / Claude Code / Codex from
 `npm install -g` alone. The second command is required.
 
+For reproducible installs, resolve the release once and pass that exact
+version to npm:
+
 ```shell
-# Install CLI
-npm install -g @alphafox/cli
+# Resolve the current release (record this value for the install)
+npm view @alphafox/cli@latest version
+
+# Install the exact version returned above
+npm install -g @alphafox/cli@<resolved-version>
 
 # Verify and globally sync the exact co-versioned Skills bundle
 alphafox skills sync --format json --no-input
 ```
+
+`@latest` is also supported as an explicit convenience when reproducibility
+is not required:
+
+```shell
+npm install -g @alphafox/cli@latest
+```
+
+The human `alphafox install` wizard resolves `latest` first and installs that
+exact version; it stops without installing if the lookup fails. Do not use an
+unqualified `npm install -g @alphafox/cli` because it creates a time-of-check /
+time-of-use race.
 
 Do not install Skills from GitHub `main` as a fallback. The CLI verifies the
 manifest and hashes inside the npm package before syncing. If sync fails, stop
@@ -99,6 +117,7 @@ stepping through the commands above:
 npx @alphafox/cli@latest install
 ```
 
-That wizard installs the CLI globally, verifies and syncs the packaged Skills,
-and may prompt for `alphafox auth login --browser`. It is TTY-oriented.
-Agents must follow Steps 1–4 in this document rather than the wizard.
+That wizard uses `@latest` as a convenience, resolves it before installing,
+and stops if the lookup fails; it then verifies and syncs the packaged Skills.
+It may prompt for `alphafox auth login --browser` and is TTY-oriented. Agents
+must follow Steps 1–4 in this document rather than the wizard.

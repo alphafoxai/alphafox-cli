@@ -8,6 +8,7 @@ import {
   readFileSync,
   readdirSync,
   renameSync,
+  rmSync,
   statSync,
   unlinkSync,
   writeFileSync,
@@ -93,6 +94,46 @@ export interface SkillsSyncDeps {
   readonly remove?: (names: readonly string[]) => Promise<void>;
   readonly now?: () => Date;
 }
+export function installSkillsFromBundle(
+  packageRoot: string,
+  installedRoot: string,
+  manifest: SkillsBundleManifest,
+  names: readonly string[]
+): void {
+  const sourceByName = new Map<string, string>();
+  const skillsRoot = join(packageRoot, "skills");
+  for (const entry of readdirSync(skillsRoot, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const skillRoot = join(skillsRoot, entry.name);
+    const name = readSkillName(join(skillRoot, "SKILL.md"));
+    if (name && manifest.skills.some((skill) => skill.name === name)) {
+      sourceByName.set(name, entry.name);
+    }
+  }
+  mkdirSync(installedRoot, { recursive: true });
+  for (const name of names) {
+    const sourceName = sourceByName.get(name);
+    if (!sourceName) {
+      throw Object.assign(new Error(`Skill source is missing: ${name}`), {
+        type: "install",
+        subtype: "skills_source_missing",
+      });
+    }
+    const target = join(installedRoot, name);
+    rmSync(target, { recursive: true, force: true });
+    cpSync(join(skillsRoot, sourceName), target, { recursive: true });
+  }
+}
+
+export function removeInstalledSkills(
+  installedRoot: string,
+  names: readonly string[]
+): void {
+  for (const name of names) {
+    rmSync(join(installedRoot, name), { recursive: true, force: true });
+  }
+}
+
 
 export function buildSkillsManifest(
   packageRoot: string,

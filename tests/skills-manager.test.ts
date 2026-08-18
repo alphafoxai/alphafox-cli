@@ -15,6 +15,7 @@ import { describe, it } from "node:test";
 import {
   buildSkillsManifest,
   hashSkillDirectory,
+  installSkillsFromBundle,
   inspectSkills,
   loadAndVerifySkillsManifest,
   syncSkills,
@@ -112,15 +113,8 @@ describe("Skills bundle status", () => {
       {
         install: async (names) => {
           installed.push([...names]);
-          mkdirSync(installedRoot, { recursive: true });
-          for (const name of names) {
-            cpSync(
-              join(packageRoot, "skills", name),
-              join(installedRoot, name),
-              { recursive: true }
-            );
-          }
-        },
+          installSkillsFromBundle(packageRoot, installedRoot, manifest, names);
+        }
       }
     );
 

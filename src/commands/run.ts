@@ -26,6 +26,7 @@ import {
 } from "../config/profiles";
 import {
   errorEnvelope,
+  mapErrorToExitCode,
   newRequestId,
   successEnvelope,
   writeError,
@@ -457,12 +458,43 @@ async function cmdAuth(
   env: NodeJS.ProcessEnv
 ): Promise<number> {
   const sub = args[0];
+  const helpRequested = args
+    .slice(1)
+    .some((arg) => arg === "help" || arg === "--help" || arg === "-h");
+  if (
+    !sub ||
+    sub === "help" ||
+    sub === "--help" ||
+    sub === "-h" ||
+    helpRequested
+  ) {
+    writeSuccess(
+      {
+        name: "auth",
+        usage: [
+          "alphafox auth login [--no-wait|--device-code CODE|--browser]",
+          "alphafox auth status [--verify]",
+          "alphafox auth logout",
+        ],
+      },
+      { format: flags.format, jq: flags.jq }
+    );
+    return 0;
+  }
   const profile = resolveProfile(flags.profile, env, {
     unsafeCustomEndpoint: flags.unsafeCustomEndpoint,
   });
 
   if (sub === "status") {
-    const verify = args.includes("--verify");
+    const statusArgs = args.slice(1);
+    if (statusArgs.some((arg) => arg !== "--verify")) {
+      writeError({
+        type: "usage",
+        subtype: "unknown_auth_flag",
+        message: "Usage: alphafox auth status [--verify]",
+      });
+    }
+    const verify = statusArgs.includes("--verify");
     let tokens = loadTokens(profile.name, env);
     if (!tokens) {
       writeSuccess(
@@ -498,7 +530,7 @@ async function cmdAuth(
 
     let verified: boolean | null = null;
     let whoami: unknown = null;
-    if (verify) {
+    if (verify && refresh !== "failed") {
       const res = await apiRequest(
         {
           method: "GET",
@@ -508,7 +540,19 @@ async function cmdAuth(
         env
       );
       verified = res.status >= 200 && res.status < 300;
-      whoami = verified ? res.json : { status: res.status, body: res.json };
+      if (!verified) {
+        const error = {
+          type: "http",
+          status: res.status,
+          message: extractErrorMessage(res.json, res.bodyText),
+          code: extractErrorCode(res.json),
+        };
+        process.stderr.write(
+          `${JSON.stringify(errorEnvelope(error, res.requestId))}\n`
+        );
+        return mapErrorToExitCode(error);
+      }
+      whoami = res.json;
       tokens = loadTokens(profile.name, env) ?? tokens;
     }
 

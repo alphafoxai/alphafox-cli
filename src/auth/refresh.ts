@@ -18,12 +18,9 @@ import { dirname, join } from "node:path";
 import { homedir } from "node:os";
 
 import type { ProfileConfig } from "../config/profiles";
+import { profileCredentialSlot } from "../config/profiles";
 import { CLI_VERSION } from "../version";
-import {
-  loadTokens,
-  saveTokens,
-  type StoredTokens,
-} from "../keychain/store";
+import { loadTokens, saveTokens, type StoredTokens } from "../keychain/store";
 
 /** Refresh when access token expires within this window. */
 export const ACCESS_TOKEN_REFRESH_SKEW_MS = 60_000;
@@ -77,7 +74,7 @@ export async function refreshStoredTokens(
     readonly force?: boolean;
   } = {}
 ): Promise<RefreshOutcome> {
-  const existing = loadTokens(profile.name, env);
+  const existing = loadTokens(profile, env);
   if (!existing?.refreshToken?.trim()) {
     return {
       status: "no_session",
@@ -90,8 +87,8 @@ export async function refreshStoredTokens(
     return { status: "unchanged", tokens: existing };
   }
 
-  return withRefreshLock(profile.name, env, async () => {
-    const latest = loadTokens(profile.name, env) ?? existing;
+  return withRefreshLock(profile, env, async () => {
+    const latest = loadTokens(profile, env) ?? existing;
     if (!latest?.refreshToken?.trim()) {
       return {
         status: "no_session" as const,
@@ -109,7 +106,7 @@ export async function refreshStoredTokens(
       return { status: "unchanged" as const, tokens: latest };
     }
 
-    const key = profile.name;
+    const key = profileCredentialSlot(profile);
     const pending = inflightByProfile.get(key);
     if (pending) {
       return pending;
@@ -143,21 +140,12 @@ export async function refreshStoredTokensOrNull(
   return null;
 }
 
-export function refreshLockFilePath(
-  profile: string,
-  env: NodeJS.ProcessEnv = process.env
-): string {
-  const base =
-    env.ALPHAFOX_KEYCHAIN_DIR?.trim() ||
-    join(homedir(), ".config", "alphafox", "keychain");
-  return join(base, `${profile}.refresh.lock`);
+export function refreshLockFilePath(profile: ProfileConfig, env: NodeJS.ProcessEnv = process.env): string {
+  const base = env.ALPHAFOX_KEYCHAIN_DIR?.trim() || join(homedir(), ".config", "alphafox", "keychain");
+  return join(base, `${profileCredentialSlot(profile)}.refresh.lock`);
 }
 
-async function withRefreshLock<T>(
-  profile: string,
-  env: NodeJS.ProcessEnv,
-  work: () => Promise<T>
-): Promise<T> {
+async function withRefreshLock<T>(profile: ProfileConfig, env: NodeJS.ProcessEnv, work: () => Promise<T>): Promise<T> {
   const path = refreshLockFilePath(profile, env);
   mkdirSync(dirname(path), { recursive: true });
   const started = Date.now();
@@ -221,12 +209,12 @@ async function performRefresh(
   const body = {
     grant_type: "refresh_token",
     refresh_token: existing.refreshToken,
-    client_id: existing.clientId || profile.clientId,
+    client_id: profile.clientId,
   };
 
   let response: Response;
   try {
-    response = await fetchFollowingSameSiteRedirects(fetchImpl, url, {
+    response = await fetchImpl(url, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -303,92 +291,16 @@ async function performRefresh(
     accessToken: access,
     refreshToken: refresh,
     expiresAt: Date.now() + expiresIn * 1000,
-    environment: existing.environment || profile.name,
-    issuer: existing.issuer || profile.issuer,
-    audience: existing.audience || profile.audience,
-    clientId: existing.clientId || profile.clientId,
+    environment: profile.name,
+    issuer: profile.issuer,
+    audience: profile.audience,
+    clientId: profile.clientId,
     scopes: scopeRaw.split(/\s+/).filter(Boolean),
   };
-  saveTokens(profile.name, next, env);
+  saveTokens(profile, next, env);
   return { status: "refreshed", tokens: next };
 }
 
-const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
-
-async function fetchFollowingSameSiteRedirects(
-  fetchImpl: typeof fetch,
-  startUrl: string,
-  init: RequestInit,
-  maxHops = 5
-): Promise<Response> {
-  let url = startUrl;
-  let method = (init.method ?? "GET").toUpperCase();
-  let body = init.body;
-  let response = await fetchImpl(url, {
-    ...init,
-    method,
-    body,
-    redirect: "manual",
-  });
-
-  for (
-    let hop = 0;
-    hop < maxHops && REDIRECT_STATUSES.has(response.status);
-    hop++
-  ) {
-    const location = response.headers.get("location");
-    if (!location) break;
-    const nextUrl = new URL(location, url).toString();
-    if (!sameAuthSite(originOf(url), originOf(nextUrl))) break;
-    if (
-      response.status === 303 ||
-      ((response.status === 301 || response.status === 302) &&
-        method !== "GET" &&
-        method !== "HEAD")
-    ) {
-      method = "GET";
-      body = undefined;
-    }
-    url = nextUrl;
-    response = await fetchImpl(url, {
-      ...init,
-      method,
-      body,
-      redirect: "manual",
-    });
-  }
-  return response;
-}
-
-function originOf(value: string | null | undefined): string | null {
-  if (!value) return null;
-  try {
-    if (value.startsWith("http://") || value.startsWith("https://")) {
-      return new URL(value).origin;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-function sameAuthSite(
-  a: string | null | undefined,
-  b: string | null | undefined
-): boolean {
-  if (!a || !b) return false;
-  if (a === b) return true;
-  try {
-    const ua = new URL(a);
-    const ub = new URL(b);
-    if (ua.protocol !== ub.protocol) return false;
-    const ha = ua.hostname.replace(/^www\./i, "").toLowerCase();
-    const hb = ub.hostname.replace(/^www\./i, "").toLowerCase();
-    return ha === hb && ua.port === ub.port;
-  } catch {
-    return false;
-  }
-}
 
 /** Test helper: clear in-flight map between cases. */
 export function clearRefreshInflightForTests(): void {

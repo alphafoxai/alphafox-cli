@@ -46,12 +46,12 @@ describe("credential honesty", () => {
       ALPHAFOX_KEYCHAIN_DIR: dir,
     };
     try {
-      const result = saveTokens(profile.name, sampleTokens(), env);
+      const result = saveTokens(profile, sampleTokens(), env);
       assert.equal(result.backend, "file");
       assert.equal(result.degraded, false); // intentional force-file
       assert.ok(result.path?.includes(profile.name));
       assert.equal(getLastTokenSaveResult()?.backend, "file");
-      assert.equal(loadTokens(profile.name, env)?.accessToken, "access-1");
+      assert.equal(loadTokens(profile, env)?.accessToken, "access-1");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -74,7 +74,7 @@ describe("credential honesty", () => {
       return; // darwin has real keychain; intentional-file case covers API
     }
     try {
-      const result = saveTokens(profile.name, sampleTokens(), env);
+      const result = saveTokens(profile, sampleTokens(), env);
       assert.equal(result.backend, "file");
       assert.equal(result.degraded, true);
       assert.equal(getLastTokenSaveResult()?.degraded, true);
@@ -91,11 +91,8 @@ describe("credential honesty", () => {
       ALPHAFOX_KEYCHAIN_DIR: dir,
     };
     try {
-      saveTokens(
-        profile.name,
-        sampleTokens({ expiresAt: Date.now() - 1 }),
-        env
-      );
+      saveTokens(profile, sampleTokens({ expiresAt: Date.now() - 1 }),
+      env);
       const outcome = await refreshStoredTokens(
         profile,
         env,
@@ -127,7 +124,7 @@ describe("credential honesty", () => {
       ALPHAFOX_KEYCHAIN_DIR: dir,
     };
     try {
-      saveTokens(profile.name, sampleTokens({ expiresAt: 0 }), env);
+      saveTokens(profile, sampleTokens({ expiresAt: 0 }), env);
       const outcome = await refreshStoredTokens(
         profile,
         env,
@@ -152,11 +149,8 @@ describe("credential honesty", () => {
       ALPHAFOX_KEYCHAIN_DIR: dir,
     };
     try {
-      saveTokens(
-        profile.name,
-        sampleTokens({ refreshToken: "" }),
-        env
-      );
+      saveTokens(profile, sampleTokens({ refreshToken: "" }),
+      env);
       const outcome = await refreshStoredTokens(profile, env, async () => {
         throw new Error("should not fetch");
       });
@@ -198,7 +192,7 @@ describe("credential honesty", () => {
       return (origWrite as (...a: unknown[]) => boolean)(chunk, ...args);
     }) as typeof process.stdout.write;
     try {
-      saveTokens(profile.name, sampleTokens(), env);
+      saveTokens(profile, sampleTokens(), env);
       globalThis.fetch = (async () =>
         new Response(JSON.stringify({ error: "server_error" }), {
           status: 500,
@@ -216,7 +210,7 @@ describe("credential honesty", () => {
       assert.equal(json.data.remoteRevoke, "failed");
       assert.equal(json.data.fullyLoggedOut, false);
       assert.equal(json.data.loggedOut, false);
-      assert.equal(loadTokens(profile.name, env), null);
+      assert.equal(loadTokens(profile, env), null);
     } finally {
       globalThis.fetch = originalFetch;
       process.stdout.write = origWrite;

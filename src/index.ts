@@ -12,15 +12,20 @@ export {
   loadConfigFile,
   saveConfigFile,
   assertNoTokenFields,
+  canonicalAuthorityUrl,
+  canonicalProfile,
+  profileCredentialSlot,
 } from "./config/profiles";
 export {
   saveTokens,
   loadTokens,
   deleteTokens,
   tokenFingerprint,
+  credentialSlot,
   getLastTokenSaveResult,
   probeOsKeychain,
   keychainPlatform,
+  CredentialError,
 } from "./keychain/store";
 export {
   linuxSecretServiceArgs,

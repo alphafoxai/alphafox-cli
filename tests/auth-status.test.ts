@@ -96,7 +96,7 @@ describe("auth status after idle", () => {
     clearRefreshInflightForTests();
     const env = testEnv();
     try {
-      saveTokens(profile.name, staleTokens(), env);
+      saveTokens(profile, staleTokens(), env);
       const { code, json } = await captureStatus(
         ["auth", "status", "--verify", "--profile", "local", "--no-input"],
         env,
@@ -113,7 +113,7 @@ describe("auth status after idle", () => {
         Number(data.expiresAt) > Date.now() + 60_000,
         `expiresAt should be refreshed, got ${String(data.expiresAt)}`
       );
-      assert.equal(loadTokens(profile.name, env)?.accessToken, "fresh-access");
+      assert.equal(loadTokens(profile, env)?.accessToken, "fresh-access");
     } finally {
       rmSync(env.ALPHAFOX_KEYCHAIN_DIR!, { recursive: true, force: true });
       clearRefreshInflightForTests();
@@ -124,7 +124,7 @@ describe("auth status after idle", () => {
     clearRefreshInflightForTests();
     const env = testEnv();
     try {
-      saveTokens(profile.name, staleTokens(), env);
+      saveTokens(profile, staleTokens(), env);
       const { json } = await captureStatus(
         ["auth", "status", "--profile", "local", "--no-input"],
         env,
@@ -145,7 +145,7 @@ describe("auth status after idle", () => {
     clearRefreshInflightForTests();
     const env = testEnv();
     try {
-      saveTokens(profile.name, staleTokens(), env);
+      saveTokens(profile, staleTokens(), env);
       const { json } = await captureStatus(
         ["auth", "status", "--verify", "--profile", "local", "--no-input"],
         env,
@@ -169,8 +169,8 @@ describe("auth status after idle", () => {
     clearRefreshInflightForTests();
     const env = testEnv();
     try {
-      saveTokens(profile.name, staleTokens(), env);
-      const lockPath = refreshLockFilePath(profile.name, env);
+      saveTokens(profile, staleTokens(), env);
+      const lockPath = refreshLockFilePath(profile, env);
       writeFileSync(lockPath, `${process.pid}\n${Date.now()}\n`);
       let fetchCalls = 0;
       const pending = refreshStoredTokens(
@@ -183,16 +183,13 @@ describe("auth status after idle", () => {
         { force: true }
       );
       await new Promise((resolve) => setTimeout(resolve, 80));
-      saveTokens(
-        profile.name,
-        {
-          ...staleTokens(),
-          accessToken: "from-other-process",
-          refreshToken: "already-rotated",
-          expiresAt: Date.now() + 600_000,
-        },
-        env
-      );
+      saveTokens(profile, {
+        ...staleTokens(),
+        accessToken: "from-other-process",
+        refreshToken: "already-rotated",
+        expiresAt: Date.now() + 600_000,
+      },
+      env);
       unlinkSync(lockPath);
       const outcome = await pending;
       assert.equal(outcome.status, "unchanged");

@@ -47,6 +47,7 @@ import {
   probeOsKeychain,
   saveTokens,
   tokenFingerprint,
+  type StoredTokens,
 } from "../keychain/store";
 import {
   assertHighRiskConfirmation,
@@ -360,10 +361,15 @@ function cmdDoctor(flags: GlobalFlags, env: NodeJS.ProcessEnv): number {
   const profile = resolveProfile(flags.profile, env, {
     unsafeCustomEndpoint: flags.unsafeCustomEndpoint,
   });
-  // Avoid macOS `security` stderr noise when no item exists; file keychain is fine for doctor.
-  const doctorEnv = { ...env, ALPHAFOX_FORCE_FILE_KEYCHAIN: env.ALPHAFOX_FORCE_FILE_KEYCHAIN ?? "1" };
-  const tokens = loadTokens(profile.name, doctorEnv);
+  let tokens: StoredTokens | null = null;
+  let credentialFailure: string | null = null;
+  try {
+    tokens = loadTokens(profile, env);
+  } catch (error) {
+    credentialFailure = error && typeof error === "object" && "subtype" in error && typeof error.subtype === "string" ? error.subtype : "credential_unavailable";
+  }
   const probe = probeOsKeychain(env);
+  const explicitFile = env.ALPHAFOX_FORCE_FILE_KEYCHAIN === "1";
   const checks = [
     {
       name: "node",
@@ -387,17 +393,21 @@ function cmdDoctor(flags: GlobalFlags, env: NodeJS.ProcessEnv): number {
     },
     {
       name: "keychain",
-      ok: true,
-      detail: tokens
-        ? `token present (fp=${tokenFingerprint(tokens.accessToken)})`
-        : "no tokens stored",
+      ok: credentialFailure === null,
+      detail: credentialFailure
+        ? `credential check failed (${credentialFailure})`
+        : tokens
+          ? `token present (fp=${tokenFingerprint(tokens.accessToken)})`
+          : "no tokens stored",
     },
     {
       name: "osKeychain",
-      ok: true,
-      detail: probe.available
-        ? probe.kind
-        : `${probe.kind} unavailable; file fallback (0600) if tokens are saved`,
+      ok: probe.available || explicitFile,
+      detail: explicitFile
+        ? "explicit POSIX file mode"
+        : probe.available
+          ? probe.kind
+          : `${probe.kind} unavailable; configure the OS keychain or explicit POSIX file mode`,
     },
     {
       name: "configHasNoTokens",
@@ -469,7 +479,7 @@ async function cmdAuth(
 
   if (sub === "status") {
     const verify = args.includes("--verify");
-    let tokens = loadTokens(profile.name, env);
+    let tokens = loadTokens(profile, env);
     if (!tokens) {
       writeSuccess(
         {
@@ -498,7 +508,7 @@ async function cmdAuth(
       if (outcome.status === "refreshed" || outcome.status === "unchanged") {
         tokens = outcome.tokens;
       } else {
-        tokens = loadTokens(profile.name, env) ?? tokens;
+        tokens = loadTokens(profile, env) ?? tokens;
       }
     }
 
@@ -515,7 +525,7 @@ async function cmdAuth(
       );
       verified = res.status >= 200 && res.status < 300;
       whoami = verified ? res.json : { status: res.status, body: res.json };
-      tokens = loadTokens(profile.name, env) ?? tokens;
+      tokens = loadTokens(profile, env) ?? tokens;
     }
 
     const accessTokenExpired = tokens.expiresAt <= Date.now();
@@ -551,7 +561,7 @@ async function cmdAuth(
   }
 
   if (sub === "logout") {
-    const tokens = loadTokens(profile.name, env);
+    const tokens = loadTokens(profile, env);
     let remoteRevoke: "ok" | "failed" | "skipped" = "skipped";
     if (tokens?.refreshToken) {
       try {
@@ -574,7 +584,7 @@ async function cmdAuth(
         remoteRevoke = "failed";
       }
     }
-    deleteTokens(profile.name, env);
+    deleteTokens(profile, env);
     const localCleared = true;
     const fullyLoggedOut = remoteRevoke !== "failed";
     // Never claim a clean remote logout when revoke failed while an RT was present.
@@ -663,7 +673,7 @@ async function cmdAuthLogin(
     }
     const tokens = extractTokenPair(res.json);
     saveTokens(
-      profile.name,
+      profile,
       {
         accessToken: tokens.access_token,
         refreshToken: tokens.refresh_token,
@@ -727,7 +737,7 @@ async function cmdAuthLogin(
       );
     }
     const tokens = extractTokenPair(res.json);
-    saveTokens(profile.name, {
+    saveTokens(profile, {
       accessToken: tokens.access_token,
       refreshToken: tokens.refresh_token,
       expiresAt: Date.now() + (tokens.expires_in ?? 600) * 1000,
@@ -832,7 +842,7 @@ async function cmdAuthLogin(
       }
       const tokens = extractTokenPair(poll.json);
       saveTokens(
-        profile.name,
+        profile,
         {
           accessToken: tokens.access_token,
           refreshToken: tokens.refresh_token,

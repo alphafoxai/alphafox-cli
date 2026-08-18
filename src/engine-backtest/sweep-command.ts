@@ -601,7 +601,7 @@ function requireAuth(
   env: NodeJS.ProcessEnv,
   loadTokensFn: typeof loadTokens
 ): void {
-  const tokens = loadTokensFn(profile.name, env);
+  const tokens = loadTokensFn(profile, env);
   if (tokens?.accessToken?.trim()) return;
   throw new EngineBacktestError({
     type: "http",

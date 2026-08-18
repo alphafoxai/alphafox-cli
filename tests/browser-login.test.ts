@@ -77,7 +77,7 @@ describe("browser PKCE login", () => {
         },
       });
       assert.equal(result.status, "authenticated");
-      const stored = loadTokens(profile.name, env);
+      const stored = loadTokens(profile, env);
       assert.equal(stored?.accessToken, "access-from-browser");
       assert.equal(stored?.refreshToken, "refresh-from-browser");
       assert.equal(
@@ -111,7 +111,7 @@ describe("browser PKCE login", () => {
       if (result.status === "failed") {
         assert.equal(result.reason, "state_mismatch");
       }
-      assert.equal(loadTokens(profile.name, env), null);
+      assert.equal(loadTokens(profile, env), null);
     } finally {
       rmSync(env.ALPHAFOX_KEYCHAIN_DIR!, { recursive: true, force: true });
     }
@@ -170,7 +170,7 @@ describe("browser PKCE login", () => {
       if (result.status === "failed") {
         assert.equal(result.reason, "token_exchange_failed");
       }
-      assert.equal(loadTokens(profile.name, env), null);
+      assert.equal(loadTokens(profile, env), null);
     } finally {
       rmSync(env.ALPHAFOX_KEYCHAIN_DIR!, { recursive: true, force: true });
     }

@@ -90,7 +90,7 @@ export async function apiRequest(
   };
 
   if (!options.skipAuth) {
-    let tokens = loadTokens(options.profile.name, env);
+    let tokens = loadTokens(options.profile, env);
     // Proactive refresh before the access token expires (or once already expired).
     if (tokens && accessTokenNeedsRefresh(tokens)) {
       const outcome = await refreshStoredTokens(
@@ -191,7 +191,7 @@ export async function apiRequest(
     (isReadMethod(init.method) ||
       (options.catalogIdempotent === true && Boolean(options.idempotencyKey)))
   ) {
-    const tokens = loadTokens(options.profile.name, env);
+    const tokens = loadTokens(options.profile, env);
     if (tokens?.refreshToken?.trim()) {
       const outcome = await refreshStoredTokens(
         options.profile,

@@ -84,20 +84,17 @@ test("apiRequest proactively refreshes near-expiry access tokens", async () => {
   clearRefreshInflightForTests();
   const env = fileKeychainEnv();
   try {
-    saveTokens(
-      profile.name,
-      {
-        accessToken: "old-access",
-        refreshToken: "old-refresh",
-        expiresAt: Date.now() - 1_000,
-        environment: "production",
-        issuer: profile.issuer,
-        audience: profile.audience,
-        clientId: profile.clientId,
-        scopes: ["openid", "profile", "offline_access"],
-      },
-      env
-    );
+    saveTokens(profile, {
+      accessToken: "old-access",
+      refreshToken: "old-refresh",
+      expiresAt: Date.now() - 1_000,
+      environment: "production",
+      issuer: profile.issuer,
+      audience: profile.audience,
+      clientId: profile.clientId,
+      scopes: ["openid", "profile", "offline_access"],
+    },
+    env);
 
     const calls: string[] = [];
     const fetchImpl: typeof fetch = async (input, init) => {
@@ -140,7 +137,7 @@ test("apiRequest proactively refreshes near-expiry access tokens", async () => {
     assert.equal(res.status, 200);
     assert.equal((res.json as { userId: string }).userId, "u1");
     assert.ok(calls.some((c) => c.includes("/api/auth/oauth/token")));
-    const stored = loadTokens(profile.name, env);
+    const stored = loadTokens(profile, env);
     assert.equal(stored?.accessToken, "new-access");
     assert.equal(stored?.refreshToken, "new-refresh");
   } finally {
@@ -153,21 +150,18 @@ test("apiRequest retries once after 401 via refresh_token", async () => {
   clearRefreshInflightForTests();
   const env = fileKeychainEnv();
   try {
-    saveTokens(
-      profile.name,
-      {
-        accessToken: "stale-access",
-        refreshToken: "live-refresh",
-        // Still "fresh" by clock so proactive path skips; server returns 401.
-        expiresAt: Date.now() + 10 * 60_000,
-        environment: "production",
-        issuer: profile.issuer,
-        audience: profile.audience,
-        clientId: profile.clientId,
-        scopes: ["openid", "profile", "offline_access"],
-      },
-      env
-    );
+    saveTokens(profile, {
+      accessToken: "stale-access",
+      refreshToken: "live-refresh",
+      // Still "fresh" by clock so proactive path skips; server returns 401.
+      expiresAt: Date.now() + 10 * 60_000,
+      environment: "production",
+      issuer: profile.issuer,
+      audience: profile.audience,
+      clientId: profile.clientId,
+      scopes: ["openid", "profile", "offline_access"],
+    },
+    env);
 
     let meHits = 0;
     const fetchImpl: typeof fetch = async (input, init) => {
@@ -210,7 +204,7 @@ test("apiRequest retries once after 401 via refresh_token", async () => {
     assert.equal(res.status, 200);
     assert.equal((res.json as { userId: string }).userId, "u2");
     assert.equal(meHits, 2);
-    assert.equal(loadTokens(profile.name, env)?.accessToken, "fresh-access");
+    assert.equal(loadTokens(profile, env)?.accessToken, "fresh-access");
   } finally {
     rmSync(env.ALPHAFOX_KEYCHAIN_DIR!, { recursive: true, force: true });
     clearRefreshInflightForTests();

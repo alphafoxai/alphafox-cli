@@ -243,29 +243,28 @@ export async function runCli(
         return await cmdTyped(cmd, args, flags, env);
     }
   } catch (err) {
+    const errorObject =
+      err && typeof err === "object"
+        ? (err as Record<string, unknown>)
+        : undefined;
     const message = err instanceof Error ? err.message : String(err);
     const status =
-      err && typeof err === "object" && "status" in err
-        ? Number((err as { status: unknown }).status)
-        : undefined;
+      typeof errorObject?.status === "number" ? errorObject.status : undefined;
     const type =
-      err && typeof err === "object" && "type" in err
-        ? String((err as { type: unknown }).type)
-        : "runtime";
+      typeof errorObject?.type === "string" ? errorObject.type : "runtime";
     const subtype =
-      err && typeof err === "object" && "subtype" in err
-        ? String((err as { subtype: unknown }).subtype)
+      typeof errorObject?.subtype === "string"
+        ? errorObject.subtype
         : undefined;
-    const details =
-      err && typeof err === "object" && "details" in err
-        ? (err as { details: unknown }).details
-        : undefined;
+    const hint =
+      typeof errorObject?.hint === "string" ? errorObject.hint : undefined;
+    const details = errorObject?.details;
     const requestId =
-      err && typeof err === "object" && "requestId" in err
-        ? String((err as { requestId: unknown }).requestId)
+      typeof errorObject?.requestId === "string"
+        ? errorObject.requestId
         : undefined;
     writeError(
-      { type, message, status, subtype, details },
+      { type, message, status, subtype, hint, details },
       { requestId, exitCode: status === 401 || status === 403 ? 77 : undefined }
     );
   }

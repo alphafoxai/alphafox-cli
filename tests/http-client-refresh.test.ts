@@ -10,6 +10,7 @@ import {
 } from "../src/auth/refresh";
 import type { ProfileConfig } from "../src/config/profiles";
 import { apiRequest } from "../src/http/client";
+import { CATALOG_SOURCE, COMPATIBILITY_RANGE } from "../src/catalog/operations";
 import { loadTokens, saveTokens } from "../src/keychain/store";
 
 const profile: ProfileConfig = {
@@ -19,6 +20,21 @@ const profile: ProfileConfig = {
   audience: "https://alphafox.app/api/v1",
   clientId: "alphafox-cli-prod",
 };
+
+function deployedMetadata(): Response {
+  return new Response(
+    JSON.stringify({
+      environment: "production",
+      contractVersion: COMPATIBILITY_RANGE.contractVersion,
+      registryVersion: COMPATIBILITY_RANGE.registryVersion,
+      openapi: COMPATIBILITY_RANGE.openapi,
+      minCliVersion: COMPATIBILITY_RANGE.minCliVersion,
+      maxCliVersion: COMPATIBILITY_RANGE.maxCliVersion,
+      contractsSha: CATALOG_SOURCE.contractsSha,
+    }),
+    { status: 200 }
+  );
+}
 
 function fileKeychainEnv(): NodeJS.ProcessEnv {
   const dir = mkdtempSync(join(tmpdir(), "alphafox-cli-refresh-"));
@@ -100,6 +116,7 @@ test("apiRequest proactively refreshes near-expiry access tokens", async () => {
     const fetchImpl: typeof fetch = async (input, init) => {
       const url = String(input);
       calls.push(`${init?.method ?? "GET"} ${url}`);
+      if (url.endsWith("/api/v1/meta")) return deployedMetadata();
       if (url.endsWith("/api/auth/oauth/token")) {
         const body = JSON.parse(String(init?.body ?? "{}")) as {
           grant_type?: string;
@@ -166,6 +183,7 @@ test("apiRequest retries once after 401 via refresh_token", async () => {
     let meHits = 0;
     const fetchImpl: typeof fetch = async (input, init) => {
       const url = String(input);
+      if (url.endsWith("/api/v1/meta")) return deployedMetadata();
       if (url.includes("/api/auth/oauth/token")) {
         return new Response(
           JSON.stringify({

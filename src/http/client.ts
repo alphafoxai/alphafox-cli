@@ -11,6 +11,7 @@ import {
   isInternalDisallowedPath,
   normalizeApiPath,
 } from "../catalog/allowlist";
+import { verifyDeployedMetadata } from "./metadata";
 
 export interface ApiRequestOptions {
   readonly method: string;
@@ -65,6 +66,9 @@ export async function apiRequest(
         }
       );
     }
+  }
+  if (path !== "/api/v1/meta" && path.startsWith("/api/v1/")) {
+    await verifyDeployedMetadata(options.profile, env, fetchImpl);
   }
 
   const requestId = options.requestId ?? newRequestId();

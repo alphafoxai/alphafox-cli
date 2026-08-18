@@ -43,6 +43,14 @@ export function getLastTokenSaveResult(): TokenStorageResult | null { return las
 export function credentialSlot(profile: ProfileConfig): string { return profileCredentialSlot(canonicalProfile(profile)); }
 export function keychainServiceName(profile: ProfileConfig): string { return `alphafox-cli.${credentialSlot(profile)}`; }
 export function keychainAccountName(): string { return "oauth-tokens"; }
+function legacyKeychainServiceName(profile: ProfileConfig): string { return `alphafox-cli.${profile.name}`; }
+function legacyCredentialSlot(profile: ProfileConfig): string { return profile.name; }
+
+function previousProductionProfile(profile: ProfileConfig): ProfileConfig | null {
+  const canonical = canonicalProfile(profile);
+  if (canonical.name !== "production" || canonical.apiBaseUrl !== "https://www.alphafox.app/api/v1") return null;
+  return { ...canonical, apiBaseUrl: "https://alphafox.app/api/v1" };
+}
 
 /** Test-only override. Production uses process.platform. */
 export function keychainPlatform(env: NodeJS.ProcessEnv = process.env): NodeJS.Platform {
@@ -61,6 +69,23 @@ export function probeOsKeychain(env: NodeJS.ProcessEnv = process.env): { readonl
 function filePath(profile: ProfileConfig, env: NodeJS.ProcessEnv): string {
   const base = env.ALPHAFOX_KEYCHAIN_DIR?.trim() || join(homedir(), ".config", "alphafox", "keychain");
   return join(base, `${credentialSlot(profile)}.tokens.json`);
+}
+function legacyFilePath(profile: ProfileConfig, env: NodeJS.ProcessEnv): string {
+  const base = env.ALPHAFOX_KEYCHAIN_DIR?.trim() || join(homedir(), ".config", "alphafox", "keychain");
+  return join(base, `${profile.name}.tokens.json`);
+}
+function previousProductionFilePath(profile: ProfileConfig, env: NodeJS.ProcessEnv): string | null {
+  const previous = previousProductionProfile(profile);
+  return previous ? filePath(previous, env) : null;
+}
+
+function removeFile(path: string): void {
+  try { unlinkSync(path); }
+  catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+      throw keychainFailure("keychain_delete_failed", "Unable to remove file credentials securely.");
+    }
+  }
 }
 function fileMode(path: string): number { return statSync(path).mode & 0o777; }
 function keychainFailure(subtype: string, message: string): CredentialError { return new CredentialError({ type: "runtime", subtype, status: 503, message }); }
@@ -113,7 +138,7 @@ function writeSecureFile(path: string, payload: string): void {
 function readSecureFile(path: string, profile: ProfileConfig): StoredTokens | null {
   if (!existsSync(path)) return null;
   try {
-    if (fileMode(path) !== 0o600) { chmodSync(path, 0o600); if (fileMode(path) !== 0o600) throw invalidCredential(); }
+    if (fileMode(path) !== 0o600) throw keychainFailure("file_keychain_insecure", "Refusing to read file credentials unless mode is 0600.");
     return parsePayload(readFileSync(path, "utf8"), profile);
   } catch (error) {
     if (error instanceof CredentialError) throw error;
@@ -126,9 +151,9 @@ function requireExplicitFileMode(profile: ProfileConfig, env: NodeJS.ProcessEnv)
   return filePath(profile, env);
 }
 
-function macRead(profile: ProfileConfig): { readonly status: "found"; readonly value: string } | { readonly status: "missing" } {
+function macRead(profile: ProfileConfig, legacy = false): { readonly status: "found"; readonly value: string } | { readonly status: "missing" } {
   try {
-    const value = execFileSync("security", ["find-generic-password", "-s", keychainServiceName(profile), "-a", keychainAccountName(), "-w"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+    const value = execFileSync("security", ["find-generic-password", "-s", legacy ? legacyKeychainServiceName(profile) : keychainServiceName(profile), "-a", keychainAccountName(), "-w"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
     return value ? { status: "found", value } : { status: "missing" };
   } catch (error) {
     const status = error && typeof error === "object" && "status" in error && typeof error.status === "number" ? error.status : undefined;
@@ -166,31 +191,106 @@ export function loadTokens(profile: ProfileConfig, env: NodeJS.ProcessEnv = proc
     const injected: StoredTokens = { accessToken: env.ALPHAFOX_TEST_ACCESS_TOKEN.trim(), refreshToken: env.ALPHAFOX_TEST_REFRESH_TOKEN ?? "", expiresAt: expires ? Number(expires) : Date.now() + 3_600_000, environment: env.ALPHAFOX_TEST_ENVIRONMENT ?? canonical.name, issuer: env.ALPHAFOX_TEST_ISSUER ?? canonical.issuer, audience: env.ALPHAFOX_TEST_AUDIENCE ?? "", clientId: env.ALPHAFOX_TEST_CLIENT_ID ?? canonical.clientId, scopes: (env.ALPHAFOX_TEST_SCOPES ?? "openid profile").split(/\s+/).filter(Boolean) };
     return validateTokens(injected, canonical);
   }
-  if (env.ALPHAFOX_FORCE_FILE_KEYCHAIN === "1") return readSecureFile(requireExplicitFileMode(canonical, env), canonical);
+  if (env.ALPHAFOX_FORCE_FILE_KEYCHAIN === "1") {
+    const current = readSecureFile(requireExplicitFileMode(canonical, env), canonical);
+    if (current) return current;
+    const previousPath = previousProductionFilePath(canonical, env);
+    if (previousPath) {
+      const previous = readSecureFile(previousPath, canonical);
+      if (previous) {
+        saveTokens(canonical, previous, env);
+        removeFile(previousPath);
+        return previous;
+      }
+    }
+    const legacyPath = legacyFilePath(canonical, env);
+    const legacy = readSecureFile(legacyPath, canonical);
+    if (!legacy) return null;
+    saveTokens(canonical, legacy, env);
+    removeFile(legacyPath);
+    return legacy;
+  }
   const probe = probeOsKeychain(env);
   if (!probe.available) throw keychainFailure("keychain_unavailable", "OS credential storage is unavailable. Set up the OS keychain or use explicit POSIX file mode.");
-  let result: { readonly status: "found"; readonly value: string } | { readonly status: "missing" };
+  let result = readOsTokens(canonical, probe.kind, false, env);
+  if (result.status === "found") return parsePayload(result.value, canonical);
+  const previous = previousProductionProfile(canonical);
+  if (previous) {
+    result = readOsTokens(previous, probe.kind, false, env);
+    if (result.status === "found") {
+      const migrated = parsePayload(result.value, canonical);
+      saveTokens(canonical, migrated, env);
+      deleteOsTokens(previous, probe.kind, false, env);
+      return migrated;
+    }
+  }
+  result = readOsTokens(canonical, probe.kind, true, env);
+  if (result.status === "missing") return null;
+  const legacy = parsePayload(result.value, canonical);
+  saveTokens(canonical, legacy, env);
+  deleteOsTokens(canonical, probe.kind, true, env);
+  return legacy;
+}
+
+function readOsTokens(
+  profile: ProfileConfig,
+  kind: OsKeychainKind,
+  legacy: boolean,
+  env: NodeJS.ProcessEnv
+): { readonly status: "found"; readonly value: string } | { readonly status: "missing" } {
   try {
-    if (probe.kind === "linux-secret-service") result = linuxSecretServiceReadResult(keychainServiceName(canonical), keychainAccountName(), env);
-    else if (probe.kind === "windows-credential-manager") result = windowsCredentialReadResult(credentialSlot(canonical), env);
-    else if (probe.kind === "macos-security") result = macRead(canonical);
-    else throw keychainFailure("keychain_unavailable", "OS credential storage is unavailable.");
-  } catch (error) { if (error instanceof CredentialError) throw error; throw keychainFailure("keychain_read_failed", "OS credential storage failed while reading credentials."); }
-  return result.status === "found" ? parsePayload(result.value, canonical) : null;
+    if (kind === "linux-secret-service") return linuxSecretServiceReadResult(legacy ? legacyKeychainServiceName(profile) : keychainServiceName(profile), keychainAccountName(), env);
+    if (kind === "windows-credential-manager") return windowsCredentialReadResult(legacy ? legacyCredentialSlot(profile) : credentialSlot(profile), env);
+    if (kind === "macos-security") return macRead(profile, legacy);
+    throw keychainFailure("keychain_unavailable", "OS credential storage is unavailable.");
+  } catch (error) {
+    if (error instanceof CredentialError) throw error;
+    throw keychainFailure("keychain_read_failed", "OS credential storage failed while reading credentials.");
+  }
 }
 
 export function deleteTokens(profile: ProfileConfig, env: NodeJS.ProcessEnv = process.env): void {
   const canonical = canonicalProfile(profile);
-  if (env.ALPHAFOX_FORCE_FILE_KEYCHAIN === "1") {
-    const path = requireExplicitFileMode(canonical, env); try { unlinkSync(path); } catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw keychainFailure("keychain_delete_failed", "Unable to remove file credentials securely."); } return;
-  }
+  let failure: unknown;
+  const attempt = (remove: () => void): void => {
+    try { remove(); } catch (error) { failure ??= error; }
+  };
+  attempt(() => removeFile(filePath(canonical, env)));
+  attempt(() => removeFile(legacyFilePath(canonical, env)));
+  const previousPath = previousProductionFilePath(canonical, env);
+  if (previousPath) attempt(() => removeFile(previousPath));
   const probe = probeOsKeychain(env);
-  if (!probe.available) throw keychainFailure("keychain_unavailable", "OS credential storage is unavailable. Set up the OS keychain or use explicit POSIX file mode.");
+  if (probe.available) {
+    attempt(() => deleteOsTokens(canonical, probe.kind, false, env));
+    attempt(() => deleteOsTokens(canonical, probe.kind, true, env));
+    const previous = previousProductionProfile(canonical);
+    if (previous) attempt(() => deleteOsTokens(previous, probe.kind, false, env));
+  } else if (env.ALPHAFOX_FORCE_FILE_KEYCHAIN !== "1") {
+    failure ??= keychainFailure(
+      "keychain_unavailable",
+      "OS credential storage is unavailable. Set up the OS keychain or use explicit POSIX file mode."
+    );
+  }
+  if (failure) throw failure;
+}
+
+function deleteOsTokens(
+  profile: ProfileConfig,
+  kind: OsKeychainKind,
+  legacy: boolean,
+  env: NodeJS.ProcessEnv
+): void {
   try {
-    if (probe.kind === "linux-secret-service") linuxSecretServiceDelete(keychainServiceName(canonical), keychainAccountName(), env);
-    else if (probe.kind === "windows-credential-manager") windowsCredentialDelete(credentialSlot(canonical), env);
-    else if (probe.kind === "macos-security") { try { execFileSync("security", ["delete-generic-password", "-s", keychainServiceName(canonical), "-a", keychainAccountName()], { stdio: "ignore" }); } catch (error) { const status = error && typeof error === "object" && "status" in error && typeof error.status === "number" ? error.status : undefined; if (status !== 44) throw error; } }
-  } catch (error) { if (error instanceof CredentialError) throw error; throw keychainFailure("keychain_delete_failed", "OS credential storage failed while removing credentials."); }
+    if (kind === "linux-secret-service") linuxSecretServiceDelete(legacy ? legacyKeychainServiceName(profile) : keychainServiceName(profile), keychainAccountName(), env);
+    else if (kind === "windows-credential-manager") windowsCredentialDelete(legacy ? legacyCredentialSlot(profile) : credentialSlot(profile), env);
+    else if (kind === "macos-security") {
+      try { execFileSync("security", ["delete-generic-password", "-s", legacy ? legacyKeychainServiceName(profile) : keychainServiceName(profile), "-a", keychainAccountName()], { stdio: "ignore" }); }
+      catch (error) { const status = error && typeof error === "object" && "status" in error && typeof error.status === "number" ? error.status : undefined; if (status !== 44) throw error; }
+    } else throw keychainFailure("keychain_unavailable", "OS credential storage is unavailable.");
+  } catch (error) {
+    if (error instanceof CredentialError) throw error;
+    throw keychainFailure("keychain_delete_failed", "OS credential storage failed while removing credentials.");
+  }
 }
 
 export function tokenFingerprint(token: string): string { return createHash("sha256").update(token).digest("hex").slice(0, 12); }

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { chmodSync, existsSync, mkdtempSync, rmSync } from "node:fs";
+import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
@@ -12,6 +12,7 @@ import {
   saveTokens,
   type StoredTokens,
 } from "../src/keychain/store";
+import { profileCredentialSlot, resolveProfile } from "../src/config/profiles";
 const fixtureDir = existsSync(join(__dirname, "fixtures")) ? join(__dirname, "fixtures") : join(__dirname, "..", "..", "tests", "fixtures");
 const fixtureSecret = join(fixtureDir, "fake-secret-tool");
 const fixturePs = join(fixtureDir, "fake-powershell");
@@ -91,6 +92,76 @@ describe("OS keychain backends", () => {
       assert.equal(loadTokens(profile, env)?.accessToken, "access-win-1");
       deleteTokens(profile, env);
       assert.equal(loadTokens(profile, env), null);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("logout removes OS, authority-bound file, and legacy file credentials", () => {
+    chmodSync(fixtureSecret, 0o755);
+    const dir = mkdtempSync(join(tmpdir(), "alphafox-logout-all-"));
+    const baseEnv: NodeJS.ProcessEnv = {
+      ALPHAFOX_KEYCHAIN_PLATFORM: "linux",
+      ALPHAFOX_SECRET_TOOL: fixtureSecret,
+      ALPHAFOX_FAKE_SECRET_DIR: dir,
+      ALPHAFOX_KEYCHAIN_DIR: join(dir, "files"),
+    };
+    try {
+      const fileSave = saveTokens(profile, sample, {
+        ...baseEnv,
+        ALPHAFOX_FORCE_FILE_KEYCHAIN: "1",
+      });
+      assert.equal(fileSave.backend, "file");
+      saveTokens(profile, { ...sample, accessToken: "os-access" }, baseEnv);
+
+      deleteTokens(profile, {
+        ...baseEnv,
+        ALPHAFOX_FORCE_FILE_KEYCHAIN: "1",
+      });
+      assert.equal(existsSync(fileSave.path!), false);
+      assert.equal(loadTokens(profile, baseEnv), null);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("migrates and removes the previous production apex-hash OS credential", () => {
+    chmodSync(fixtureSecret, 0o755);
+    const dir = mkdtempSync(join(tmpdir(), "alphafox-prod-secret-migration-"));
+    const env: NodeJS.ProcessEnv = {
+      ALPHAFOX_KEYCHAIN_PLATFORM: "linux",
+      ALPHAFOX_SECRET_TOOL: fixtureSecret,
+      ALPHAFOX_FAKE_SECRET_DIR: dir,
+      ALPHAFOX_KEYCHAIN_DIR: join(dir, "files"),
+    };
+    const current = resolveProfile("production", env);
+    const previous = { ...current, apiBaseUrl: "https://alphafox.app/api/v1" };
+    const tokens: StoredTokens = {
+      ...sample,
+      environment: current.name,
+      issuer: current.issuer,
+      audience: current.audience,
+      clientId: current.clientId,
+    };
+    const oldFile = join(
+      dir,
+      `alphafox-cli.${profileCredentialSlot(previous)}__oauth-tokens`
+    );
+    const currentFile = join(
+      dir,
+      `alphafox-cli.${profileCredentialSlot(current)}__oauth-tokens`
+    );
+    try {
+      saveTokens(previous, tokens, env);
+      assert.equal(readFileSync(oldFile, "utf8").includes("access-linux-1"), true);
+      assert.equal(loadTokens(current, env)?.accessToken, "access-linux-1");
+      assert.equal(existsSync(oldFile), false);
+      assert.equal(existsSync(currentFile), true);
+
+      saveTokens(previous, tokens, env);
+      deleteTokens(current, env);
+      assert.equal(existsSync(oldFile), false);
+      assert.equal(existsSync(currentFile), false);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

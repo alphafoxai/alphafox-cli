@@ -67,9 +67,22 @@ async function captureStatus(
   }
 }
 
+function deployedMetadata(): Response {
+  return new Response(JSON.stringify({
+    environment: "local",
+    contractVersion: "2026-08-13",
+    registryVersion: "1.1.0",
+    openapi: "3.1.0",
+    minCliVersion: "0.0.0",
+    maxCliVersion: "0.99.99",
+    contractsSha: "74673c2b",
+  }), { status: 200, headers: { "content-type": "application/json" } });
+}
+
 function rotatingFetch(): typeof fetch {
   return async (input) => {
     const url = String(input);
+    if (url.includes("/api/v1/meta")) return deployedMetadata();
     if (url.includes("/api/auth/oauth/token")) {
       return new Response(
         JSON.stringify({

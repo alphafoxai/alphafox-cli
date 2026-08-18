@@ -25,7 +25,7 @@ export interface CliConfigFile {
 }
 
 const DEFAULTS: Record<ProfileName, ProfileConfig> = {
-  production: { name: "production", apiBaseUrl: "https://alphafox.app/api/v1", issuer: "https://alphafox.app/api/auth", audience: "https://alphafox.app/api/v1", clientId: "alphafox-cli-prod", contractVersion: "2026-08-13" },
+  production: { name: "production", apiBaseUrl: "https://www.alphafox.app/api/v1", issuer: "https://alphafox.app/api/auth", audience: "https://alphafox.app/api/v1", clientId: "alphafox-cli-prod", contractVersion: "2026-08-13" },
   staging: { name: "staging", apiBaseUrl: "https://staging.alphafox.app/api/v1", issuer: "https://staging.alphafox.app/api/auth", audience: "https://staging.alphafox.app/api/v1", clientId: "alphafox-cli-staging", contractVersion: "2026-08-13" },
   local: { name: "local", apiBaseUrl: "http://127.0.0.1:3000/api/v1", issuer: "http://127.0.0.1:3000/api/auth", audience: "http://127.0.0.1:3000/api/v1", clientId: "alphafox-cli-local", localOrigin: "http://127.0.0.1:3000", contractVersion: "2026-08-13" },
 };
@@ -81,6 +81,16 @@ function assertPlainObject(value: unknown, label: string): asserts value is Reco
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`Invalid config: ${label} must be an object.`);
 }
 
+function isForbiddenConfigKey(key: string): boolean {
+  const lower = key.toLowerCase();
+  return (
+    lower.includes("token") ||
+    lower.includes("secret") ||
+    lower.includes("password") ||
+    lower === "authorization"
+  );
+}
+
 function validateProfileOverrides(profiles: unknown): asserts profiles is Partial<Record<ProfileName, Partial<ProfileConfig>>> {
   assertPlainObject(profiles, "profiles");
   for (const [key, value] of Object.entries(profiles)) {
@@ -96,12 +106,12 @@ export function loadConfigFile(env: NodeJS.ProcessEnv = process.env): CliConfigF
   if (!existsSync(path)) return { activeProfile: "production", profiles: {} };
   const raw: unknown = JSON.parse(readFileSync(path, "utf8"));
   assertPlainObject(raw, "root");
-  if (raw.tokens != null || raw.accessToken != null || raw.refreshToken != null || raw.secret != null) throw new Error("Refusing to load config: tokens/secrets must not be stored in config files. Remove them and use the OS keychain.");
+  assertNoTokenFields(raw);
   const activeProfile = raw.activeProfile ?? "production";
   if (!isProfileName(activeProfile)) throw new Error(`Invalid config: unknown activeProfile "${String(activeProfile)}".`);
   validateProfileOverrides(raw.profiles ?? {});
   if (raw.unsafeCustomEndpoint != null && typeof raw.unsafeCustomEndpoint !== "string") throw new Error("Invalid config: unsafeCustomEndpoint must be a string.");
-  return { activeProfile, profiles: raw.profiles as Partial<Record<ProfileName, Partial<ProfileConfig>>>, unsafeCustomEndpoint: raw.unsafeCustomEndpoint as string | undefined };
+  return { activeProfile, profiles: (raw.profiles ?? {}) as Partial<Record<ProfileName, Partial<ProfileConfig>>>, unsafeCustomEndpoint: raw.unsafeCustomEndpoint as string | undefined };
 }
 
 export function saveConfigFile(config: CliConfigFile, env: NodeJS.ProcessEnv = process.env): void {
@@ -134,8 +144,12 @@ export function resolveProfile(name?: ProfileName | string, env: NodeJS.ProcessE
 
 export function assertNoTokenFields(config: unknown): void {
   if (!config || typeof config !== "object") return;
-  for (const key of Object.keys(config as Record<string, unknown>)) {
-    const lower = key.toLowerCase();
-    if (lower.includes("token") || lower.includes("secret") || lower.includes("password") || lower === "authorization") throw new Error(`Forbidden config field: ${key}`);
+  if (Array.isArray(config)) {
+    for (const value of config) assertNoTokenFields(value);
+    return;
+  }
+  for (const [key, value] of Object.entries(config as Record<string, unknown>)) {
+    if (isForbiddenConfigKey(key)) throw new Error(`Forbidden config field: ${key}`);
+    assertNoTokenFields(value);
   }
 }

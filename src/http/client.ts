@@ -79,8 +79,9 @@ export async function apiRequest(
     const origin = base.replace(/\/api\/v1$/, "");
     url = `${origin}${path}${query}`;
   } else if (path.startsWith("/api/auth")) {
-    const origin = base.replace(/\/api\/v1$/, "");
-    url = `${origin}${path}${query}`;
+    const issuer = options.profile.issuer.replace(/\/$/, "");
+    const oauthPath = path.replace(/^\/api\/auth/, "");
+    url = `${issuer}${oauthPath}${query}`;
   } else {
     url = `${base}${path.startsWith("/") ? path : `/${path}`}${query}`;
   }
@@ -236,7 +237,7 @@ function isMutationMethod(method: string | undefined): boolean {
   return !isReadMethod(method);
 }
 
-/** Follow only exact-origin redirects for reads; never replay mutations. */
+/** Follow only redirects within the profile's authorized auth site for reads; never replay mutations. */
 async function fetchFollowingAuthRedirects(
   fetchImpl: typeof fetch,
   startUrl: string,
@@ -259,7 +260,7 @@ async function fetchFollowingAuthRedirects(
     } catch {
       break;
     }
-    if (originOf(url) !== originOf(nextUrl)) break;
+    if (!sameAuthSite(originOf(url), originOf(nextUrl))) break;
     url = nextUrl;
     response = await fetchImpl(url, { ...init, method, redirect: "manual" });
   }
@@ -278,20 +279,24 @@ function originOf(value: string | null | undefined): string | null {
   }
 }
 
-/** Apex and www hosts of the same site share auth tokens. */
+/** Only the known AlphaFox production apex/www pair shares bearer credentials. */
 function sameAuthSite(
   a: string | null | undefined,
   b: string | null | undefined
 ): boolean {
   if (!a || !b) return false;
-  if (a === b) return true;
   try {
-    const ua = new URL(a);
-    const ub = new URL(b);
-    if (ua.protocol !== ub.protocol) return false;
-    const ha = ua.hostname.replace(/^www\./i, "").toLowerCase();
-    const hb = ub.hostname.replace(/^www\./i, "").toLowerCase();
-    return ha === hb && ua.port === ub.port;
+    const left = new URL(a);
+    const right = new URL(b);
+    if (left.protocol !== right.protocol || left.port !== right.port) return false;
+    if (left.hostname === right.hostname) return true;
+    return (
+      left.protocol === "https:" &&
+      left.port === "" &&
+      [left.hostname, right.hostname].every(
+        (host) => host === "alphafox.app" || host === "www.alphafox.app"
+      )
+    );
   } catch {
     return false;
   }

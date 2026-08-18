@@ -204,8 +204,8 @@ async function performRefresh(
   env: NodeJS.ProcessEnv,
   fetchImpl: typeof fetch
 ): Promise<RefreshOutcome> {
-  const origin = profile.apiBaseUrl.replace(/\/$/, "").replace(/\/api\/v1$/, "");
-  const url = `${origin}/api/auth/oauth/token`;
+  const issuer = profile.issuer.replace(/\/$/, "");
+  const url = `${issuer}/oauth/token`;
   const body = {
     grant_type: "refresh_token",
     refresh_token: existing.refreshToken,

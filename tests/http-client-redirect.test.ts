@@ -13,6 +13,11 @@ const profile: ProfileConfig = {
   clientId: "alphafox-cli-prod",
 };
 
+const canonicalProfile: ProfileConfig = {
+  ...profile,
+  apiBaseUrl: "https://www.alphafox.app/api/v1",
+};
+
 function deployedMetadata(): Response {
   return new Response(
     JSON.stringify({
@@ -28,22 +33,21 @@ function deployedMetadata(): Response {
   );
 }
 
-test("apiRequest never hops cross-origin redirects with bearer auth", async () => {
+test("apiRequest follows the authorized AlphaFox apex-to-www read redirect", async () => {
   const seen: Array<{ url: string; authorization: string | null }> = [];
   const fetchImpl: typeof fetch = async (input, init) => {
     const url = String(input);
     const headers = new Headers(init?.headers);
-    seen.push({
-      url,
-      authorization: headers.get("authorization"),
-    });
+    seen.push({ url, authorization: headers.get("authorization") });
     if (url.endsWith("/api/v1/meta")) return deployedMetadata();
-    return new Response(null, {
-      status: 308,
-      headers: { location: "https://www.alphafox.app/api/v1/me" },
-    });
+    if (url.startsWith("https://alphafox.app/")) {
+      return new Response(null, {
+        status: 308,
+        headers: { location: "https://www.alphafox.app/api/v1/me" },
+      });
+    }
+    return new Response(JSON.stringify({ userId: "user-1" }), { status: 200 });
   };
-
   const env = {
     ALPHAFOX_TEST_ACCESS_TOKEN: "test-access-token",
     ALPHAFOX_TEST_REFRESH_TOKEN: "refresh",
@@ -58,12 +62,39 @@ test("apiRequest never hops cross-origin redirects with bearer auth", async () =
     fetchImpl
   );
 
-  assert.equal(res.status, 308);
-  assert.equal(seen.length, 2);
-  assert.equal(seen[0]?.url, "https://alphafox.app/api/v1/meta");
+  assert.equal(res.status, 200);
+  assert.deepEqual(seen.map((call) => call.url), [
+    "https://alphafox.app/api/v1/meta",
+    "https://alphafox.app/api/v1/me",
+    "https://www.alphafox.app/api/v1/me",
+  ]);
   assert.equal(seen[0]?.authorization, null);
-  assert.equal(seen[1]?.url, "https://alphafox.app/api/v1/me");
   assert.equal(seen[1]?.authorization, "Bearer test-access-token");
+  assert.equal(seen[2]?.authorization, "Bearer test-access-token");
+});
+
+test("apiRequest never follows bearer redirects for arbitrary apex/www hosts", async () => {
+  const customProfile = {
+    ...profile,
+    apiBaseUrl: "https://custom.example/api/v1",
+    issuer: "https://custom.example/api/auth",
+    audience: "https://custom.example/api/v1",
+  };
+  let operationalCalls = 0;
+  const res = await apiRequest(
+    { method: "GET", path: "/api/v1/me", profile: customProfile, skipAuth: true },
+    {},
+    async (input) => {
+      if (String(input).endsWith("/api/v1/meta")) return deployedMetadata();
+      operationalCalls += 1;
+      return new Response(null, {
+        status: 308,
+        headers: { location: "https://www.custom.example/api/v1/me" },
+      });
+    }
+  );
+  assert.equal(res.status, 308);
+  assert.equal(operationalCalls, 1);
 });
 
 test("mutation redirects are outcome_unknown after one operational fetch", async () => {
@@ -119,7 +150,7 @@ test("mutation transport errors are outcome_unknown after one operational fetch"
   assert.equal(operationalCalls, 1);
 });
 
-test("apiRequest preserves query string on the request URL", async () => {
+test("apiRequest preserves query string on the canonical production URL", async () => {
   const seen: string[] = [];
   const fetchImpl: typeof fetch = async (input) => {
     const url = String(input);
@@ -129,20 +160,93 @@ test("apiRequest preserves query string on the request URL", async () => {
   };
   const env = {
     ALPHAFOX_TEST_ACCESS_TOKEN: "test-access-token",
-    ALPHAFOX_TEST_AUDIENCE: profile.audience,
+    ALPHAFOX_TEST_AUDIENCE: canonicalProfile.audience,
   };
   const res = await apiRequest(
     {
       method: "GET",
       path: "/api/v1/trading/traders/performance?ids=t1,t2&window=7d&fields=list",
-      profile,
+      profile: canonicalProfile,
     },
     env,
     fetchImpl
   );
   assert.equal(res.status, 200);
-  assert.equal(seen[1], "https://alphafox.app/api/v1/trading/traders/performance?ids=t1,t2&window=7d&fields=list");
+  assert.equal(seen.at(-1), "https://www.alphafox.app/api/v1/trading/traders/performance?ids=t1,t2&window=7d&fields=list");
 });
+
+test("canonical production mutations do not encounter an apex redirect", async () => {
+  const seen: string[] = [];
+  const res = await apiRequest(
+    {
+      method: "POST",
+      path: "/api/v1/trading/traders",
+      profile: { ...canonicalProfile, clientId: `canonical-${Date.now()}-${Math.random()}` },
+      body: { strategyType: "grid" },
+    },
+    { ALPHAFOX_CONFIG_DIR: `/tmp/alphafox-canonical-${Date.now()}-${Math.random()}`, ALPHAFOX_KEYCHAIN_DIR: `/tmp/alphafox-canonical-keychain-${Date.now()}-${Math.random()}`, ALPHAFOX_FORCE_FILE_KEYCHAIN: "1" },
+    async (input) => {
+      const url = String(input);
+      seen.push(url);
+      if (url.endsWith("/api/v1/meta")) return deployedMetadata();
+      return new Response(JSON.stringify({ traderId: "t1" }), {
+        status: 201,
+        headers: { "content-type": "application/json" },
+      });
+    }
+  );
+  assert.equal(res.status, 201);
+  assert.deepEqual(seen, [
+    "https://www.alphafox.app/api/v1/meta",
+    "https://www.alphafox.app/api/v1/trading/traders",
+  ]);
+});
+
+test("OAuth mutations use the configured issuer rather than the API host", async () => {
+  const seen: string[] = [];
+  const res = await apiRequest(
+    {
+      method: "POST",
+      path: "/api/auth/oauth/token",
+      profile: canonicalProfile,
+      skipAuth: true,
+      body: { grant_type: "authorization_code" },
+    },
+    {},
+    async (input) => {
+      seen.push(String(input));
+      return new Response(JSON.stringify({ access_token: "access" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+  );
+  assert.equal(res.status, 200);
+  assert.deepEqual(seen, ["https://alphafox.app/api/auth/oauth/token"]);
+});
+test("OAuth mutations preserve a custom issuer path", async () => {
+  const seen: string[] = [];
+  await apiRequest(
+    {
+      method: "POST",
+      path: "/api/auth/oauth/token",
+      profile: {
+        ...canonicalProfile,
+        issuer: "https://identity.example/tenant/authorization-server",
+      },
+      skipAuth: true,
+    },
+    {},
+    async (input) => {
+      seen.push(String(input));
+      return new Response(null, { status: 204 });
+    }
+  );
+  assert.deepEqual(seen, [
+    "https://identity.example/tenant/authorization-server/oauth/token",
+  ]);
+});
+
 
 test("apiRequest refuses credentials bound to a different authority", async () => {
   const env = {

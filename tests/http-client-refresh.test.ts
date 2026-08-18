@@ -15,7 +15,7 @@ import { loadTokens, saveTokens } from "../src/keychain/store";
 
 const profile: ProfileConfig = {
   name: "production",
-  apiBaseUrl: "https://alphafox.app/api/v1",
+  apiBaseUrl: "https://www.alphafox.app/api/v1",
   issuer: "https://alphafox.app/api/auth",
   audience: "https://alphafox.app/api/v1",
   clientId: "alphafox-cli-prod",
@@ -153,7 +153,7 @@ test("apiRequest proactively refreshes near-expiry access tokens", async () => {
     );
     assert.equal(res.status, 200);
     assert.equal((res.json as { userId: string }).userId, "u1");
-    assert.ok(calls.some((c) => c.includes("/api/auth/oauth/token")));
+    assert.ok(calls.includes("POST https://alphafox.app/api/auth/oauth/token"));
     const stored = loadTokens(profile, env);
     assert.equal(stored?.accessToken, "new-access");
     assert.equal(stored?.refreshToken, "new-refresh");

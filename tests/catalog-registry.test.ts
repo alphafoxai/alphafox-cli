@@ -225,6 +225,16 @@ describe("generated operation catalog", () => {
     if (domainHelp.kind === "help") {
       assert.ok(domainHelp.operations.length > 1);
     }
+    const singleDashFlag = resolveTypedCommand([
+      "trading",
+      "traders",
+      "start",
+      "-x",
+    ]);
+    assert.equal(singleDashFlag.kind, "operation");
+    if (singleDashFlag.kind === "operation") {
+      assert.deepEqual(singleDashFlag.flagArgs, ["-x"]);
+    }
     const missing = resolveTypedCommand(["not-a-real-domain", "nope"]);
     assert.equal(missing.kind, "missing");
   });

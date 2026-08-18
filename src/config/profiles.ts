@@ -54,6 +54,64 @@ const DEFAULTS: Record<ProfileName, ProfileConfig> = {
   },
 };
 
+const CLI_CONFIG_FIELDS = new Set([
+  "activeProfile",
+  "profiles",
+  "unsafeCustomEndpoint",
+]);
+
+const PROFILE_OVERRIDE_FIELDS = new Set([
+  "name",
+  "apiBaseUrl",
+  "issuer",
+  "audience",
+  "clientId",
+  "contractVersion",
+  "localOrigin",
+]);
+
+function assertValidConfig(config: unknown): void {
+  if (!config || typeof config !== "object" || Array.isArray(config)) {
+    throw new Error("Invalid CLI config");
+  }
+  const root = config as Record<string, unknown>;
+  for (const key of Object.keys(root)) {
+    if (!CLI_CONFIG_FIELDS.has(key)) {
+      throw new Error(`Forbidden config field: ${key}`);
+    }
+  }
+  if (
+    root.activeProfile !== undefined &&
+    (typeof root.activeProfile !== "string" || !(root.activeProfile in DEFAULTS))
+  ) {
+    throw new Error("Invalid config field: activeProfile");
+  }
+  if (
+    root.unsafeCustomEndpoint !== undefined &&
+    typeof root.unsafeCustomEndpoint !== "string"
+  ) {
+    throw new Error("Invalid config field: unsafeCustomEndpoint");
+  }
+  const profiles = root.profiles;
+  if (profiles === undefined) return;
+  if (!profiles || typeof profiles !== "object" || Array.isArray(profiles)) {
+    throw new Error("Invalid config field: profiles");
+  }
+  for (const [profileName, overrides] of Object.entries(profiles)) {
+    if (!(profileName in DEFAULTS)) {
+      throw new Error(`Invalid config profile: ${profileName}`);
+    }
+    if (!overrides || typeof overrides !== "object" || Array.isArray(overrides)) {
+      throw new Error(`Invalid config profile: ${profileName}`);
+    }
+    for (const [key, value] of Object.entries(overrides)) {
+      if (!PROFILE_OVERRIDE_FIELDS.has(key) || typeof value !== "string") {
+        throw new Error(`Forbidden config field: ${profileName}.${key}`);
+      }
+    }
+  }
+}
+
 export function defaultConfigDir(env: NodeJS.ProcessEnv = process.env): string {
   if (env.ALPHAFOX_CONFIG_DIR?.trim()) {
     return env.ALPHAFOX_CONFIG_DIR.trim();
@@ -70,20 +128,13 @@ export function loadConfigFile(env: NodeJS.ProcessEnv = process.env): CliConfigF
   if (!existsSync(path)) {
     return { activeProfile: "production", profiles: {} };
   }
-  const raw = JSON.parse(readFileSync(path, "utf8")) as CliConfigFile & {
-    tokens?: unknown;
-    accessToken?: unknown;
-    refreshToken?: unknown;
-  };
-  // Fail closed if someone stuffed tokens into config.
-  if (
-    raw.tokens != null ||
-    raw.accessToken != null ||
-    raw.refreshToken != null ||
-    (raw as { secret?: unknown }).secret != null
-  ) {
+  const raw = JSON.parse(readFileSync(path, "utf8")) as CliConfigFile;
+  try {
+    assertNoTokenFields(raw);
+    assertValidConfig(raw);
+  } catch {
     throw new Error(
-      "Refusing to load config: tokens/secrets must not be stored in config files. Remove them and use the OS keychain."
+      "Refusing to load config: tokens/secrets or invalid fields must not be stored in config files. Use OS keychain."
     );
   }
   return {
@@ -97,6 +148,8 @@ export function saveConfigFile(
   config: CliConfigFile,
   env: NodeJS.ProcessEnv = process.env
 ): void {
+  assertNoTokenFields(config);
+  assertValidConfig(config);
   // Strip any accidental token fields
   const safe: CliConfigFile = {
     activeProfile: config.activeProfile,
@@ -163,15 +216,23 @@ export function assertNoTokenFields(config: unknown): void {
     return;
   }
   const obj = config as Record<string, unknown>;
-  for (const key of Object.keys(obj)) {
+  for (const [key, value] of Object.entries(obj)) {
     const lower = key.toLowerCase();
+    const normalized = lower.replaceAll("_", "").replaceAll("-", "");
     if (
       lower.includes("token") ||
       lower.includes("secret") ||
       lower.includes("password") ||
-      lower === "authorization"
+      lower.includes("passphrase") ||
+      normalized.includes("apikey") ||
+      normalized.includes("privatekey") ||
+      normalized.includes("verifier") ||
+      normalized.includes("credential") ||
+      lower === "authorization" ||
+      lower === "bearer"
     ) {
       throw new Error(`Forbidden config field: ${key}`);
     }
+    assertNoTokenFields(value);
   }
 }

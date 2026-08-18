@@ -49,20 +49,27 @@ async function captureStatus(
   env: NodeJS.ProcessEnv,
   fetchImpl: typeof fetch
 ): Promise<{ readonly code: number; readonly json: Record<string, unknown> }> {
-  const chunks: string[] = [];
-  const origWrite = process.stdout.write.bind(process.stdout);
+  const stdout: string[] = [];
+  const stderr: string[] = [];
+  const origStdoutWrite = process.stdout.write.bind(process.stdout);
+  const origStderrWrite = process.stderr.write.bind(process.stderr);
   const originalFetch = globalThis.fetch;
   process.stdout.write = ((chunk: string | Uint8Array) => {
-    chunks.push(String(chunk));
+    stdout.push(String(chunk));
     return true;
   }) as typeof process.stdout.write;
+  process.stderr.write = ((chunk: string | Uint8Array) => {
+    stderr.push(String(chunk));
+    return true;
+  }) as typeof process.stderr.write;
   globalThis.fetch = fetchImpl;
   try {
     const code = await runCli(argv, env);
-    const raw = chunks.join("").trim().split("\n").pop() ?? "{}";
+    const raw = (code === 0 ? stdout : stderr).join("").trim().split("\n").pop() ?? "{}";
     return { code, json: JSON.parse(raw) as Record<string, unknown> };
   } finally {
-    process.stdout.write = origWrite;
+    process.stdout.write = origStdoutWrite;
+    process.stderr.write = origStderrWrite;
     globalThis.fetch = originalFetch;
   }
 }
@@ -117,6 +124,53 @@ describe("auth status after idle", () => {
     } finally {
       rmSync(env.ALPHAFOX_KEYCHAIN_DIR!, { recursive: true, force: true });
       clearRefreshInflightForTests();
+    }
+  });
+
+  it("fails verification when the server rejects an unexpired token", async () => {
+    const cases = [
+      { status: 401, exitCode: 77, code: "unauthorized" },
+      { status: 403, exitCode: 77, code: "forbidden" },
+      { status: 500, exitCode: 69, code: "server_error" },
+    ] as const;
+
+    for (const testCase of cases) {
+      const env = testEnv();
+      try {
+        saveTokens(
+          profile.name,
+          {
+            ...staleTokens(),
+            refreshToken: "",
+            expiresAt: Date.now() + 600_000,
+          },
+          env
+        );
+        const { code, json } = await captureStatus(
+          ["auth", "status", "--verify", "--profile", "local", "--no-input"],
+          env,
+          async () =>
+            new Response(
+              JSON.stringify({
+                title: "Verification failed",
+                status: testCase.status,
+                detail: "Rejected token",
+                code: testCase.code,
+              }),
+              {
+                status: testCase.status,
+                headers: { "content-type": "application/problem+json" },
+              }
+            )
+        );
+        assert.equal(code, testCase.exitCode);
+        assert.equal(json.ok, false);
+        const error = json.error as Record<string, unknown>;
+        assert.equal(error.status, testCase.status);
+        assert.equal(error.code, testCase.code);
+      } finally {
+        rmSync(env.ALPHAFOX_KEYCHAIN_DIR!, { recursive: true, force: true });
+      }
     }
   });
 

@@ -197,7 +197,7 @@ export async function runBrowserPkceLogin(input: {
     }
 
     saveTokens(
-      input.profile.name,
+      input.profile,
       {
         accessToken: tokens.access_token,
         refreshToken: tokens.refresh_token,

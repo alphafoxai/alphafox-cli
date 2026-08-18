@@ -6,8 +6,8 @@ Implementations run only against staging. Production users, production trading, 
 
 | Identity | Role | How to sign in |
 |----------|------|----------------|
-| `test@local.com` | ordinary user | password `localtest` via `POST https://staging.alphafox.app/api/auth/sign-in/email` |
-| `cli-e2e-user` (GCP `ddddao-dev`) | pointer secret | email/role only; password is the documented pair, not stored in the secret |
+| staging E2E user | ordinary user | rotating credentials from the approved staging secret store |
+| `cli-e2e-user` (GCP `ddddao-dev`) | pointer secret | email and role metadata; no password in repository docs |
 | `cli-e2e-admin` | not provisioned | still missing |
 
 Gate is `ALPHAFOX_DEPLOY_ENV=staging` on the Vercel Custom Environment. Production is fail-closed.

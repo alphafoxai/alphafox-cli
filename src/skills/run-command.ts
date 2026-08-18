@@ -7,15 +7,16 @@ import { createDefaultInstallRunner } from "../install/exec";
 import { findAlphafoxPackageRoot } from "../install/package-root";
 import type { InstallRunner } from "../install/types";
 import {
+  installSkillsFromBundle,
   inspectSkills,
   loadAndVerifySkillsManifest,
   loadSkillsState,
+  removeInstalledSkills,
   syncSkills,
   type SkillsStatus,
   type SkillsSyncResult,
 } from "./manager";
 
-const SKILLS_TIMEOUT_MS = 120_000;
 
 export interface SkillsCliFlags {
   readonly format: "json" | "jsonl" | "text";
@@ -83,9 +84,6 @@ export async function syncCurrentSkills(
 ): Promise<SkillsSyncResult> {
   const packageRoot =
     deps.packageRoot ?? resolveCurrentSkillsPackageRoot();
-  const runner =
-    deps.runner ??
-    createDefaultInstallRunner(env, [__dirname, process.cwd()]);
   const manifest = loadAndVerifySkillsManifest(packageRoot);
   return await syncSkills(
     {
@@ -98,27 +96,15 @@ export async function syncCurrentSkills(
     },
     {
       install: async (names) => {
-        await runner.exec(
-          "npx",
-          [
-            "-y",
-            "skills",
-            "add",
-            packageRoot,
-            "-y",
-            "-g",
-            "--skill",
-            ...names,
-          ],
-          { timeoutMs: SKILLS_TIMEOUT_MS }
+        installSkillsFromBundle(
+          packageRoot,
+          installedSkillsRoot(env),
+          manifest,
+          names
         );
       },
       remove: async (names) => {
-        await runner.exec(
-          "npx",
-          ["-y", "skills", "remove", ...names, "-y", "-g"],
-          { timeoutMs: SKILLS_TIMEOUT_MS }
-        );
+        removeInstalledSkills(installedSkillsRoot(env), names);
       },
     }
   );

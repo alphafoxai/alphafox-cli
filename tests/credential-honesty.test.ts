@@ -46,38 +46,31 @@ describe("credential honesty", () => {
       ALPHAFOX_KEYCHAIN_DIR: dir,
     };
     try {
-      const result = saveTokens(profile.name, sampleTokens(), env);
+      const result = saveTokens(profile, sampleTokens(), env);
       assert.equal(result.backend, "file");
       assert.equal(result.degraded, false); // intentional force-file
       assert.ok(result.path?.includes(profile.name));
       assert.equal(getLastTokenSaveResult()?.backend, "file");
-      assert.equal(loadTokens(profile.name, env)?.accessToken, "access-1");
+      assert.equal(loadTokens(profile, env)?.accessToken, "access-1");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
   });
 
-  it("unexpected keychain miss marks degraded file fallback", () => {
+  it("fails closed when the OS keychain is unavailable", () => {
     const dir = mkdtempSync(join(tmpdir(), "alphafox-cli-cred-deg-"));
-    const env = {
-      // No FORCE_FILE — on non-darwin this always falls back; on darwin we
-      // simulate unavailability by pointing security away is hard, so only
-      // assert when platform cannot use keychain.
+    const env: NodeJS.ProcessEnv = {
+      ALPHAFOX_KEYCHAIN_PLATFORM: "linux",
+      ALPHAFOX_SECRET_TOOL: join(dir, "missing-secret-tool"),
       ALPHAFOX_KEYCHAIN_DIR: dir,
-    } as NodeJS.ProcessEnv;
-    if (process.platform === "darwin") {
-      // Force fail by using an invalid security path via env that keychain
-      // code does not honor — instead call with FORCE and check intentional
-      // path already covered. Mark degraded via internal path: omit FORCE
-      // but we can still assert API shape when write falls back on linux.
-      rmSync(dir, { recursive: true, force: true });
-      return; // darwin has real keychain; intentional-file case covers API
-    }
+    };
     try {
-      const result = saveTokens(profile.name, sampleTokens(), env);
-      assert.equal(result.backend, "file");
-      assert.equal(result.degraded, true);
-      assert.equal(getLastTokenSaveResult()?.degraded, true);
+      assert.throws(
+        () => saveTokens(profile, sampleTokens(), env),
+        (error: Error & { subtype?: string }) =>
+          error.subtype === "keychain_unavailable"
+      );
+      assert.equal(getLastTokenSaveResult()?.degraded ?? false, false);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -91,11 +84,7 @@ describe("credential honesty", () => {
       ALPHAFOX_KEYCHAIN_DIR: dir,
     };
     try {
-      saveTokens(
-        profile.name,
-        sampleTokens({ expiresAt: Date.now() - 1 }),
-        env
-      );
+      saveTokens(profile, sampleTokens({ expiresAt: Date.now() - 1 }), env);
       const outcome = await refreshStoredTokens(
         profile,
         env,
@@ -127,7 +116,7 @@ describe("credential honesty", () => {
       ALPHAFOX_KEYCHAIN_DIR: dir,
     };
     try {
-      saveTokens(profile.name, sampleTokens({ expiresAt: 0 }), env);
+      saveTokens(profile, sampleTokens({ expiresAt: 0 }), env);
       const outcome = await refreshStoredTokens(
         profile,
         env,
@@ -152,11 +141,7 @@ describe("credential honesty", () => {
       ALPHAFOX_KEYCHAIN_DIR: dir,
     };
     try {
-      saveTokens(
-        profile.name,
-        sampleTokens({ refreshToken: "" }),
-        env
-      );
+      saveTokens(profile, sampleTokens({ refreshToken: "" }), env);
       const outcome = await refreshStoredTokens(profile, env, async () => {
         throw new Error("should not fetch");
       });
@@ -198,7 +183,7 @@ describe("credential honesty", () => {
       return (origWrite as (...a: unknown[]) => boolean)(chunk, ...args);
     }) as typeof process.stdout.write;
     try {
-      saveTokens(profile.name, sampleTokens(), env);
+      saveTokens(profile, sampleTokens(), env);
       globalThis.fetch = (async () =>
         new Response(JSON.stringify({ error: "server_error" }), {
           status: 500,
@@ -216,7 +201,7 @@ describe("credential honesty", () => {
       assert.equal(json.data.remoteRevoke, "failed");
       assert.equal(json.data.fullyLoggedOut, false);
       assert.equal(json.data.loggedOut, false);
-      assert.equal(loadTokens(profile.name, env), null);
+      assert.equal(loadTokens(profile, env), null);
     } finally {
       globalThis.fetch = originalFetch;
       process.stdout.write = origWrite;

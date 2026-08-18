@@ -10,8 +10,8 @@
 "use strict";
 
 const ORIGIN = "https://staging.alphafox.app";
-const EMAIL = "test@local.com";
-const PASSWORD = "localtest";
+const EMAIL = process.env.ALPHAFOX_E2E_EMAIL;
+const PASSWORD = process.env.ALPHAFOX_E2E_PASSWORD;
 
 function argValue(name) {
   const idx = process.argv.indexOf(name);
@@ -36,6 +36,10 @@ function cookieHeaderFromSetCookie(setCookie) {
 
 async function main() {
   const userCode = (argValue("--user-code") || "").trim().toUpperCase();
+  if (!EMAIL || !PASSWORD) {
+    console.error("ALPHAFOX_E2E_EMAIL and ALPHAFOX_E2E_PASSWORD are required");
+    process.exit(2);
+  }
   if (!userCode) {
     console.error("Usage: node scripts/e2e-staging-device-approve.mjs --user-code <code>");
     process.exit(2);

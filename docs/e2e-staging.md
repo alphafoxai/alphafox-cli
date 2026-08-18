@@ -2,7 +2,7 @@
 
 Run only against the stable public facade `https://staging.alphafox.app`. Do not use Preview URLs, internal service tokens, or production.
 
-Staging CLI issuer: `https://staging.alphafox.app`. Test login (staging-only, gated on `ALPHAFOX_DEPLOY_ENV=staging`): `test@local.com` / `localtest`. Device Flow approve without a human click: `node scripts/e2e-staging-device-approve.mjs --user-code <code>`. Isolate credentials with `ALPHAFOX_CONFIG_DIR` and `ALPHAFOX_FORCE_FILE_KEYCHAIN=1`.
+Staging CLI issuer: `https://staging.alphafox.app`. Obtain the rotating E2E account from the approved staging secret store; never commit its username or password. Device Flow approval without a human click uses the internal staging helper with credentials supplied through environment variables. Isolate credentials with `ALPHAFOX_CONFIG_DIR` and `ALPHAFOX_FORCE_FILE_KEYCHAIN=1`.
 
 ## Scenarios
 
@@ -70,7 +70,7 @@ Reused staging Device Flow session `userId=019f3073-307f-76e9-adf1-0203af9ab22b`
 
 ## Evidence (2026-08-13) — gapfix retest (historical; idempotency + backtests.create)
 
-Anonymous `GET https://staging.alphafox.app/api/v1/meta` → **HTTP 200**, `environment=staging`, `contractVersion=2026-08-13`, `commitSha=fba21ef4b2c3909c51a5a19e2d2a45b30d1d598c`, `x-request-id=8702a21b-a749-4007-82eb-76ca1dd0caaf`. No SSO redirect. Device Flow `test@local.com`: approve `requestId=77293035-ebfd-4b03-b0e1-0779dce81fdd`, token `requestId=9dcc28c1-c1cc-49fc-9435-687dfdb591c2`, `whoami` `userId=019f3073-307f-76e9-adf1-0203af9ab22b` `requestId=1473f107-d742-42eb-99e7-b60c6b583928`. CLI local `92c8610250b30e7881f79a2fde60b00fe50b4628`, catalog `contractsSha=d1f184e3d72581f155497978880d9ab3029ff858`. Staging llm-gateway image `0a10d8e3a1304b04eff2f21c503922a5b7c11491` (workflow `31683345740` failed after the container was healthy: `/opt/alphafox/images/alphafox-llm-gateway.env` permission denied). Do not merge web PR 448 to production `main`.
+Anonymous `GET https://staging.alphafox.app/api/v1/meta` → **HTTP 200**, `environment=staging`, `contractVersion=2026-08-13`, `commitSha=fba21ef4b2c3909c51a5a19e2d2a45b30d1d598c`, `x-request-id=8702a21b-a749-4007-82eb-76ca1dd0caaf`. No SSO redirect. Staging Device Flow approval, token exchange, and `whoami` passed for the E2E fixture account. CLI local `92c8610250b30e7881f79a2fde60b00fe50b4628`, catalog `contractsSha=d1f184e3d72581f155497978880d9ab3029ff858`. Staging llm-gateway image `0a10d8e3a1304b04eff2f21c503922a5b7c11491` (workflow `31683345740` failed after the container was healthy: `/opt/alphafox/images` permission on an unrelated host step).
 
 | Step | Result | Evidence |
 |------|--------|----------|
@@ -80,7 +80,8 @@ Anonymous `GET https://staging.alphafox.app/api/v1/meta` → **HTTP 200**, `envi
 | 6. `POST /api/v1/backtests` `{backtestSettings:{}}` | **pass** (honest 400) | HTTP **400** `chatId is required` (no longer `unknown request keys: backtestSettings`), `x-request-id=6ee3856f-73da-4888-b23d-f3981f8bec22`. CLI `requestId=1b26087b-73ea-4422-98d8-9050a403322e` |
 | 6. `POST /api/v1/backtests` `{chatId, strategyId:1}` on empty chat | **pass** (honest 404) | HTTP **404** `STRATEGY_NOT_FOUND` (not `JOB_NOT_FOUND`), `x-request-id=1c58acd7-ed0f-40d3-9d71-618adbf634b5`, chat `88497dc2-1f86-4edc-ae08-f11e8ded57f8` |
 | 6. `POST /api/v1/backtests` `{chatId}` omit strategyId | **pass** (honest 422) | HTTP **422** `CHAT_HAS_NO_COMPILED_STRATEGY`, `x-request-id=011c1b47-df76-4a5e-b045-799666eac304`. CLI `requestId=16e44bcc-8780-4146-8f72-8383bc415e07` |
-| 6. create → stream → cancel (live job) | **fail** (blocked) | `test@local.com` has no compiled `strategyId`. Chat stream `x-request-id=2e26667b-0cfd-4bfe-9a75-25971120f1ab` ended `finishReason=tool-calls` (`modifyBacktestSettings`) without `save_strategy`. Follow-up create still **422** `x-request-id=37198479-fbd1-462f-8d5a-3a0d1d8f49bb` |
+| 6. create → stream → cancel (live job) | **fail** (blocked) | The E2E fixture account has no compiled `strategyId`. Chat stream `x-request-id=2e26667b-0cfd-4bfe-9a75-25971120f1ab` ended `finishReason=tool-calls` (`modifyBacktestSettings`) without `save_strategy`. Follow-up create still **422** `x-request-id=37198479-fbd1-462f-8d5a-3a0d1d8f49bb` |
+
 
 ### Remaining blockers after this retest
 

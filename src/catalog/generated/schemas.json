@@ -400,7 +400,11 @@
         "required": [
           "environment",
           "contractVersion",
-          "registryVersion"
+          "registryVersion",
+          "openapi",
+          "minCliVersion",
+          "maxCliVersion",
+          "contractsSha"
         ],
         "properties": {
           "environment": {
@@ -411,6 +415,20 @@
           },
           "registryVersion": {
             "type": "string"
+          },
+          "openapi": {
+            "type": "string"
+          },
+          "minCliVersion": {
+            "type": "string"
+          },
+          "maxCliVersion": {
+            "type": "string"
+          },
+          "contractsSha": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Installed contracts package source/build identifier."
           },
           "commitSha": {
             "type": [
@@ -13153,12 +13171,13 @@
     "method": "POST",
     "path": "/api/v1/managed-wallets/{walletId}/hyperliquid/margin-transfer",
     "role": "user",
-    "risk": "write",
+    "risk": "high-risk-write",
     "auth": "bearer",
     "scopes": [
       "openid",
       "profile",
-      "managed-wallets:write"
+      "managed-wallets:write",
+      "managed-wallets:high-risk"
     ],
     "idempotent": false,
     "pagination": false,

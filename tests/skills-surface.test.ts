@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 
-const skillsRoot = join(__dirname, "..", "..", "skills");
+const skillsRoot = [join(__dirname, "..", "skills"), join(__dirname, "..", "..", "skills")].find(existsSync)!;
 
 function skillFiles(): string[] {
   return readdirSync(skillsRoot, { withFileTypes: true })

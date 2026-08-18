@@ -89,11 +89,42 @@ export interface GlobalFlags {
   unsafeCustomEndpoint?: string;
   jq?: string;
 }
+export interface ParsedGlobalFlags {
+  readonly flags: GlobalFlags;
+  readonly rest: string[];
+}
 
-export function parseGlobalFlags(argv: string[]): {
-  flags: GlobalFlags;
-  rest: string[];
-} {
+
+function usageError(message: string, subtype: string): Error {
+  return Object.assign(new Error(message), {
+    type: "usage",
+    subtype,
+    status: 64,
+  });
+}
+
+function requireGlobalFlagValue(flag: string, value?: string): string {
+  if (
+    !value ||
+    !value.trim() ||
+    value.startsWith("--") ||
+    value === "-p" ||
+    value === "-y" ||
+    value === "-h"
+  ) {
+    throw usageError(`${flag} requires a value`, "missing_flag_value");
+  }
+  return value;
+}
+
+function parseOutputFormat(value: string): GlobalFlags["format"] {
+  if (value !== "json" && value !== "jsonl" && value !== "text") {
+    throw usageError(`Unsupported --format value: ${value}`, "invalid_format");
+  }
+  return value;
+}
+
+export function parseGlobalFlags(argv: string[]): ParsedGlobalFlags {
   const flags: GlobalFlags = {
     format: "json",
     yes: false,
@@ -104,13 +135,18 @@ export function parseGlobalFlags(argv: string[]): {
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i]!;
     if (a === "--profile" || a === "-p") {
-      flags.profile = argv[++i];
+      flags.profile = requireGlobalFlagValue(a, argv[++i]);
     } else if (a.startsWith("--profile=")) {
-      flags.profile = a.slice("--profile=".length);
+      flags.profile = requireGlobalFlagValue(
+        "--profile",
+        a.slice("--profile=".length)
+      );
     } else if (a === "--format") {
-      flags.format = argv[++i] as GlobalFlags["format"];
+      flags.format = parseOutputFormat(requireGlobalFlagValue(a, argv[++i]));
     } else if (a.startsWith("--format=")) {
-      flags.format = a.slice("--format=".length) as GlobalFlags["format"];
+      flags.format = parseOutputFormat(
+        requireGlobalFlagValue("--format", a.slice("--format=".length))
+      );
     } else if (a === "--yes" || a === "-y") {
       flags.yes = true;
     } else if (a === "--dry-run") {
@@ -118,18 +154,55 @@ export function parseGlobalFlags(argv: string[]): {
     } else if (a === "--no-input") {
       flags.noInput = true;
     } else if (a === "--unsafe-custom-endpoint") {
-      flags.unsafeCustomEndpoint = argv[++i];
+      flags.unsafeCustomEndpoint = requireGlobalFlagValue(a, argv[++i]);
     } else if (a.startsWith("--unsafe-custom-endpoint=")) {
-      flags.unsafeCustomEndpoint = a.slice("--unsafe-custom-endpoint=".length);
+      flags.unsafeCustomEndpoint = requireGlobalFlagValue(
+        "--unsafe-custom-endpoint",
+        a.slice("--unsafe-custom-endpoint=".length)
+      );
     } else if (a === "--jq") {
-      flags.jq = argv[++i];
+      flags.jq = requireGlobalFlagValue(a, argv[++i]);
     } else if (a.startsWith("--jq=")) {
-      flags.jq = a.slice("--jq=".length);
+      flags.jq = requireGlobalFlagValue("--jq", a.slice("--jq=".length));
     } else {
       rest.push(a);
     }
   }
+  if (
+    flags.profile &&
+    flags.profile !== "production" &&
+    flags.profile !== "staging" &&
+    flags.profile !== "local"
+  ) {
+    throw usageError(
+      `Unknown profile: ${flags.profile}`,
+      "invalid_profile"
+    );
+  }
   return { flags, rest };
+}
+
+function handleNoArgCommand(
+  command: string,
+  args: readonly string[],
+  flags: GlobalFlags
+): boolean {
+  if (args.length === 0) return false;
+  if (
+    args.length === 1 &&
+    (args[0] === "help" || args[0] === "--help" || args[0] === "-h")
+  ) {
+    writeSuccess(
+      { name: command, usage: [`alphafox ${command}`] },
+      { format: flags.format, jq: flags.jq }
+    );
+    return true;
+  }
+  writeError({
+    type: "usage",
+    subtype: "unexpected_argument",
+    message: `Usage: alphafox ${command}`,
+  });
 }
 
 export async function runCli(
@@ -145,10 +218,38 @@ export async function runCli(
       hint: "Automation tokens are not supported in v1. Do not copy refresh tokens into CI.",
     });
   }
-  const { flags, rest } = parseGlobalFlags(argv);
+  let parsed: ParsedGlobalFlags;
+  try {
+    parsed = parseGlobalFlags(argv);
+  } catch (err) {
+    const subtype =
+      err && typeof err === "object" && "subtype" in err
+        ? String(err.subtype)
+        : "invalid_global_flag";
+    writeError({
+      type: "usage",
+      subtype,
+      message: err instanceof Error ? err.message : String(err),
+    });
+  }
+  const { flags, rest } = parsed;
   const [cmd, ...args] = rest;
+  if (cmd?.startsWith("-") && cmd !== "--help" && cmd !== "-h") {
+    writeError({
+      type: "usage",
+      subtype: "unknown_global_flag",
+      message: `Unknown global option: ${cmd}`,
+    });
+  }
 
   if (!cmd || cmd === "help" || cmd === "--help" || cmd === "-h") {
+    if (args.length > 0) {
+      writeError({
+        type: "usage",
+        subtype: "unexpected_argument",
+        message: "Usage: alphafox help",
+      });
+    }
     writeSuccess(
       {
         name: CLI_NAME,
@@ -175,6 +276,15 @@ export async function runCli(
       },
       { format: flags.format, jq: flags.jq }
     );
+    return 0;
+  }
+  if (
+    (cmd === "version" ||
+      cmd === "doctor" ||
+      cmd === "whoami" ||
+      cmd === "catalog") &&
+    handleNoArgCommand(cmd, args, flags)
+  ) {
     return 0;
   }
 
@@ -244,26 +354,24 @@ export async function runCli(
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
+    const errorObject = err && typeof err === "object" ? err : undefined;
     const status =
-      err && typeof err === "object" && "status" in err
-        ? Number((err as { status: unknown }).status)
+      errorObject && "status" in errorObject
+        ? Number(errorObject.status)
         : undefined;
     const type =
-      err && typeof err === "object" && "type" in err
-        ? String((err as { type: unknown }).type)
+      errorObject && "type" in errorObject
+        ? String(errorObject.type)
         : "runtime";
-    writeError(
-      {
-        type,
-        message,
-        status,
-        subtype:
-          err && typeof err === "object" && "subtype" in err
-            ? String((err as { subtype: unknown }).subtype)
-            : undefined,
-      },
-      { exitCode: status === 401 || status === 403 ? 77 : 1 }
-    );
+    writeError({
+      type,
+      message,
+      status,
+      subtype:
+        errorObject && "subtype" in errorObject
+          ? String(errorObject.subtype)
+          : undefined,
+    });
   }
 }
 
@@ -589,6 +697,13 @@ async function cmdAuth(
   }
 
   if (sub === "logout") {
+    if (args.length !== 1) {
+      writeError({
+        type: "usage",
+        subtype: "unexpected_argument",
+        message: "Usage: alphafox auth logout",
+      });
+    }
     const tokens = loadTokens(profile.name, env);
     let remoteRevoke: "ok" | "failed" | "skipped" = "skipped";
     if (tokens?.refreshToken) {
@@ -646,6 +761,34 @@ async function cmdAuthLogin(
   env: NodeJS.ProcessEnv,
   profile: ReturnType<typeof resolveProfile>
 ): Promise<number> {
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i]!;
+    if (arg === "--no-wait" || arg === "--browser" || arg === "--pkce") {
+      continue;
+    }
+    if (
+      arg === "--device-code" ||
+      arg === "--code" ||
+      arg === "--code-verifier" ||
+      arg === "--redirect-uri"
+    ) {
+      const value = args[++i];
+      if (!value || value.startsWith("--")) {
+        writeError({
+          type: "usage",
+          subtype: "missing_flag_value",
+          message: `${arg} requires a value`,
+        });
+      }
+      continue;
+    }
+    writeError({
+      type: "usage",
+      subtype: "unknown_auth_flag",
+      message: `Unknown auth login option: ${arg}`,
+    });
+  }
+
   const noWait = args.includes("--no-wait");
   const deviceCodeIdx = args.indexOf("--device-code");
   const deviceCode =
@@ -938,8 +1081,29 @@ function cmdProfile(
   flags: GlobalFlags,
   env: NodeJS.ProcessEnv
 ): number {
+  if (args.some((arg) => arg === "help" || arg === "--help" || arg === "-h")) {
+    writeSuccess(
+      {
+        name: "profile",
+        usage: [
+          "alphafox profile list",
+          "alphafox profile use production|staging|local",
+        ],
+      },
+      { format: flags.format, jq: flags.jq }
+    );
+    return 0;
+  }
+
   const sub = args[0] ?? "list";
   if (sub === "list") {
+    if (args.length > 1) {
+      writeError({
+        type: "usage",
+        subtype: "unexpected_argument",
+        message: "Usage: alphafox profile list",
+      });
+    }
     const file = loadConfigFile(env);
     writeSuccess(
       {
@@ -954,7 +1118,11 @@ function cmdProfile(
   }
   if (sub === "use") {
     const name = args[1] as ProfileName;
-    if (!name || !["production", "staging", "local"].includes(name)) {
+    if (
+      args.length !== 2 ||
+      !name ||
+      !["production", "staging", "local"].includes(name)
+    ) {
       writeError({
         type: "usage",
         message: "Usage: alphafox profile use production|staging|local",
@@ -969,7 +1137,28 @@ function cmdProfile(
 }
 
 function cmdSchema(args: string[], flags: GlobalFlags): number {
+  if (args.some((arg) => arg === "help" || arg === "--help" || arg === "-h")) {
+    writeSuccess(
+      { name: "schema", usage: ["alphafox schema [operationId]"] },
+      { format: flags.format, jq: flags.jq }
+    );
+    return 0;
+  }
+  if (args.length > 1) {
+    writeError({
+      type: "usage",
+      subtype: "unexpected_argument",
+      message: "Usage: alphafox schema [operationId]",
+    });
+  }
   const operationId = args[0];
+  if (operationId?.startsWith("-")) {
+    writeError({
+      type: "usage",
+      subtype: "unknown_schema_flag",
+      message: `Unknown schema option: ${operationId}`,
+    });
+  }
   if (!operationId) {
     writeSuccess(
       {
@@ -1013,12 +1202,63 @@ async function cmdApi(
   flags: GlobalFlags,
   env: NodeJS.ProcessEnv
 ): Promise<number> {
+  if (
+    args.length === 1 &&
+    (args[0] === "help" || args[0] === "--help" || args[0] === "-h")
+  ) {
+    writeSuccess(
+      {
+        name: "api",
+        usage: ["alphafox api METHOD PATH [--body JSON|--config @file]"],
+      },
+      { format: flags.format, jq: flags.jq }
+    );
+    return 0;
+  }
   const method = args[0]?.toUpperCase();
   const path = args[1];
-  if (!method || !path) {
+  if (
+    !method ||
+    !path ||
+    args[0]?.startsWith("-") ||
+    path.startsWith("-")
+  ) {
     writeError({
       type: "usage",
       message: "Usage: alphafox api METHOD PATH [--body JSON|--config @file]",
+    });
+  }
+  if (
+    method !== "GET" &&
+    method !== "HEAD" &&
+    method !== "POST" &&
+    method !== "PUT" &&
+    method !== "PATCH" &&
+    method !== "DELETE"
+  ) {
+    writeError({
+      type: "usage",
+      subtype: "invalid_method",
+      message: `Unsupported HTTP method: ${method}`,
+    });
+  }
+  for (let i = 2; i < args.length; i += 1) {
+    const arg = args[i]!;
+    if (arg === "--body" || arg === "--config") {
+      const value = args[++i];
+      if (!value || value.startsWith("--")) {
+        writeError({
+          type: "usage",
+          subtype: "missing_flag_value",
+          message: `${arg} requires a value`,
+        });
+      }
+      continue;
+    }
+    writeError({
+      type: "usage",
+      subtype: arg.startsWith("--") ? "unknown_api_flag" : "unexpected_argument",
+      message: `Unexpected raw api argument: ${arg}`,
     });
   }
   if (isInternalDisallowedPath(path) || !isFacadeAllowlistedPath(path)) {
@@ -1125,6 +1365,16 @@ async function cmdTyped(
 ): Promise<number> {
   const resolved = resolveTypedCommand([domain, ...args]);
   if (resolved.kind === "help") {
+    const unknownFlag = resolved.flagArgs.find(
+      (arg) => arg !== "--help" && arg !== "-h"
+    );
+    if (unknownFlag) {
+      writeError({
+        type: "usage",
+        subtype: "unknown_operation_flag",
+        message: `Unknown option for ${resolved.prefix}: ${unknownFlag}`,
+      });
+    }
     writeSuccess(
       {
         prefix: resolved.prefix,
@@ -1159,7 +1409,10 @@ async function cmdTyped(
       hint: "Run alphafox schema for operationIds",
     });
   }
-  if (resolved.help) {
+  if (
+    resolved.help ||
+    resolved.flagArgs.some((arg) => arg === "--help" || arg === "-h")
+  ) {
     return cmdSchema([resolved.operation.operationId], flags);
   }
   return await invokeOperation(
@@ -1184,6 +1437,73 @@ async function invokeOperation(
       status: 404,
     });
   }
+  const params: Record<string, string> = {};
+  const extra: Record<string, string> = {};
+  const pathParamNames = new Set(
+    getOperationSchemaDocument(operationId)?.request.pathParamNames ??
+      extractPathParamNames(op.path)
+  );
+  const isRead = op.method === "GET" || op.method === "HEAD";
+
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i]!;
+    if (arg === "--body" || arg === "--config") {
+      const value = args[++i];
+      if (!value || value.startsWith("--")) {
+        writeError({
+          type: "usage",
+          subtype: "missing_flag_value",
+          message: `${arg} requires a value`,
+        });
+      }
+      continue;
+    }
+    if (!arg.startsWith("--")) {
+      const optionLike = arg.startsWith("-");
+      writeError({
+        type: "usage",
+        subtype: optionLike ? "unknown_operation_flag" : "unexpected_argument",
+        message: optionLike
+          ? `Unknown option for ${operationId}: ${arg}`
+          : `Unexpected argument for ${operationId}: ${arg}`,
+      });
+    }
+
+    const equals = arg.indexOf("=");
+    const key = arg.slice(2, equals < 0 ? undefined : equals);
+    if (!key || (!pathParamNames.has(key) && !isRead)) {
+      writeError({
+        type: "usage",
+        subtype: "unknown_operation_flag",
+        message: `Unknown option for ${operationId}: --${key}`,
+      });
+    }
+    const value =
+      equals < 0 ? args[++i] : arg.slice(equals + 1);
+    if (!value || value.startsWith("--")) {
+      writeError({
+        type: "usage",
+        subtype: "missing_flag_value",
+        message: `--${key} requires a value`,
+      });
+    }
+    if (pathParamNames.has(key)) {
+      params[key] = value;
+    } else {
+      extra[key] = value;
+    }
+  }
+
+  for (const name of pathParamNames) {
+    if (!(name in params)) {
+      writeError({
+        type: "usage",
+        subtype: "missing_path_parameter",
+        message: `--${name} is required for ${operationId}`,
+      });
+    }
+  }
+
   const gate = assertHighRiskConfirmation({
     risk: op.risk,
     yes: flags.yes,
@@ -1193,25 +1513,6 @@ async function invokeOperation(
   if (!gate.allowed && gate.error) {
     process.stderr.write(`${JSON.stringify(errorEnvelope(gate.error))}\n`);
     return 10;
-  }
-
-  const params: Record<string, string> = {};
-  const extra: Record<string, string> = {};
-  const pathParamNames = new Set(
-    getOperationSchemaDocument(operationId)?.request.pathParamNames ??
-      extractPathParamNames(op.path)
-  );
-  for (let i = 0; i < args.length; i += 1) {
-    const a = args[i]!;
-    if (a.startsWith("--") && a !== "--body" && a !== "--config") {
-      const key = a.slice(2);
-      const value = args[++i] ?? "";
-      if (pathParamNames.has(key)) {
-        params[key] = value;
-      } else {
-        extra[key] = value;
-      }
-    }
   }
   let body: unknown;
   try {
@@ -1269,7 +1570,7 @@ async function invokeOperation(
     {
       method: op.method,
       path,
-      body: op.method === "GET" ? undefined : body ?? {},
+      body: isRead ? undefined : body ?? {},
       profile,
       idempotencyKey:
         op.method === "POST" ? randomUUID() : undefined,

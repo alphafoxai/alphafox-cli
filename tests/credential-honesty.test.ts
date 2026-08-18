@@ -57,27 +57,20 @@ describe("credential honesty", () => {
     }
   });
 
-  it("unexpected keychain miss marks degraded file fallback", () => {
+  it("fails closed when the OS keychain is unavailable", () => {
     const dir = mkdtempSync(join(tmpdir(), "alphafox-cli-cred-deg-"));
-    const env = {
-      // No FORCE_FILE — on non-darwin this always falls back; on darwin we
-      // simulate unavailability by pointing security away is hard, so only
-      // assert when platform cannot use keychain.
+    const env: NodeJS.ProcessEnv = {
+      ALPHAFOX_KEYCHAIN_PLATFORM: "linux",
+      ALPHAFOX_SECRET_TOOL: join(dir, "missing-secret-tool"),
       ALPHAFOX_KEYCHAIN_DIR: dir,
-    } as NodeJS.ProcessEnv;
-    if (process.platform === "darwin") {
-      // Force fail by using an invalid security path via env that keychain
-      // code does not honor — instead call with FORCE and check intentional
-      // path already covered. Mark degraded via internal path: omit FORCE
-      // but we can still assert API shape when write falls back on linux.
-      rmSync(dir, { recursive: true, force: true });
-      return; // darwin has real keychain; intentional-file case covers API
-    }
+    };
     try {
-      const result = saveTokens(profile, sampleTokens(), env);
-      assert.equal(result.backend, "file");
-      assert.equal(result.degraded, true);
-      assert.equal(getLastTokenSaveResult()?.degraded, true);
+      assert.throws(
+        () => saveTokens(profile, sampleTokens(), env),
+        (error: Error & { subtype?: string }) =>
+          error.subtype === "keychain_unavailable"
+      );
+      assert.equal(getLastTokenSaveResult()?.degraded ?? false, false);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -91,8 +84,7 @@ describe("credential honesty", () => {
       ALPHAFOX_KEYCHAIN_DIR: dir,
     };
     try {
-      saveTokens(profile, sampleTokens({ expiresAt: Date.now() - 1 }),
-      env);
+      saveTokens(profile, sampleTokens({ expiresAt: Date.now() - 1 }), env);
       const outcome = await refreshStoredTokens(
         profile,
         env,
@@ -149,8 +141,7 @@ describe("credential honesty", () => {
       ALPHAFOX_KEYCHAIN_DIR: dir,
     };
     try {
-      saveTokens(profile, sampleTokens({ refreshToken: "" }),
-      env);
+      saveTokens(profile, sampleTokens({ refreshToken: "" }), env);
       const outcome = await refreshStoredTokens(profile, env, async () => {
         throw new Error("should not fetch");
       });

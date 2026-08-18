@@ -127,7 +127,7 @@ test("apiRequest preserves query string on the request URL", async () => {
   );
 });
 
-test("apiRequest refuses true cross-site token use", async () => {
+test("apiRequest refuses credentials bound to a different authority", async () => {
   const env = {
     ALPHAFOX_TEST_ACCESS_TOKEN: "test-access-token",
     ALPHAFOX_TEST_AUDIENCE: "https://alphafox.app/api/v1",
@@ -148,7 +148,6 @@ test("apiRequest refuses true cross-site token use", async () => {
         async () => new Response("nope", { status: 500 })
       ),
     (err: Error & { subtype?: string }) =>
-      err.subtype === "cross_origin_token" ||
-      /different origin/.test(err.message)
+      err.subtype === "credential_invalid"
   );
 });

@@ -216,7 +216,7 @@ test("mutation 401 does not replay without keyed catalog idempotency", async () 
   const env = fileKeychainEnv();
   try {
     saveTokens(
-      profile.name,
+      profile,
       {
         accessToken: "stale-access",
         refreshToken: "live-refresh",
@@ -259,7 +259,7 @@ test("keyed catalog-idempotent mutation refreshes once and replays with same key
   const env = fileKeychainEnv();
   try {
     saveTokens(
-      profile.name,
+      profile,
       {
         accessToken: "stale-access",
         refreshToken: "live-refresh",

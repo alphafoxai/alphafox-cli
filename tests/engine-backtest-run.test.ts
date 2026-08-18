@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
@@ -607,6 +607,121 @@ describe("engine-backtest fetch-runtime", () => {
         return true;
       }
     );
+  });
+  it("repairs an incomplete runtime cache before reuse", async () => {
+    const cacheDir = mkdtempSync(join(tmpdir(), "alphafox-runtime-partial-"));
+    writeFileSync(join(cacheDir, "node.mjs"), "stale");
+    const bodies = new Map<string, string>([
+      [validManifest.wasm, "wasm"],
+      [validManifest.wasmExec, "exec"],
+      [validManifest.worker, "worker"],
+      [validManifest.client, "client"],
+      [validManifest.node, "fresh-node"],
+      [validManifest.nodeWorker, "node-worker"],
+      [validManifest.nodeWorkerPath, "node-worker-path"],
+    ]);
+    const downloads: string[] = [];
+    const fetchImpl = (async (input: string | URL) => {
+      const url = String(input);
+      if (url.endsWith("latest.json")) {
+        return new Response(JSON.stringify(validManifest), { status: 200 });
+      }
+      downloads.push(url);
+      return new Response(bodies.get(url), { status: bodies.has(url) ? 200 : 404 });
+    }) as typeof fetch;
+
+    const first = await ensureBlobRuntime(
+      { ALPHAFOX_BACKTEST_WASM_MANIFEST_URL: "https://example.test/latest.json" },
+      { cacheDir, fetch: fetchImpl }
+    );
+    assert.equal(readFileSync(first.nodeEntry, "utf8"), "fresh-node");
+    assert.equal(downloads.length, 7);
+
+    await ensureBlobRuntime(
+      { ALPHAFOX_BACKTEST_WASM_MANIFEST_URL: "https://example.test/latest.json" },
+      { cacheDir, fetch: fetchImpl }
+    );
+    assert.equal(downloads.length, 7, "complete cache should not redownload artifacts");
+
+    writeFileSync(first.nodeEntry, "tampered");
+    await ensureBlobRuntime(
+      { ALPHAFOX_BACKTEST_WASM_MANIFEST_URL: "https://example.test/latest.json" },
+      { cacheDir, fetch: fetchImpl }
+    );
+    assert.equal(downloads.length, 14, "tampered cache should redownload the full runtime set");
+    assert.equal(readFileSync(first.nodeEntry, "utf8"), "fresh-node");
+  });
+
+  it("serializes concurrent repair of the same runtime cache", async () => {
+    const cacheDir = mkdtempSync(join(tmpdir(), "alphafox-runtime-concurrent-"));
+    writeFileSync(join(cacheDir, "node.mjs"), "stale");
+    const bodies = new Map<string, string>([
+      [validManifest.wasm, "wasm"],
+      [validManifest.wasmExec, "exec"],
+      [validManifest.worker, "worker"],
+      [validManifest.client, "client"],
+      [validManifest.node, "fresh-node"],
+      [validManifest.nodeWorker, "node-worker"],
+      [validManifest.nodeWorkerPath, "node-worker-path"],
+    ]);
+    let downloads = 0;
+    const fetchImpl = (async (input: string | URL) => {
+      const url = String(input);
+      if (url.endsWith("latest.json")) {
+        return new Response(JSON.stringify(validManifest), { status: 200 });
+      }
+      downloads += 1;
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      return new Response(bodies.get(url), { status: bodies.has(url) ? 200 : 404 });
+    }) as typeof fetch;
+
+    const [one, two] = await Promise.all([
+      ensureBlobRuntime(
+        { ALPHAFOX_BACKTEST_WASM_MANIFEST_URL: "https://example.test/latest.json" },
+        { cacheDir, fetch: fetchImpl }
+      ),
+      ensureBlobRuntime(
+        { ALPHAFOX_BACKTEST_WASM_MANIFEST_URL: "https://example.test/latest.json" },
+        { cacheDir, fetch: fetchImpl }
+      ),
+    ]);
+
+    assert.equal(one.directory, two.directory);
+    assert.equal(readFileSync(one.nodeEntry, "utf8"), "fresh-node");
+    assert.equal(downloads, 7, "only the lock winner should download the runtime");
+  });
+
+
+  it("recovers a crashed ownerless runtime cache lock", async () => {
+    const cacheDir = mkdtempSync(join(tmpdir(), "alphafox-runtime-ownerless-"));
+    mkdirSync(`${cacheDir}.publish.lock`);
+    const old = new Date(Date.now() - 5_000);
+    utimesSync(`${cacheDir}.publish.lock`, old, old);
+    const bodies = new Map<string, string>([
+      [validManifest.wasm, "wasm"],
+      [validManifest.wasmExec, "exec"],
+      [validManifest.worker, "worker"],
+      [validManifest.client, "client"],
+      [validManifest.node, "fresh-node"],
+      [validManifest.nodeWorker, "node-worker"],
+      [validManifest.nodeWorkerPath, "node-worker-path"],
+    ]);
+    const result = await ensureBlobRuntime(
+      { ALPHAFOX_BACKTEST_WASM_MANIFEST_URL: "https://example.test/latest.json" },
+      {
+        cacheDir,
+        fetch: (async (input: string | URL) => {
+          const url = String(input);
+          if (url.endsWith("latest.json")) {
+            return new Response(JSON.stringify(validManifest), { status: 200 });
+          }
+          return new Response(bodies.get(url), {
+            status: bodies.has(url) ? 200 : 404,
+          });
+        }) as typeof fetch,
+      }
+    );
+    assert.equal(readFileSync(result.nodeEntry, "utf8"), "fresh-node");
   });
 });
 

@@ -34,6 +34,7 @@ import {
   extractSweepMetrics,
   planSweep,
   planSweepFastRefinement,
+  resolveMaxSweepCombinations,
   resolveSweepConcurrency,
   selectBestNonLiquidatedPoint,
   type SweepCoordinate,
@@ -104,6 +105,14 @@ export function splitBatchChunk<T>(
     parts.push(chunk.slice(offset, offset + limit));
   }
   return parts;
+}
+
+export function capSweepRefinement(
+  coarseCount: number,
+  refinement: readonly SweepCoordinate[],
+  combinationCap: number
+): SweepCoordinate[] {
+  return refinement.slice(0, Math.max(0, combinationCap - coarseCount));
 }
 
 export async function executeEngineBacktestSweep(
@@ -398,13 +407,18 @@ export async function executeEngineBacktestSweep(
     if (args.searchMode === "fast") {
       const center = selectBestNonLiquidatedPoint(coarsePoints);
       refinement = center
-        ? planSweepFastRefinement({
-            coarsePlan,
-            standardPlan,
-            center: center.coordinate,
-          })
+        ? capSweepRefinement(
+            coarsePoints.length,
+            planSweepFastRefinement({
+              coarsePlan,
+              standardPlan,
+              center: center.coordinate,
+            }),
+            resolveMaxSweepCombinations(subscriptionTier)
+          )
         : [];
     }
+
     if (refinement.length > 0) {
       const refinementPoints = await runPrepared(
         refinement,

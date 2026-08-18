@@ -114,6 +114,19 @@ test("planSweep keeps a Pro 7^3 neighborhood under the 2000-combination cap", ()
   assert.equal(plan.sampled, false);
 });
 
+test("planSweep terminates when a tiny cap requires one-point axes", () => {
+  const plan = planSweep({
+    axes: [0, 1, 2].map((index) => rangeAxis(index)),
+    searchMode: "standard",
+    subscriptionTier: "pro",
+    maxCombinations: 1,
+  });
+
+  assert.equal(plan.coordinates.length, 1);
+  assert.deepEqual(plan.coordinates[0], { values: [10, 10, 10] });
+  assert.equal(plan.sampled, true);
+});
+
 test("fast joint search uses a coarse 3-point grid and keeps current values", () => {
   const plan = planSweep({
     axes: [0, 1, 2].map((index) => rangeAxis(index)),
@@ -132,6 +145,33 @@ test("fast joint search uses a coarse 3-point grid and keeps current values", ()
       coordinate.values.every((value) => value === 10)
     )
   );
+});
+
+test("fast joint search still obeys the Free combination cap", () => {
+  const plan = planSweep({
+    axes: [0, 1, 2, 3, 4].map((index) => rangeAxis(index)),
+    searchMode: "fast",
+    subscriptionTier: "free",
+  });
+
+  assert.ok(plan.coordinates.length <= FREE_MAX_SWEEP_COMBINATIONS);
+  assert.ok(
+    plan.coordinates.some((coordinate) =>
+      coordinate.values.every((value) => value === 10)
+    )
+  );
+});
+
+test("fast joint search obeys an explicit one-combination cap", () => {
+  const plan = planSweep({
+    axes: [0, 1, 2].map((index) => rangeAxis(index)),
+    searchMode: "fast",
+    subscriptionTier: "pro",
+    maxCombinations: 1,
+  });
+
+  assert.equal(plan.coordinates.length, 1);
+  assert.deepEqual(plan.coordinates[0], { values: [10, 10, 10] });
 });
 
 test("fast refinement drops coordinates already evaluated in the coarse grid", () => {

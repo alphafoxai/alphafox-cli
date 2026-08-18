@@ -474,11 +474,11 @@ export async function executeEngineBacktestRun(
         emitProgress(flags, writeLine, "wasm", fraction);
       }
     );
-    if (result.status === "failed") {
+    if (result.status !== "completed") {
       throw new EngineBacktestError({
         type: "runtime",
         subtype: "backtest_failed",
-        message: "runBacktest returned status=failed",
+        message: `runBacktest returned status=${String(result.status)}`,
         details: { errors: result.errors, runId: result.runId },
       });
     }

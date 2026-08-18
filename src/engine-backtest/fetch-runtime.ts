@@ -1,7 +1,7 @@
 import { createWriteStream } from "node:fs";
 import { mkdir, rename, stat } from "node:fs/promises";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { isAbsolute, join, normalize, sep } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
 
@@ -56,12 +56,31 @@ export function resolveRuntimeCacheDir(
   hash: string,
   env: NodeJS.ProcessEnv = process.env
 ): string {
-  const override = env.ALPHAFOX_BACKTEST_RUNTIME_CACHE_DIR?.trim();
-  if (override) {
-    return join(override, hash);
+  if (!isSafeRuntimeHash(hash)) {
+    throw new EngineBacktestError({
+      type: "runtime",
+      subtype: "runtime_manifest_invalid",
+      message: "Backtest runtime manifest hash must be a safe cache key.",
+    });
   }
-  const xdg = env.XDG_CACHE_HOME?.trim();
-  return join(xdg || join(homedir(), ".cache"), "alphafox", "engine-backtest", hash);
+  const override = env.ALPHAFOX_BACKTEST_RUNTIME_CACHE_DIR?.trim();
+  const root = override || join(env.XDG_CACHE_HOME?.trim() || join(homedir(), ".cache"), "alphafox", "engine-backtest");
+  return join(root, hash);
+}
+
+function isSafeRuntimeHash(hash: string): boolean {
+  const trimmed = hash.trim();
+  return (
+    trimmed === hash &&
+    trimmed !== "" &&
+    trimmed !== "." &&
+    trimmed !== ".." &&
+    !isAbsolute(trimmed) &&
+    normalize(trimmed) === trimmed &&
+    !trimmed.includes(sep) &&
+    !trimmed.includes("/") &&
+    !trimmed.includes("\\")
+  );
 }
 
 export function parseEngineBacktestBlobManifest(
@@ -82,9 +101,17 @@ export function parseEngineBacktestBlobManifest(
       message: `Backtest runtime protocol is incompatible (got ${String(record.protocol)}, expected ${BACKTEST_RUNTIME_PROTOCOL}).`,
     });
   }
+  const hash = readRequiredString(record.hash, "hash");
+  if (!isSafeRuntimeHash(hash)) {
+    throw new EngineBacktestError({
+      type: "runtime",
+      subtype: "runtime_manifest_invalid",
+      message: "Backtest runtime manifest hash must be a safe cache key.",
+    });
+  }
   return {
     version: readRequiredString(record.version, "version"),
-    hash: readRequiredString(record.hash, "hash"),
+    hash,
     protocol: BACKTEST_RUNTIME_PROTOCOL,
     engineSha: readOptionalString(record.engineSha),
     packageVersion: readOptionalString(record.packageVersion),

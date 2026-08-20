@@ -12,7 +12,7 @@ CLI catalog is generated from `@alphafoxai/contracts/public-api`. Do not hand-ed
 
 Chat product (`chats.*`, `chat_summaries.*`) and web `/api/v1/backtests` (`backtests.*`) are **not** a CLI surface. Omit them at generate time. Do not call them via typed commands, `schema`, or `alphafox api`. Local Engine WASM (`engine-backtest run`) and `engine_backtest.*` stay.
 
-`trading.traders.create` must match the website Engine create body: `strategyDefinitionId` + `config` + `exchangeConnectorId` (+ `name`, `configSchemaVersion`). Do not invent `chatId` or integer `strategyId` to make create work. Those fields belong to the Chat compile path (`traderInit*`, trader snapshots, `backtests.create`), not Engine instantiate. Hyperliquid / rebate copy use `trading.hl_copy_traders.create` / `trading.rebate_copy_traders.create`.
+`trading.traders.create` must match the website Engine create body: `strategyDefinitionId` + `config` + `exchangeConnectorId` (+ `name`, `configSchemaVersion`). Do not invent `chatId` or integer `strategyId` to make create work. Those fields belong to the Chat compile path (`traderInit*`, trader snapshots), not Engine instantiate. Hyperliquid / rebate copy use `trading.hl_copy_traders.create` / `trading.rebate_copy_traders.create`.
 
 Do not remove chat schemas from alphafox-contracts, and do not set `chats.*` `includeInCli: false`. The website chat product and `/api/v1` allowlist still use them. Chat is omitted only on the CLI surface.
 

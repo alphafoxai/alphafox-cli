@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  requireTapeCoverageIssues,
   snapshotCoverageIssues,
   summarizeTapeCoverageNotice,
 } from "../src/engine-backtest/coverage-notice";
@@ -52,6 +53,16 @@ describe("engine-backtest coverage notice", () => {
       ["future_soft_gap"]
     );
     assert.match(notice.messages[0] ?? "", /future_soft_gap/);
+  });
+
+  it("refuses a missing coverageIssues field instead of treating the tape as clean", () => {
+    assert.throws(
+      () => requireTapeCoverageIssues(undefined),
+      (error: unknown) =>
+        error instanceof EngineBacktestError &&
+        error.subtype === "missing_coverage_issues"
+    );
+    assert.deepEqual(requireTapeCoverageIssues([]), []);
   });
 
   it("refuses to persist unknown coverage issue codes", () => {

@@ -91,6 +91,21 @@ const PERSISTED_COVERAGE_ISSUE_CODES = new Set([
   "coverage_insufficient",
 ]);
 
+/** Runtime guard: a missing field must not look like a clean tape. */
+export function requireTapeCoverageIssues(
+  value: unknown
+): readonly TapeCoverageIssue[] {
+  if (!Array.isArray(value)) {
+    throw new EngineBacktestError({
+      type: "runtime",
+      subtype: "missing_coverage_issues",
+      message:
+        "Tape loader omitted coverageIssues; refusing to treat the tape as clean.",
+    });
+  }
+  return value as TapeCoverageIssue[];
+}
+
 export function snapshotCoverageIssues(
   issues: readonly TapeCoverageIssue[] | undefined
 ): TapeCoverageIssue[] | undefined {

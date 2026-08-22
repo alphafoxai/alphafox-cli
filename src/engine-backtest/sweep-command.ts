@@ -6,7 +6,10 @@ import type { ApiResponse } from "../http/client";
 import { apiRequest as defaultApiRequest } from "../http/client";
 import { resolveTapeCacheDir } from "../cache/paths";
 import { loadTokens } from "../keychain/store";
-import { summarizeTapeCoverageNotice } from "./coverage-notice";
+import {
+  requireTapeCoverageIssues,
+  summarizeTapeCoverageNotice,
+} from "./coverage-notice";
 import { EngineBacktestError, isEngineBacktestError } from "./errors";
 import { loadConfigValue } from "./load-config";
 import { parseSweepAxesDocument } from "./parse-axes";
@@ -312,6 +315,10 @@ export async function executeEngineBacktestSweep(
           details: issues ? { issues } : undefined,
         });
       }
+      tapeResult = {
+        ...tapeResult,
+        coverageIssues: requireTapeCoverageIssues(tapeResult.coverageIssues),
+      };
     }
     emitProgress(flags, writeLine, "tape", 1);
 

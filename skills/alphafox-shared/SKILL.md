@@ -1,7 +1,7 @@
 ---
 name: alphafox-shared
 description: Shared AlphaFox CLI rules for Agents — auth, profiles, envelopes, risk gates, and public operationIds only.
-version: 0.3.10
+version: 0.3.11
 ---
 
 # AlphaFox shared Agent contract

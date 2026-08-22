@@ -553,9 +553,9 @@ export async function executeEngineBacktestRun(
       runId: persistedRunId,
       experimentUrl: experimentPageUrl(profile.name as ProfileName, experimentId),
       persisted: Boolean(persistedRunId),
-      coverageWarnings: tapeResult.coverageWarnings ?? [],
-      coverageIssues: tapeResult.coverageIssues ?? [],
-      coverageNotice: summarizeTapeCoverageNotice(tapeResult.coverageIssues ?? []),
+      coverageWarnings: tapeResult.coverageWarnings,
+      coverageIssues: tapeResult.coverageIssues,
+      coverageNotice: summarizeTapeCoverageNotice(tapeResult.coverageIssues),
     };
   } finally {
     client.terminate();

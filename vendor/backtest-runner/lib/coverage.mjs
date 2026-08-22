@@ -178,6 +178,8 @@ export function analyzeOhlcvCoverage(input) {
   };
 }
 
+export const DEFAULT_TAPE_DATA_QUALITY_MODE = "basic";
+
 export function evaluateOhlcvCoverage(input) {
   const report = analyzeOhlcvCoverage(input);
 
@@ -219,11 +221,7 @@ export function summarizeTapeCoverageIssues(issues) {
       prefix.push(item);
     } else if (item.code === "internal_gap") {
       internal.push(item);
-    } else if (
-      item.code === "suffix_gap" ||
-      item.code === "warmup_insufficient" ||
-      item.code === "coverage_insufficient"
-    ) {
+    } else {
       other.push(item);
     }
   }

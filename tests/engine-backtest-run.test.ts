@@ -112,6 +112,7 @@ function sampleTape(): TapeLoadResult {
     tape: scenario.tape,
     buffers: { k0: new ArrayBuffer(8) },
     coverageWarnings: [],
+    coverageIssues: [],
   };
 }
 

@@ -109,6 +109,7 @@ export function createFileTapeCache(
 export function createDisabledTapeCache(): FileTapeCache;
 
 export type TapeDataQualityMode = "strict" | "basic";
+export const DEFAULT_TAPE_DATA_QUALITY_MODE: TapeDataQualityMode;
 export type TapeDataIssueCode =
   | "market_missing"
   | "ohlcv_missing"

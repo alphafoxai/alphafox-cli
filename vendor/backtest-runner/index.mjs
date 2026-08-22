@@ -27,6 +27,7 @@ export {
 export {
   TapeDataUnavailableError,
   isTapeDataUnavailableError,
+  DEFAULT_TAPE_DATA_QUALITY_MODE,
   evaluateOhlcvCoverage,
   analyzeOhlcvCoverage,
   formatCoverageSoftWarning,

@@ -573,9 +573,9 @@ export async function executeEngineBacktestSweep(
       experimentUrl: experimentId
         ? experimentSweepPageUrl(profile.name as ProfileName, experimentId)
         : undefined,
-      coverageWarnings: tapeResult.coverageWarnings ?? [],
-      coverageIssues: tapeResult.coverageIssues ?? [],
-      coverageNotice: summarizeTapeCoverageNotice(tapeResult.coverageIssues ?? []),
+      coverageWarnings: tapeResult.coverageWarnings,
+      coverageIssues: tapeResult.coverageIssues,
+      coverageNotice: summarizeTapeCoverageNotice(tapeResult.coverageIssues),
       axes: coarsePlan.axes,
     };
   } finally {

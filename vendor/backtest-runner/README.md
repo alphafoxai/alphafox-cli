@@ -1,3 +1,7 @@
+# Vendored Engine tape runner
+
+This directory is copied from `alphafox-engine/npm/backtest-runner` so the public CLI does not need GitHub Packages. Keep it aligned when the Engine runner changes.
+
 # @alphafoxai/backtest-runner
 
 Node 侧的 Engine Backtest **tape loader + scenario 组装**库。从交易所拉 closed OHLCV / funding，编成 wasm 运行时需要的 tape JSON 与列式 `ArrayBuffer`，并套上与 web 回测相同的默认 `executionModel`。

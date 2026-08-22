@@ -229,7 +229,7 @@ export interface TapeLoadResult {
   readonly tape: EngineBacktestTapeInput;
   readonly buffers: Record<string, ArrayBuffer>;
   readonly coverageWarnings: readonly string[];
-  readonly coverageIssues?: readonly TapeCoverageIssue[];
+  readonly coverageIssues: readonly TapeCoverageIssue[];
 }
 
 export interface BacktestClientLike {

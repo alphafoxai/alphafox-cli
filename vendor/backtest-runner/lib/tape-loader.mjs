@@ -5,6 +5,7 @@ import {
   DEFAULT_TAPE_CACHE_DIR,
 } from "./cache.mjs";
 import {
+  DEFAULT_TAPE_DATA_QUALITY_MODE,
   formatCoverageSoftWarning,
   isTapeDataUnavailableError,
   TapeDataUnavailableError,
@@ -187,7 +188,8 @@ export async function loadTape(request, options = {}) {
   const seriesConcurrency = resolveTapeSeriesConcurrency(
     options.seriesConcurrency ?? request.seriesConcurrency
   );
-  const dataQualityMode = request.dataQualityMode ?? "basic";
+  const dataQualityMode =
+    request.dataQualityMode ?? DEFAULT_TAPE_DATA_QUALITY_MODE;
   const baseTimeframe = resolvePlanBaseTimeframe({
     baseTimeframe: request.baseTimeframe,
     timeframes: [

@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { summarizeTapeCoverageNotice } from "../src/engine-backtest/coverage-notice";
+import {
+  snapshotCoverageIssues,
+  summarizeTapeCoverageNotice,
+} from "../src/engine-backtest/coverage-notice";
+import { EngineBacktestError } from "../src/engine-backtest/errors";
 
 describe("engine-backtest coverage notice", () => {
   it("treats prefix gaps as notice and internal gaps as warning", () => {
@@ -36,5 +40,29 @@ describe("engine-backtest coverage notice", () => {
     assert.equal(notice.severity, "notice");
     assert.deepEqual(notice.internal, []);
     assert.match(notice.messages[0] ?? "", /less severe/);
+  });
+
+  it("keeps unrecognized soft codes visible instead of dropping them", () => {
+    const notice = summarizeTapeCoverageNotice([
+      { code: "future_soft_gap", symbol: "DOGE/USDT:USDT", timeframe: "1h" },
+    ]);
+    assert.equal(notice.severity, "notice");
+    assert.deepEqual(
+      notice.other.map((item) => item.code),
+      ["future_soft_gap"]
+    );
+    assert.match(notice.messages[0] ?? "", /future_soft_gap/);
+  });
+
+  it("refuses to persist unknown coverage issue codes", () => {
+    assert.throws(
+      () =>
+        snapshotCoverageIssues([
+          { code: "future_soft_gap", symbol: "DOGE/USDT:USDT", timeframe: "1h" },
+        ]),
+      (error: unknown) =>
+        error instanceof EngineBacktestError &&
+        error.subtype === "invalid_coverage_issue"
+    );
   });
 });

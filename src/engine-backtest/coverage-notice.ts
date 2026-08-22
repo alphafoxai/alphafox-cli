@@ -1,3 +1,4 @@
+import { EngineBacktestError } from "./errors";
 import type { TapeCoverageIssue, TapeCoverageNotice } from "./types";
 
 function symbolLabel(issue: TapeCoverageIssue): string {
@@ -30,11 +31,7 @@ export function summarizeTapeCoverageNotice(
       prefix.push(item);
     } else if (item.code === "internal_gap") {
       internal.push(item);
-    } else if (
-      item.code === "suffix_gap" ||
-      item.code === "warmup_insufficient" ||
-      item.code === "coverage_insufficient"
-    ) {
+    } else {
       other.push(item);
     }
   }
@@ -80,17 +77,40 @@ export function summarizeTapeCoverageNotice(
   };
 }
 
+/** Must match alphafox-web `engineBacktestPersistedSnapshotSchema.coverageIssues`. */
+const PERSISTED_COVERAGE_ISSUE_CODES = new Set([
+  "market_missing",
+  "ohlcv_missing",
+  "invalid_ohlcv",
+  "non_monotonic",
+  "internal_gap",
+  "prefix_gap",
+  "suffix_gap",
+  "warmup_insufficient",
+  "load_failed",
+  "coverage_insufficient",
+]);
+
 export function snapshotCoverageIssues(
   issues: readonly TapeCoverageIssue[] | undefined
 ): TapeCoverageIssue[] | undefined {
   if (!issues || issues.length === 0) return undefined;
-  return issues.map((issue) => ({
-    code: issue.code,
-    symbol: issue.symbol,
-    timeframe: issue.timeframe,
-    ...(issue.expected === undefined ? {} : { expected: issue.expected }),
-    ...(issue.actual === undefined ? {} : { actual: issue.actual }),
-    ...(issue.timestamp === undefined ? {} : { timestamp: issue.timestamp }),
-    ...(issue.message === undefined ? {} : { message: issue.message }),
-  }));
+  return issues.map((issue) => {
+    if (!PERSISTED_COVERAGE_ISSUE_CODES.has(issue.code)) {
+      throw new EngineBacktestError({
+        type: "runtime",
+        subtype: "invalid_coverage_issue",
+        message: `Cannot persist unknown tape coverage issue code: ${issue.code}`,
+      });
+    }
+    return {
+      code: issue.code,
+      symbol: issue.symbol,
+      timeframe: issue.timeframe,
+      ...(issue.expected === undefined ? {} : { expected: issue.expected }),
+      ...(issue.actual === undefined ? {} : { actual: issue.actual }),
+      ...(issue.timestamp === undefined ? {} : { timestamp: issue.timestamp }),
+      ...(issue.message === undefined ? {} : { message: issue.message }),
+    };
+  });
 }

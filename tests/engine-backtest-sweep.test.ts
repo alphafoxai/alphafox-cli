@@ -373,7 +373,7 @@ describe("engine-backtest sweep parse", () => {
     assert.equal(parsed.definitionId, "grid");
     assert.equal(parsed.exchange, "binance");
     assert.equal(parsed.initialEquity, 10_000);
-    assert.equal(parsed.dataQualityMode, "strict");
+    assert.equal(parsed.dataQualityMode, "basic");
     assert.equal(parsed.replayTimeframe, "1m");
     assert.equal(parsed.mode, "neighborhood");
     assert.equal(parsed.searchMode, "standard");

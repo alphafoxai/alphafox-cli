@@ -1,5 +1,27 @@
 export type SubscriptionTier = "free" | "pro" | "pro_max";
 export type DataQualityMode = "strict" | "basic";
+
+/** New runs default to basic; `--data-quality strict` remains an explicit override. */
+export const DEFAULT_DATA_QUALITY_MODE: DataQualityMode = "basic";
+
+export interface TapeCoverageIssue {
+  readonly code: string;
+  readonly symbol: string;
+  readonly timeframe: string;
+  readonly expected?: number;
+  readonly actual?: number;
+  readonly timestamp?: number;
+  readonly message?: string;
+}
+
+export interface TapeCoverageNotice {
+  readonly severity: "none" | "notice" | "warning";
+  readonly prefix: readonly TapeCoverageIssue[];
+  readonly internal: readonly TapeCoverageIssue[];
+  readonly other: readonly TapeCoverageIssue[];
+  readonly messages: readonly string[];
+}
+
 export type PricePath = "ohlc_path_4" | "close_only";
 
 export interface ExecutionModel {
@@ -207,6 +229,7 @@ export interface TapeLoadResult {
   readonly tape: EngineBacktestTapeInput;
   readonly buffers: Record<string, ArrayBuffer>;
   readonly coverageWarnings: readonly string[];
+  readonly coverageIssues?: readonly TapeCoverageIssue[];
 }
 
 export interface BacktestClientLike {
@@ -289,6 +312,7 @@ export interface PersistedSnapshot {
   readonly initialEquity: number;
   readonly subscriptionTier: SubscriptionTier;
   readonly dataQualityMode: DataQualityMode;
+  readonly coverageIssues?: readonly TapeCoverageIssue[];
   readonly symbols: string[];
   readonly timeframes: string[];
   readonly baseTimeframe: string;
@@ -315,6 +339,8 @@ export interface EngineBacktestRunSuccess {
   readonly experimentUrl: string;
   readonly persisted: boolean;
   readonly coverageWarnings: readonly string[];
+  readonly coverageIssues: readonly TapeCoverageIssue[];
+  readonly coverageNotice: TapeCoverageNotice;
 }
 
 export interface EngineBacktestSweepPointRow {
@@ -394,6 +420,8 @@ export interface EngineBacktestSweepSuccess {
   readonly experimentId?: string;
   readonly experimentUrl?: string;
   readonly coverageWarnings: readonly string[];
+  readonly coverageIssues: readonly TapeCoverageIssue[];
+  readonly coverageNotice: TapeCoverageNotice;
   readonly axes: ReadonlyArray<{
     readonly path: readonly string[];
     readonly current: number;

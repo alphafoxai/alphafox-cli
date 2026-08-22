@@ -29,6 +29,8 @@ export {
   isTapeDataUnavailableError,
   evaluateOhlcvCoverage,
   analyzeOhlcvCoverage,
+  formatCoverageSoftWarning,
+  summarizeTapeCoverageIssues,
 } from "./lib/coverage.mjs";
 export {
   TIMEFRAME_MS,

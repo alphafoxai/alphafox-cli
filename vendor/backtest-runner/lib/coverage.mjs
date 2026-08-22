@@ -210,12 +210,49 @@ export function evaluateOhlcvCoverage(input) {
   };
 }
 
+export function summarizeTapeCoverageIssues(issues) {
+  const prefix = [];
+  const internal = [];
+  const other = [];
+  for (const item of issues) {
+    if (item.code === "prefix_gap") {
+      prefix.push(item);
+    } else if (item.code === "internal_gap") {
+      internal.push(item);
+    } else if (
+      item.code === "suffix_gap" ||
+      item.code === "warmup_insufficient" ||
+      item.code === "coverage_insufficient"
+    ) {
+      other.push(item);
+    }
+  }
+  return { prefix, internal, other };
+}
+
 export function formatCoverageSoftWarning(issues, coverageRatio) {
-  const codes = [...new Set(issues.map((item) => item.code))].join(", ");
   const sample = issues[0];
   const symbol = sample?.symbol ?? "unknown";
   const timeframe = sample?.timeframe ?? "*";
-  return `${symbol} ${timeframe}: accepted soft data issues (${codes}) with ${(coverageRatio * 100).toFixed(1)}% replay coverage`;
+  const codes = [...new Set(issues.map((item) => item.code))];
+  const summary = summarizeTapeCoverageIssues(issues);
+  const parts = [];
+  if (summary.prefix.length > 0) {
+    parts.push("missing start candles (less severe)");
+  }
+  if (summary.internal.length > 0) {
+    parts.push("missing mid-range candles (more severe)");
+  }
+  if (summary.other.length > 0) {
+    parts.push(
+      `other soft gaps (${summary.other.map((item) => item.code).join(", ")})`
+    );
+  }
+  const detail =
+    parts.length > 0
+      ? parts.join("; ")
+      : `accepted soft data issues (${codes.join(", ")})`;
+  return `${symbol} ${timeframe}: ${detail} with ${(coverageRatio * 100).toFixed(1)}% replay coverage`;
 }
 
 function issue(input, code, detail = {}) {

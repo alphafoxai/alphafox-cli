@@ -140,6 +140,17 @@ export function isTapeDataUnavailableError(
   value: unknown
 ): value is TapeDataUnavailableError;
 
+export function summarizeTapeCoverageIssues(issues: readonly TapeDataIssue[]): {
+  readonly prefix: TapeDataIssue[];
+  readonly internal: TapeDataIssue[];
+  readonly other: TapeDataIssue[];
+};
+
+export function formatCoverageSoftWarning(
+  issues: readonly TapeDataIssue[],
+  coverageRatio: number
+): string;
+
 export type EngineBacktestPrecisionMode = "DECIMAL_PLACES" | "TICK_SIZE";
 export type EngineBacktestSubscriptionTier = "free" | "pro" | "pro_max";
 export type EngineBacktestPricePath = "ohlc_path_4" | "close_only";
@@ -334,6 +345,7 @@ export interface TapeLoadResult {
   readonly tape: EngineBacktestTapeInput;
   readonly buffers: Record<string, ArrayBuffer>;
   readonly coverageWarnings: readonly string[];
+  readonly coverageIssues: readonly TapeDataIssue[];
   readonly chartData?: {
     readonly exchangeId: string;
     readonly series: readonly TapeChartSeries[];

@@ -200,7 +200,7 @@ describe("engine-backtest parse", () => {
     ]);
     assert.deepEqual(parsed.range, a);
     assert.equal(parsed.tier, undefined);
-    assert.equal(parsed.dataQualityMode, "strict");
+    assert.equal(parsed.dataQualityMode, "basic");
     assert.equal(parsed.persist, true);
     assert.equal(parsed.replayTimeframe, "1m");
   });
@@ -319,6 +319,7 @@ describe("engine-backtest persist", () => {
     assert.equal(body.snapshot.initialEquity, 10_000);
     assert.equal(body.snapshot.subscriptionTier, "pro");
     assert.equal(body.snapshot.dataQualityMode, "strict");
+    assert.equal(body.snapshot.coverageIssues, undefined);
     assert.deepEqual(body.snapshot.symbols, ["BTC/USDT:USDT"]);
     assert.deepEqual(body.snapshot.timeframes, ["1m"]);
     assert.equal(body.snapshot.baseTimeframe, "1m");
@@ -329,6 +330,45 @@ describe("engine-backtest persist", () => {
     assert.equal(body.configSchemaVersion, 4);
     assert.deepEqual(body.metrics, METRICS);
     assert.equal(body.returnCurve, undefined);
+  });
+
+  it("persists coverageIssues so web can show start vs mid-range notices", () => {
+    const body = buildCreateRunRequest({
+      clientRunId: "22222222-2222-2222-2222-222222222222",
+      scenario: sampleScenario(),
+      metrics: METRICS,
+      exchangeId: "binance",
+      dataQualityMode: "basic",
+      engineVersion: "test-engine",
+      coverageIssues: [
+        {
+          code: "prefix_gap",
+          symbol: "BTC/USDT:USDT",
+          timeframe: "1h",
+          expected: 1,
+          actual: 2,
+        },
+        {
+          code: "internal_gap",
+          symbol: "ETH/USDT:USDT",
+          timeframe: "1h",
+        },
+      ],
+    });
+    assert.deepEqual(body.snapshot.coverageIssues, [
+      {
+        code: "prefix_gap",
+        symbol: "BTC/USDT:USDT",
+        timeframe: "1h",
+        expected: 1,
+        actual: 2,
+      },
+      {
+        code: "internal_gap",
+        symbol: "ETH/USDT:USDT",
+        timeframe: "1h",
+      },
+    ]);
   });
 
   it("includes a compressed return curve from the local equity series", () => {
@@ -696,7 +736,7 @@ describe("engine-backtest orchestration", () => {
       "plan:grid:4",
       "api:GET:/api/v1/subscriptions/me",
       "exchange:binance",
-      `tape:BTC/USDT:USDT:${Date.parse("2026-08-01T00:00:00Z")}:${Date.parse("2026-08-09T00:00:00Z")}:strict`,
+      `tape:BTC/USDT:USDT:${Date.parse("2026-08-01T00:00:00Z")}:${Date.parse("2026-08-09T00:00:00Z")}:basic`,
       "assemble:grid",
       "wasm:00000000-0000-0000-0000-000000000001",
       "api:POST:/api/v1/engine-backtest/experiments/11111111-1111-1111-1111-111111111111/runs",
@@ -729,6 +769,14 @@ describe("engine-backtest orchestration", () => {
     );
     assert.equal(result.engineVersion, "test-engine");
     assert.deepEqual(result.metrics, METRICS);
+    assert.deepEqual(result.coverageIssues, []);
+    assert.deepEqual(result.coverageNotice, {
+      severity: "none",
+      prefix: [],
+      internal: [],
+      other: [],
+      messages: [],
+    });
   });
 
   it("defaults tape replay to 1m when the plan only has a coarser indicator", async () => {
@@ -846,6 +894,51 @@ describe("engine-backtest orchestration", () => {
     assert.deepEqual(apiCalls, []);
     assert.equal(result.persisted, false);
     assert.equal(result.runId, undefined);
+  });
+
+  it("returns graded coverageNotice when tape has soft gaps", async () => {
+    const result = await executeEngineBacktestRun(
+      parseEngineBacktestRunArgs([
+        "--experiment",
+        "11111111-1111-1111-1111-111111111111",
+        "--definition",
+        "grid",
+        "--config",
+        "{}",
+        "--exchange",
+        "binance",
+        "--range",
+        "2026-08-01..2026-08-08",
+        "--initial-equity",
+        "10000",
+        "--no-persist",
+        "--tier",
+        "pro",
+      ]),
+      FLAGS,
+      { ALPHAFOX_CONFIG_DIR: mkdtempSync(join(tmpdir(), "alphafox-cfg-")) },
+      {
+        createNodeBacktestClient: () => fakeClient(),
+        loadTape: async () => ({
+          ...sampleTape(),
+          coverageIssues: [
+            { code: "prefix_gap", symbol: "BTC/USDT:USDT", timeframe: "1h" },
+            { code: "internal_gap", symbol: "ETH/USDT:USDT", timeframe: "1h" },
+          ],
+        }),
+        assembleScenario: (input) => sampleScenario(input.runId),
+        resolveTapeExchange: () => ({
+          id: "binance_perp_usdt",
+          label: "Binance",
+          ccxtId: "binanceusdm",
+          marketType: "swap",
+          quoteAsset: "USDT",
+        }),
+      }
+    );
+    assert.equal(result.coverageNotice.severity, "warning");
+    assert.match(result.coverageNotice.messages[0] ?? "", /more severe/);
+    assert.match(result.coverageNotice.messages[1] ?? "", /less severe/);
   });
 
   it("creates an experiment after the local run and skips runs.create with --no-persist", async () => {

@@ -52,7 +52,7 @@ alphafox engine-backtest run \
   --format jsonl --no-input
 ```
 
-Also valid: `--from` / `--to` instead of `--range`. `--create-experiment --name "..."` when there is no `--experiment` (needs `strategyDefinitionId` + `strategyDefinitionDisplay` `{zh,en}`; pass `--definition-label-zh` / `--definition-label-en` or the CLI falls back to the definition id). Persisted runs use the account tier from `subscriptions.me.get`; if `--tier` is supplied, it must match. With `--no-persist`, `runs.create` is skipped and `--tier` may simulate `free|pro|pro_max` (default `pro`). `--data-quality` defaults to `strict`. `--replay-timeframe` defaults to `1m` (allowed `1m|3m|5m|15m|30m|1h|4h`); this is the replay/download bar and is merged with plan indicator timeframes so a 4h RSI grid still replays on 1m. `runs.create` is `write`, not `high-risk-write` — do not add `--yes`. Do not update or delete experiments through this command.
+Also valid: `--from` / `--to` instead of `--range`. `--create-experiment --name "..."` when there is no `--experiment` (needs `strategyDefinitionId` + `strategyDefinitionDisplay` `{zh,en}`; pass `--definition-label-zh` / `--definition-label-en` or the CLI falls back to the definition id). Persisted runs use the account tier from `subscriptions.me.get`; if `--tier` is supplied, it must match. With `--no-persist`, `runs.create` is skipped and `--tier` may simulate `free|pro|pro_max` (default `pro`). `--data-quality` defaults to `basic` (soft gaps finish the run and appear as `coverageNotice`; `prefix_gap` is less severe than `internal_gap`). `--data-quality strict` still fails on any gap. `--replay-timeframe` defaults to `1m` (allowed `1m|3m|5m|15m|30m|1h|4h`); this is the replay/download bar and is merged with plan indicator timeframes so a 4h RSI grid still replays on 1m. `runs.create` is `write`, not `high-risk-write` — do not add `--yes`. Do not update or delete experiments through this command.
 
 `--format jsonl` writes one JSON object per progress line (`{event:"progress",stage,fraction}`), then a final `{ok:true,data:{...}}` envelope.
 
@@ -92,13 +92,14 @@ Owner isolation and 7-day expiry are enforced by the server. Applying a coordina
 
 1. Edit config JSON.
 2. `engine-backtest run` (reuse `--experiment` after the first create).
-3. Read `data.metrics` / `data.engineVersion` / `data.runId` / `data.experimentUrl`.
+3. Read `data.metrics` / `data.engineVersion` / `data.runId` / `data.experimentUrl`. After the run, also read `data.coverageNotice` (`warning` = mid-range candle gaps; `notice` = start / other soft gaps).
 4. Adjust parameters and run again. Do not invent a token flag if persist returns 401 — `alphafox auth login`.
 5. After a long-range or 1m run, follow `alphafox-cache`: `alphafox cache status`. If `data.tape.large` is true, ask **回测下载的历史数据比较大，要不要我帮你清理本地缓存？** and wait for yes.
 
 ## Safety
 
 - Unauthenticated persist/create fails like `whoami` (HTTP 401, exit 77).
+- Default `basic` data quality: missing market / empty / corrupted tape **stops**; soft gaps complete the run and surface as `coverageNotice`. Do not silently switch to `strict` or hide those notices.
 - `strict` data quality: missing/gapped tape **stops**. Do not retry as `basic` unless the operator asks.
 - `planBacktest` unsupported → fail with the plan reason. Do not degrade to a guessed universe.
 - Catalog `engine_backtest.experiments.byId.update` / `.delete` / `.sweeps.byId.delete` are high-risk-write and are **not** this command's run/sweep path.

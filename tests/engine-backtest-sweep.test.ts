@@ -124,6 +124,7 @@ function sampleTape(buffer = new ArrayBuffer(8)): TapeLoadResult {
     tape: sampleScenario().tape,
     buffers: { k0: buffer },
     coverageWarnings: [],
+    coverageIssues: [],
   };
 }
 
@@ -373,7 +374,7 @@ describe("engine-backtest sweep parse", () => {
     assert.equal(parsed.definitionId, "grid");
     assert.equal(parsed.exchange, "binance");
     assert.equal(parsed.initialEquity, 10_000);
-    assert.equal(parsed.dataQualityMode, "strict");
+    assert.equal(parsed.dataQualityMode, "basic");
     assert.equal(parsed.replayTimeframe, "1m");
     assert.equal(parsed.mode, "neighborhood");
     assert.equal(parsed.searchMode, "standard");

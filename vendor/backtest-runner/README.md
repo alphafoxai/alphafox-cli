@@ -33,13 +33,13 @@ import {
   assembleScenario,
 } from "@alphafoxai/backtest-runner";
 
-const { tape, buffers, coverageWarnings } = await loadTape({
+const { tape, buffers, coverageWarnings, coverageIssues } = await loadTape({
   exchangeId: "binance_perp_usdt",
   symbols: ["BTC/USDT:USDT"],
   timeframes: ["1m", "1h"],
   fromMs,
   toMs,
-  dataQualityMode: "strict",
+  dataQualityMode: "basic",
 });
 
 const scenario = assembleScenario({
@@ -82,8 +82,8 @@ const scenario = assembleScenario({
 
 ## 数据质量
 
-- `strict`（默认）：任何缺口 / 缺数 / 非法 K 线都抛 `TapeDataUnavailableError`。
-- `basic`：硬失败（缺市场、空序列、非法 K 线、拉数失败）仍抛错；软缺口进入 `coverageWarnings`。
+- `basic`（默认）：硬失败（缺市场、空序列、非法 K 线、拉数失败）仍抛错；软缺口进入 `coverageIssues` 与 `coverageWarnings`。起始缺口（`prefix_gap`）较轻，中间缺口（`internal_gap`）较重。
+- `strict`：任何缺口 / 缺数 / 非法 K 线都抛 `TapeDataUnavailableError`。
 - 禁止 mock 成功或静默降级。
 
 ## 已知限制（相对 alphafox-web）

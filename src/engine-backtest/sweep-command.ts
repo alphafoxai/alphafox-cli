@@ -6,6 +6,10 @@ import type { ApiResponse } from "../http/client";
 import { apiRequest as defaultApiRequest } from "../http/client";
 import { resolveTapeCacheDir } from "../cache/paths";
 import { loadTokens } from "../keychain/store";
+import {
+  requireTapeCoverageIssues,
+  summarizeTapeCoverageNotice,
+} from "./coverage-notice";
 import { EngineBacktestError, isEngineBacktestError } from "./errors";
 import { loadConfigValue } from "./load-config";
 import { parseSweepAxesDocument } from "./parse-axes";
@@ -271,6 +275,7 @@ export async function executeEngineBacktestSweep(
       },
       buffers: {},
       coverageWarnings: [],
+      coverageIssues: [],
     };
     if (tapePlans.length > 0) {
       try {
@@ -310,6 +315,10 @@ export async function executeEngineBacktestSweep(
           details: issues ? { issues } : undefined,
         });
       }
+      tapeResult = {
+        ...tapeResult,
+        coverageIssues: requireTapeCoverageIssues(tapeResult.coverageIssues),
+      };
     }
     emitProgress(flags, writeLine, "tape", 1);
 
@@ -494,6 +503,7 @@ export async function executeEngineBacktestSweep(
         initialEquity: args.initialEquity!,
         subscriptionTier,
         dataQualityMode: args.dataQualityMode,
+        coverageIssues: tapeResult.coverageIssues,
         symbols: tapeSymbols.length > 0 ? tapeSymbols : coverage.symbols,
         timeframes: uniqueSeriesField(tapeResult.tape.series, "timeframe"),
         baseTimeframe: tapeResult.tape.baseTimeframe || args.replayTimeframe,
@@ -570,7 +580,9 @@ export async function executeEngineBacktestSweep(
       experimentUrl: experimentId
         ? experimentSweepPageUrl(profile.name as ProfileName, experimentId)
         : undefined,
-      coverageWarnings: tapeResult.coverageWarnings ?? [],
+      coverageWarnings: tapeResult.coverageWarnings,
+      coverageIssues: tapeResult.coverageIssues,
+      coverageNotice: summarizeTapeCoverageNotice(tapeResult.coverageIssues),
       axes: coarsePlan.axes,
     };
   } finally {

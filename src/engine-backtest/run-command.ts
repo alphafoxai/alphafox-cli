@@ -6,6 +6,10 @@ import { writeError, writeSuccess } from "../envelope";
 import type { ApiRequestOptions, ApiResponse } from "../http/client";
 import { apiRequest as defaultApiRequest } from "../http/client";
 import { loadTokens } from "../keychain/store";
+import {
+  requireTapeCoverageIssues,
+  summarizeTapeCoverageNotice,
+} from "./coverage-notice";
 import { EngineBacktestError, isEngineBacktestError } from "./errors";
 import { loadConfigValue } from "./load-config";
 import {
@@ -450,6 +454,10 @@ export async function executeEngineBacktestRun(
         details: issues ? { issues } : undefined,
       });
     }
+    tapeResult = {
+      ...tapeResult,
+      coverageIssues: requireTapeCoverageIssues(tapeResult.coverageIssues),
+    };
 
     const runId = mintId();
     const executionModel = {
@@ -531,6 +539,7 @@ export async function executeEngineBacktestRun(
         dataQualityMode: args.dataQualityMode,
         engineVersion,
         equityCurve: result.equityCurve,
+        coverageIssues: tapeResult.coverageIssues,
       });
       const res = await postJson(api, profile, env, runsPath(experimentId), body, mintId);
       persistedRunId = extractEntityId(res.json);
@@ -551,7 +560,9 @@ export async function executeEngineBacktestRun(
       runId: persistedRunId,
       experimentUrl: experimentPageUrl(profile.name as ProfileName, experimentId),
       persisted: Boolean(persistedRunId),
-      coverageWarnings: tapeResult.coverageWarnings ?? [],
+      coverageWarnings: tapeResult.coverageWarnings,
+      coverageIssues: tapeResult.coverageIssues,
+      coverageNotice: summarizeTapeCoverageNotice(tapeResult.coverageIssues),
     };
   } finally {
     client.terminate();
@@ -577,6 +588,7 @@ export function engineBacktestHelpData(): {
       "runs.create is write (not high-risk-write); --yes is not required",
       "Do not pass --token; use alphafox auth login",
       "--replay-timeframe defaults to 1m (min 1m). Indicator series still download their native plan timeframes.",
+      "--data-quality defaults to basic: hard tape failures still stop, soft gaps finish the run and appear as coverageNotice (prefix_gap less severe, internal_gap more severe). Use --data-quality strict to fail on any gap.",
     ],
   };
 }

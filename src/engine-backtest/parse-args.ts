@@ -6,15 +6,16 @@ import {
   type EngineBacktestReplayTimeframe,
 } from "./replay-timeframe";
 import { DEFAULT_SWEEP_CONCURRENCY } from "./sweep-kernel";
-import type {
-  DataQualityMode,
-  EngineBacktestRunArgs,
-  EngineBacktestSweepArgs,
-  ExecutionModel,
-  InclusiveUtcDateRange,
-  SubscriptionTier,
-  SweepMode,
-  SweepSearchMode,
+import {
+  DEFAULT_DATA_QUALITY_MODE,
+  type DataQualityMode,
+  type EngineBacktestRunArgs,
+  type EngineBacktestSweepArgs,
+  type ExecutionModel,
+  type InclusiveUtcDateRange,
+  type SubscriptionTier,
+  type SweepMode,
+  type SweepSearchMode,
 } from "./types";
 
 const DAY_MS = 86_400_000;
@@ -154,7 +155,7 @@ export function parseEngineBacktestRunArgs(
   let to: string | undefined;
   let initialEquity: number | undefined;
   let tier: SubscriptionTier | undefined;
-  let dataQualityMode: DataQualityMode = "strict";
+  let dataQualityMode: DataQualityMode = DEFAULT_DATA_QUALITY_MODE;
   let configSchemaVersion: number | undefined;
   let executionModelOverride: Partial<ExecutionModel> | undefined;
   let persist = true;
@@ -424,7 +425,7 @@ export function parseEngineBacktestSweepArgs(
     return {
       help: true,
       createExperiment: false,
-      dataQualityMode: "strict",
+      dataQualityMode: DEFAULT_DATA_QUALITY_MODE,
       persist: true,
       replayTimeframe: ENGINE_BACKTEST_DEFAULT_REPLAY_TIMEFRAME,
       axesRaw,

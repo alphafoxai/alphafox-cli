@@ -1,6 +1,7 @@
 import type { ProfileName } from "../config/profiles";
 import { EngineBacktestError } from "./errors";
 import { compressEngineBacktestReturnCurve } from "./return-curve";
+import { snapshotCoverageIssues } from "./coverage-notice";
 import type {
   CreateRunRequestBody,
   CreateSweepPointSummary,
@@ -13,6 +14,7 @@ import type {
   PersistedSnapshot,
   SweepMode,
   SweepSearchMode,
+  TapeCoverageIssue,
 } from "./types";
 
 /** Aligned with `@alphafoxai/backtest-runner` DEFAULT_EXECUTION_MODEL. */
@@ -61,6 +63,7 @@ export function buildCreateRunRequest(input: {
   readonly dataQualityMode: DataQualityMode;
   readonly engineVersion: string;
   readonly equityCurve?: unknown;
+  readonly coverageIssues?: readonly TapeCoverageIssue[];
 }): CreateRunRequestBody {
   const { scenario } = input;
   const rangeStart = scenario.tape.from.slice(0, 10);
@@ -75,6 +78,7 @@ export function buildCreateRunRequest(input: {
   }
   const timeframes = uniqueSeriesField(scenario.tape.series, "timeframe");
   const engineVersion = input.engineVersion.trim() || "node-wasm";
+  const coverageIssues = snapshotCoverageIssues(input.coverageIssues);
   const snapshot: PersistedSnapshot = {
     snapshotSchemaVersion: SNAPSHOT_SCHEMA_VERSION,
     strategyDefinitionId: scenario.trader.strategyDefinitionId,
@@ -86,6 +90,7 @@ export function buildCreateRunRequest(input: {
     initialEquity: scenario.exchange.initialEquity,
     subscriptionTier: scenario.trader.subscriptionTier,
     dataQualityMode: input.dataQualityMode,
+    ...(coverageIssues ? { coverageIssues } : {}),
     symbols,
     timeframes: timeframes.length > 0 ? timeframes : ["1m"],
     baseTimeframe: scenario.tape.baseTimeframe || "1m",
@@ -178,6 +183,7 @@ export function buildSweepBaseSnapshot(input: {
   readonly initialEquity: number;
   readonly subscriptionTier: PersistedSnapshot["subscriptionTier"];
   readonly dataQualityMode: DataQualityMode;
+  readonly coverageIssues?: readonly TapeCoverageIssue[];
   readonly symbols: readonly string[];
   readonly timeframes: readonly string[];
   readonly baseTimeframe: string;
@@ -196,6 +202,7 @@ export function buildSweepBaseSnapshot(input: {
   const timeframes = [
     ...new Set(input.timeframes.map((item) => item.trim()).filter(Boolean)),
   ];
+  const coverageIssues = snapshotCoverageIssues(input.coverageIssues);
   return {
     snapshotSchemaVersion: SNAPSHOT_SCHEMA_VERSION,
     strategyDefinitionId: input.definitionId,
@@ -207,6 +214,7 @@ export function buildSweepBaseSnapshot(input: {
     initialEquity: input.initialEquity,
     subscriptionTier: input.subscriptionTier,
     dataQualityMode: input.dataQualityMode,
+    ...(coverageIssues ? { coverageIssues } : {}),
     symbols,
     timeframes: timeframes.length > 0 ? timeframes : ["1m"],
     baseTimeframe: input.baseTimeframe.trim() || "1m",

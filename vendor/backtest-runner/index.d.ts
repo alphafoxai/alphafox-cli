@@ -109,6 +109,7 @@ export function createFileTapeCache(
 export function createDisabledTapeCache(): FileTapeCache;
 
 export type TapeDataQualityMode = "strict" | "basic";
+export const DEFAULT_TAPE_DATA_QUALITY_MODE: TapeDataQualityMode;
 export type TapeDataIssueCode =
   | "market_missing"
   | "ohlcv_missing"
@@ -139,6 +140,17 @@ export class TapeDataUnavailableError extends Error {
 export function isTapeDataUnavailableError(
   value: unknown
 ): value is TapeDataUnavailableError;
+
+export function summarizeTapeCoverageIssues(issues: readonly TapeDataIssue[]): {
+  readonly prefix: TapeDataIssue[];
+  readonly internal: TapeDataIssue[];
+  readonly other: TapeDataIssue[];
+};
+
+export function formatCoverageSoftWarning(
+  issues: readonly TapeDataIssue[],
+  coverageRatio: number
+): string;
 
 export type EngineBacktestPrecisionMode = "DECIMAL_PLACES" | "TICK_SIZE";
 export type EngineBacktestSubscriptionTier = "free" | "pro" | "pro_max";
@@ -334,6 +346,7 @@ export interface TapeLoadResult {
   readonly tape: EngineBacktestTapeInput;
   readonly buffers: Record<string, ArrayBuffer>;
   readonly coverageWarnings: readonly string[];
+  readonly coverageIssues: readonly TapeDataIssue[];
   readonly chartData?: {
     readonly exchangeId: string;
     readonly series: readonly TapeChartSeries[];

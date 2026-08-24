@@ -30,7 +30,10 @@ A **trader** is a running strategy instance (paper or live), not a person. Creat
 | Notification channels | `alphafox-notification` |
 | Admin-only operations | `alphafox-admin` |
 
-If several rows apply, load **all** of them (typical: `alphafox-shared` + `alphafox-market` + one domain skill). “帮我建一个网格/DCA/跟单策略” → `alphafox-strategy` (pick the definition) **and** `alphafox-trading` (create the trader).
+If several rows apply, load **all** of them (typical: `alphafox-shared` + `alphafox-market` + one domain skill).
+
+- “帮我配/建一个网格/DCA/跟单策略” → `alphafox-strategy` (pick definition, ask knobs, validate `{common, strategy}`) **and** `alphafox-market` (resolve tickers) **and** `alphafox-trading` (create the trader). Hidden copy variants still create through `alphafox-trading`.
+- “帮我回测这个配置” → `alphafox-strategy` (definition + config) **and** `alphafox-engine-backtest`.
 
 ## Upgrade reminder
 

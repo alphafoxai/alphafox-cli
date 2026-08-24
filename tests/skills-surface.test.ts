@@ -52,6 +52,30 @@ describe("Skills surface", () => {
     assert.match(engine, /alphafox-cache/);
   });
 
+  it("teaches strategy config from definitions, not a static catalog", () => {
+    const strategy = readFileSync(
+      join(skillsRoot, "strategy", "SKILL.md"),
+      "utf8"
+    );
+    const router = readFileSync(join(skillsRoot, "alphafox", "SKILL.md"), "utf8");
+    assert.match(strategy, /active/);
+    assert.match(strategy, /byId\.get/);
+    assert.match(strategy, /configSchemaVersion/);
+    assert.match(strategy, /"common"/);
+    assert.match(strategy, /"strategy"/);
+    assert.match(strategy, /settings/);
+    assert.match(strategy, /policyId/);
+    assert.match(strategy, /alphafox-trading/);
+    assert.match(strategy, /alphafox-engine-backtest/);
+    assert.match(strategy, /Do not enumerate engine strategy IDs/);
+    assert.equal(/rebate_copy_trading/.test(strategy), false);
+    assert.equal(/hl_copy_trading/.test(strategy), false);
+    assert.equal(/lite_xyz_martingale/.test(strategy), false);
+    assert.match(router, /alphafox-strategy/);
+    assert.match(router, /alphafox-trading/);
+    assert.match(router, /Hidden copy variants/);
+  });
+
   it("does not teach chat product commands or paths", () => {
     const banned = [
       /chats\./,

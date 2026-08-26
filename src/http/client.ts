@@ -11,6 +11,7 @@ import {
   isInternalDisallowedPath,
   normalizeApiPath,
 } from "../catalog/allowlist";
+import { verifyDeployedMetadata } from "./metadata";
 
 export interface ApiRequestOptions {
   readonly method: string;
@@ -21,6 +22,9 @@ export interface ApiRequestOptions {
   readonly requestId?: string;
   readonly skipAuth?: boolean;
   readonly idempotencyKey?: string;
+  /** Catalog metadata gates the single reactive replay for mutations. */
+  readonly operationId?: string;
+  readonly catalogIdempotent?: boolean;
   /** Internal: already attempted one silent refresh+retry for this call. */
   readonly _refreshRetried?: boolean;
 }
@@ -31,6 +35,7 @@ export interface ApiResponse {
   readonly bodyText: string;
   readonly requestId: string;
   readonly json: unknown;
+  readonly outcome?: "outcome_unknown";
 }
 
 export async function apiRequest(
@@ -62,6 +67,9 @@ export async function apiRequest(
       );
     }
   }
+  if (path !== "/api/v1/meta" && path.startsWith("/api/v1/")) {
+    await verifyDeployedMetadata(options.profile, env, fetchImpl);
+  }
 
   const requestId = options.requestId ?? newRequestId();
   const base = options.profile.apiBaseUrl.replace(/\/$/, "");
@@ -71,8 +79,9 @@ export async function apiRequest(
     const origin = base.replace(/\/api\/v1$/, "");
     url = `${origin}${path}${query}`;
   } else if (path.startsWith("/api/auth")) {
-    const origin = base.replace(/\/api\/v1$/, "");
-    url = `${origin}${path}${query}`;
+    const issuer = options.profile.issuer.replace(/\/$/, "");
+    const oauthPath = path.replace(/^\/api\/auth/, "");
+    url = `${issuer}${oauthPath}${query}`;
   } else {
     url = `${base}${path.startsWith("/") ? path : `/${path}`}${query}`;
   }
@@ -86,7 +95,7 @@ export async function apiRequest(
   };
 
   if (!options.skipAuth) {
-    let tokens = loadTokens(options.profile.name, env);
+    let tokens = loadTokens(options.profile, env);
     // Proactive refresh before the access token expires (or once already expired).
     if (tokens && accessTokenNeedsRefresh(tokens)) {
       const outcome = await refreshStoredTokens(
@@ -135,8 +144,6 @@ export async function apiRequest(
   const init: RequestInit = {
     method: options.method.toUpperCase(),
     headers,
-    // Follow redirects ourselves so Authorization is re-attached after apex→www.
-    // fetch()'s automatic redirect drops Authorization on cross-origin hops.
     redirect: "manual",
   };
   if (options.body !== undefined) {
@@ -144,7 +151,29 @@ export async function apiRequest(
     init.body = JSON.stringify(options.body);
   }
 
-  const response = await fetchFollowingAuthRedirects(fetchImpl, url, init);
+  let response: Response;
+  try {
+    response = await fetchFollowingAuthRedirects(fetchImpl, url, init);
+  } catch (err) {
+    if (!isReadMethod(init.method)) {
+      throw Object.assign(
+        new Error(
+          `Mutation outcome is unknown: ${err instanceof Error ? err.message : String(err)}`
+        ),
+        {
+          type: "http",
+          subtype: "outcome_unknown",
+          requestId,
+          details: {
+            method: init.method,
+            path: options.path,
+            reason: err instanceof Error ? err.message : String(err),
+          },
+        }
+      );
+    }
+    throw err;
+  }
   const bodyText = await response.text();
   let json: unknown = null;
   try {
@@ -158,13 +187,16 @@ export async function apiRequest(
     requestId;
 
   // Reactive: one silent refresh+retry on 401 for authenticated product calls.
+  // Reactive refresh is safe for reads and explicitly idempotent, keyed catalog mutations.
   if (
     response.status === 401 &&
     !options.skipAuth &&
     !options._refreshRetried &&
-    !isOAuthAsPath
+    !isOAuthAsPath &&
+    (isReadMethod(init.method) ||
+      (options.catalogIdempotent === true && Boolean(options.idempotencyKey)))
   ) {
-    const tokens = loadTokens(options.profile.name, env);
+    const tokens = loadTokens(options.profile, env);
     if (tokens?.refreshToken?.trim()) {
       const outcome = await refreshStoredTokens(
         options.profile,
@@ -188,15 +220,24 @@ export async function apiRequest(
     bodyText,
     requestId: responseRequestId,
     json,
+    ...(isMutationMethod(init.method) && REDIRECT_STATUSES.has(response.status)
+      ? { outcome: "outcome_unknown" as const }
+      : {}),
   };
 }
 
 const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
 
-/**
- * Re-issue requests on same-site redirects while keeping Authorization.
- * Needed because alphafox.app → www.alphafox.app is a cross-origin hop for fetch.
- */
+function isReadMethod(method: string | undefined): boolean {
+  const normalized = (method ?? "GET").toUpperCase();
+  return normalized === "GET" || normalized === "HEAD";
+}
+
+function isMutationMethod(method: string | undefined): boolean {
+  return !isReadMethod(method);
+}
+
+/** Follow only redirects within the profile's authorized auth site for reads; never replay mutations. */
 async function fetchFollowingAuthRedirects(
   fetchImpl: typeof fetch,
   startUrl: string,
@@ -204,36 +245,25 @@ async function fetchFollowingAuthRedirects(
   maxHops = 5
 ): Promise<Response> {
   let url = startUrl;
-  let method = (init.method ?? "GET").toUpperCase();
-  let body = init.body;
-  let response = await fetchImpl(url, { ...init, method, body, redirect: "manual" });
-
-  for (let hop = 0; hop < maxHops && REDIRECT_STATUSES.has(response.status); hop++) {
-    const location = response.headers.get("location");
-    if (!location) {
-      break;
-    }
-    const nextUrl = new URL(location, url).toString();
-    if (!sameAuthSite(originOf(url), originOf(nextUrl))) {
-      break;
-    }
-    // 303 switches to GET without body; 301/302 historically do for non-GET.
-    if (
-      response.status === 303 ||
-      ((response.status === 301 || response.status === 302) && method !== "GET" && method !== "HEAD")
-    ) {
-      method = "GET";
-      body = undefined;
-    }
-    url = nextUrl;
-    response = await fetchImpl(url, {
-      ...init,
-      method,
-      body,
-      redirect: "manual",
-    });
+  const method = (init.method ?? "GET").toUpperCase();
+  if (!isReadMethod(method)) {
+    return fetchImpl(url, { ...init, method, redirect: "manual" });
   }
 
+  let response = await fetchImpl(url, { ...init, method, redirect: "manual" });
+  for (let hop = 0; hop < maxHops && REDIRECT_STATUSES.has(response.status); hop++) {
+    const location = response.headers.get("location");
+    if (!location) break;
+    let nextUrl: string;
+    try {
+      nextUrl = new URL(location, url).toString();
+    } catch {
+      break;
+    }
+    if (!sameAuthSite(originOf(url), originOf(nextUrl))) break;
+    url = nextUrl;
+    response = await fetchImpl(url, { ...init, method, redirect: "manual" });
+  }
   return response;
 }
 
@@ -249,20 +279,24 @@ function originOf(value: string | null | undefined): string | null {
   }
 }
 
-/** Apex and www hosts of the same site share auth tokens. */
+/** Only the known AlphaFox production apex/www pair shares bearer credentials. */
 function sameAuthSite(
   a: string | null | undefined,
   b: string | null | undefined
 ): boolean {
   if (!a || !b) return false;
-  if (a === b) return true;
   try {
-    const ua = new URL(a);
-    const ub = new URL(b);
-    if (ua.protocol !== ub.protocol) return false;
-    const ha = ua.hostname.replace(/^www\./i, "").toLowerCase();
-    const hb = ub.hostname.replace(/^www\./i, "").toLowerCase();
-    return ha === hb && ua.port === ub.port;
+    const left = new URL(a);
+    const right = new URL(b);
+    if (left.protocol !== right.protocol || left.port !== right.port) return false;
+    if (left.hostname === right.hostname) return true;
+    return (
+      left.protocol === "https:" &&
+      left.port === "" &&
+      [left.hostname, right.hostname].every(
+        (host) => host === "alphafox.app" || host === "www.alphafox.app"
+      )
+    );
   } catch {
     return false;
   }

@@ -30,6 +30,7 @@ import {
   type EngineBacktestCliFlags,
 } from "../src/engine-backtest/run-command";
 import {
+  capSweepRefinement,
   cloneTapeBuffers,
   executeEngineBacktestSweep,
   MAX_ENGINE_BACKTEST_BATCH_VARIANTS,
@@ -37,6 +38,7 @@ import {
   SWEEP_WASM_BATCH_VARIANTS,
 } from "../src/engine-backtest/sweep-command";
 import {
+  FREE_MAX_SWEEP_COMBINATIONS,
   planSweep,
   type SweepAxisInput,
 } from "../src/engine-backtest/sweep-kernel";
@@ -592,6 +594,18 @@ describe("engine-backtest sweep buffers", () => {
       splitBatchChunk(Array.from({ length: 300 }, (_, index) => index)).every(
         (part) => part.length <= MAX_ENGINE_BACKTEST_BATCH_VARIANTS
       )
+    );
+  });
+
+  it("budgets fast refinement inside the total combination cap", () => {
+    const refinement = Array.from({ length: 26 }, (_, value) => ({
+      values: [value],
+    }));
+    assert.equal(refinement.length, 26);
+    assert.equal(FREE_MAX_SWEEP_COMBINATIONS - 108, 17);
+    assert.deepEqual(
+      capSweepRefinement(108, refinement, FREE_MAX_SWEEP_COMBINATIONS),
+      refinement.slice(0, 17)
     );
   });
 });
@@ -1183,6 +1197,54 @@ describe("engine-backtest sweep execute", () => {
         spacing: result.best?.coordinate.values[1],
       }
     );
+  });
+
+  it("caps the complete Free fast search including refinement", async () => {
+    const config = {
+      strategy: {
+        param0: 10,
+        param1: 10,
+        param2: 10,
+        param3: 10,
+        param4: 10,
+      },
+    };
+    const axes = Array.from({ length: 5 }, (_, index) => ({
+      path: ["strategy", `param${index}`],
+      min: 0,
+      max: 20,
+      step: 1,
+    }));
+    const result = await executeEngineBacktestSweep(
+      parseEngineBacktestSweepArgs([
+        "--experiment",
+        "11111111-1111-1111-1111-111111111111",
+        "--definition",
+        "grid",
+        "--config",
+        JSON.stringify(config),
+        "--axes",
+        JSON.stringify({ axes }),
+        "--exchange",
+        "binance",
+        "--range",
+        "2026-08-01..2026-08-08",
+        "--initial-equity",
+        "10000",
+        "--no-persist",
+        "--search-mode",
+        "fast",
+        "--tier",
+        "free",
+      ]),
+      FLAGS,
+      isolatedEnv(),
+      runnerDeps()
+    );
+
+    assert.ok(result.points.length <= FREE_MAX_SWEEP_COMBINATIONS);
+    assert.equal(result.combinationCount, result.points.length);
+    assert.equal(result.sampled, true);
   });
 
   it("help documents sweep persist and the command accepts sweep", async () => {

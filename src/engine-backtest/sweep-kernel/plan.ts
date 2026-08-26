@@ -63,15 +63,18 @@ export function planSweep(input: {
         FAST_SWEEP_AXIS_POINTS
       );
     }
-  } else {
-    while (product(targetSizes) > combinationCap) {
-      const axisIndex = targetSizes.reduce(
-        (largestIndex, size, index) =>
-          size > (targetSizes[largestIndex] ?? 0) ? index : largestIndex,
-        0
-      );
-      targetSizes[axisIndex] = Math.max(2, (targetSizes[axisIndex] ?? 2) - 1);
+  }
+  while (product(targetSizes) > combinationCap) {
+    const reducibleAxes = targetSizes
+      .map((size, index) => ({ size, index }))
+      .filter(({ size }) => size > 1);
+    if (reducibleAxes.length === 0) {
+      break;
     }
+    const axisIndex = reducibleAxes.reduce((largest, candidate) =>
+      candidate.size > largest.size ? candidate : largest
+    ).index;
+    targetSizes[axisIndex] = (targetSizes[axisIndex] ?? 1) - 1;
   }
   const axes = rawAxes.map((axis, index) => ({
     path: axis.path,
@@ -292,8 +295,11 @@ function downsample(
   if (values.length <= limit) {
     return [...values];
   }
-  const safeLimit = Math.max(2, Math.min(limit, values.length));
+  const safeLimit = Math.max(1, Math.min(limit, values.length));
   const selectedIndices = new Set<number>();
+  if (safeLimit === 1) {
+    return [values.includes(keep) ? keep : values[0]];
+  }
   for (let slot = 0; slot < safeLimit; slot += 1) {
     selectedIndices.add(
       Math.round((slot * (values.length - 1)) / (safeLimit - 1))

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { chmodSync, mkdtempSync, rmSync } from "node:fs";
+import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
@@ -12,23 +12,10 @@ import {
   saveTokens,
   type StoredTokens,
 } from "../src/keychain/store";
-
-const fixtureSecret = join(
-  __dirname,
-  "..",
-  "..",
-  "tests",
-  "fixtures",
-  "fake-secret-tool"
-);
-const fixturePs = join(
-  __dirname,
-  "..",
-  "..",
-  "tests",
-  "fixtures",
-  "fake-powershell"
-);
+import { profileCredentialSlot, resolveProfile } from "../src/config/profiles";
+const fixtureDir = existsSync(join(__dirname, "fixtures")) ? join(__dirname, "fixtures") : join(__dirname, "..", "..", "tests", "fixtures");
+const fixtureSecret = join(fixtureDir, "fake-secret-tool");
+const fixturePs = join(fixtureDir, "fake-powershell");
 
 const sample: StoredTokens = {
   accessToken: "access-linux-1",
@@ -39,6 +26,13 @@ const sample: StoredTokens = {
   audience: "http://127.0.0.1:3000/api/v1",
   clientId: "alphafox-cli-local",
   scopes: ["openid"],
+};
+const profile = {
+  name: "local" as const,
+  apiBaseUrl: "http://127.0.0.1:3000/api/v1",
+  issuer: "http://127.0.0.1:3000/api/auth",
+  audience: "http://127.0.0.1:3000/api/v1",
+  clientId: "alphafox-cli-local",
 };
 
 describe("OS keychain backends", () => {
@@ -51,7 +45,7 @@ describe("OS keychain backends", () => {
     assert.equal(args[0], "store");
     assert.ok(!args.some((a) => String(a).includes("access-")));
     assert.ok(args.includes("service"));
-    assert.equal(windowsCredentialTarget("staging"), "alphafox-cli/staging/oauth-tokens");
+    assert.notEqual(windowsCredentialTarget("staging-slot"), windowsCredentialTarget("production-slot"));
   });
 
   it("roundtrips via Linux Secret Service helper (fake secret-tool)", () => {
@@ -67,13 +61,13 @@ describe("OS keychain backends", () => {
       const probe = probeOsKeychain(env);
       assert.equal(probe.kind, "linux-secret-service");
       assert.equal(probe.available, true);
-      const saved = saveTokens("local", sample, env);
+      const saved = saveTokens(profile, sample, env);
       assert.equal(saved.backend, "keychain");
       assert.equal(saved.kind, "linux-secret-service");
       assert.equal(saved.degraded, false);
-      assert.equal(loadTokens("local", env)?.accessToken, "access-linux-1");
-      deleteTokens("local", env);
-      assert.equal(loadTokens("local", env), null);
+      assert.equal(loadTokens(profile, env)?.accessToken, "access-linux-1");
+      deleteTokens(profile, env);
+      assert.equal(loadTokens(profile, env), null);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -92,18 +86,88 @@ describe("OS keychain backends", () => {
       const probe = probeOsKeychain(env);
       assert.equal(probe.kind, "windows-credential-manager");
       assert.equal(probe.available, true);
-      const saved = saveTokens("local", { ...sample, accessToken: "access-win-1" }, env);
+      const saved = saveTokens(profile, { ...sample, accessToken: "access-win-1" }, env);
       assert.equal(saved.backend, "keychain");
       assert.equal(saved.kind, "windows-credential-manager");
-      assert.equal(loadTokens("local", env)?.accessToken, "access-win-1");
-      deleteTokens("local", env);
-      assert.equal(loadTokens("local", env), null);
+      assert.equal(loadTokens(profile, env)?.accessToken, "access-win-1");
+      deleteTokens(profile, env);
+      assert.equal(loadTokens(profile, env), null);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
   });
 
-  it("falls back to file when Linux secret-tool is missing", () => {
+  it("logout removes OS, authority-bound file, and legacy file credentials", () => {
+    chmodSync(fixtureSecret, 0o755);
+    const dir = mkdtempSync(join(tmpdir(), "alphafox-logout-all-"));
+    const baseEnv: NodeJS.ProcessEnv = {
+      ALPHAFOX_KEYCHAIN_PLATFORM: "linux",
+      ALPHAFOX_SECRET_TOOL: fixtureSecret,
+      ALPHAFOX_FAKE_SECRET_DIR: dir,
+      ALPHAFOX_KEYCHAIN_DIR: join(dir, "files"),
+    };
+    try {
+      const fileSave = saveTokens(profile, sample, {
+        ...baseEnv,
+        ALPHAFOX_FORCE_FILE_KEYCHAIN: "1",
+      });
+      assert.equal(fileSave.backend, "file");
+      saveTokens(profile, { ...sample, accessToken: "os-access" }, baseEnv);
+
+      deleteTokens(profile, {
+        ...baseEnv,
+        ALPHAFOX_FORCE_FILE_KEYCHAIN: "1",
+      });
+      assert.equal(existsSync(fileSave.path!), false);
+      assert.equal(loadTokens(profile, baseEnv), null);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("migrates and removes the previous production apex-hash OS credential", () => {
+    chmodSync(fixtureSecret, 0o755);
+    const dir = mkdtempSync(join(tmpdir(), "alphafox-prod-secret-migration-"));
+    const env: NodeJS.ProcessEnv = {
+      ALPHAFOX_KEYCHAIN_PLATFORM: "linux",
+      ALPHAFOX_SECRET_TOOL: fixtureSecret,
+      ALPHAFOX_FAKE_SECRET_DIR: dir,
+      ALPHAFOX_KEYCHAIN_DIR: join(dir, "files"),
+    };
+    const current = resolveProfile("production", env);
+    const previous = { ...current, apiBaseUrl: "https://alphafox.app/api/v1" };
+    const tokens: StoredTokens = {
+      ...sample,
+      environment: current.name,
+      issuer: current.issuer,
+      audience: current.audience,
+      clientId: current.clientId,
+    };
+    const oldFile = join(
+      dir,
+      `alphafox-cli.${profileCredentialSlot(previous)}__oauth-tokens`
+    );
+    const currentFile = join(
+      dir,
+      `alphafox-cli.${profileCredentialSlot(current)}__oauth-tokens`
+    );
+    try {
+      saveTokens(previous, tokens, env);
+      assert.equal(readFileSync(oldFile, "utf8").includes("access-linux-1"), true);
+      assert.equal(loadTokens(current, env)?.accessToken, "access-linux-1");
+      assert.equal(existsSync(oldFile), false);
+      assert.equal(existsSync(currentFile), true);
+
+      saveTokens(previous, tokens, env);
+      deleteTokens(current, env);
+      assert.equal(existsSync(oldFile), false);
+      assert.equal(existsSync(currentFile), false);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("does not create file credentials when Linux secret-tool is missing", () => {
     const dir = mkdtempSync(join(tmpdir(), "alphafox-secret-miss-"));
     const env: NodeJS.ProcessEnv = {
       ALPHAFOX_KEYCHAIN_PLATFORM: "linux",
@@ -111,10 +175,8 @@ describe("OS keychain backends", () => {
       ALPHAFOX_KEYCHAIN_DIR: dir,
     };
     try {
-      const saved = saveTokens("local", sample, env);
-      assert.equal(saved.backend, "file");
-      assert.equal(saved.degraded, true);
-      assert.equal(loadTokens("local", env)?.refreshToken, "refresh-linux-1");
+      assert.throws(() => saveTokens(profile, sample, env), /unavailable/i);
+      assert.equal(existsSync(join(dir, "local.tokens.json")), false);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

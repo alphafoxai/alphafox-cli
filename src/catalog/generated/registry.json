@@ -2,7 +2,7 @@
   "source": {
     "package": "@alphafoxai/contracts",
     "export": "public-api",
-    "contractsSha": "ffa4bc3b",
+    "contractsSha": "74673c2b",
     "registryVersion": "1.1.0",
     "contractVersion": "2026-08-13",
     "scannedAt": "2026-08-13",
@@ -3284,12 +3284,13 @@
       "method": "POST",
       "path": "/api/v1/managed-wallets/{walletId}/hyperliquid/margin-transfer",
       "role": "user",
-      "risk": "write",
+      "risk": "high-risk-write",
       "auth": "bearer",
       "scopes": [
         "openid",
         "profile",
-        "managed-wallets:write"
+        "managed-wallets:write",
+        "managed-wallets:high-risk"
       ],
       "stream": false,
       "file": false,

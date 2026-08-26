@@ -12,15 +12,20 @@ export {
   loadConfigFile,
   saveConfigFile,
   assertNoTokenFields,
+  canonicalAuthorityUrl,
+  canonicalProfile,
+  profileCredentialSlot,
 } from "./config/profiles";
 export {
   saveTokens,
   loadTokens,
   deleteTokens,
   tokenFingerprint,
+  credentialSlot,
   getLastTokenSaveResult,
   probeOsKeychain,
   keychainPlatform,
+  CredentialError,
 } from "./keychain/store";
 export {
   linuxSecretServiceArgs,
@@ -41,6 +46,13 @@ export {
   type CompatibilityRange,
   type CompatibilityResult,
 } from "./catalog/compatibility";
+export {
+  DEPLOYED_METADATA_PATH,
+  DEPLOYED_METADATA_TIMEOUT_MS,
+  validateDeployedMetadata,
+  verifyDeployedMetadata,
+  type DeployedMetadata,
+} from "./http/metadata";
 export { resolveTypedCommand } from "./catalog/command-tree";
 export {
   assertHighRiskConfirmation,

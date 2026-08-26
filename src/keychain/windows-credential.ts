@@ -93,105 +93,62 @@ switch ($Action) {
 }
 `;
 
-export function windowsCredentialTarget(profile: string): string {
-  return `alphafox-cli/${profile}/oauth-tokens`;
+export function windowsCredentialTarget(slot: string): string {
+  return `alphafox-cli/${slot}/oauth-tokens`;
 }
 
-export function windowsPowershellBin(
-  env: NodeJS.ProcessEnv = process.env
-): string {
-  return env.ALPHAFOX_POWERSHELL?.trim() || "powershell.exe";
-}
+export function windowsPowershellBin(env: NodeJS.ProcessEnv = process.env): string { return env.ALPHAFOX_POWERSHELL?.trim() || "powershell.exe"; }
 
 function scriptPath(): string {
   const dir = join(tmpdir(), "alphafox-cli");
   mkdirSync(dir, { recursive: true });
   const path = join(dir, "windows-cred.ps1");
-  writeFileSync(path, WINDOWS_CRED_PS1, { encoding: "utf8" });
+  writeFileSync(path, WINDOWS_CRED_PS1, { encoding: "utf8", mode: 0o600 });
   return path;
 }
 
-function runCred(
-  action: "write" | "read" | "delete",
-  target: string,
-  env: NodeJS.ProcessEnv,
-  input?: string
-): string {
-  const result = execFileSync(
-    windowsPowershellBin(env),
-    [
-      "-NoProfile",
-      "-NonInteractive",
-      "-ExecutionPolicy",
-      "Bypass",
-      "-File",
-      scriptPath(),
-      action,
-      target,
-    ],
-    {
-      input: input ?? "",
-      encoding: "utf8",
-      stdio: ["pipe", "pipe", "pipe"],
-      timeout: 15_000,
-      windowsHide: true,
-      env: { ...process.env, ...env },
-    }
-  );
+function runCred(action: "write" | "read" | "delete", target: string, env: NodeJS.ProcessEnv, input?: string): string {
+  const result = execFileSync(windowsPowershellBin(env), ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", scriptPath(), action, target], {
+    input: input ?? "", encoding: "utf8", stdio: ["pipe", "pipe", "pipe"], timeout: 15_000, windowsHide: true, env: { ...process.env, ...env },
+  });
   return typeof result === "string" ? result : String(result);
 }
 
-export function windowsCredentialWrite(
-  profile: string,
-  payload: string,
-  env: NodeJS.ProcessEnv = process.env
-): boolean {
-  if (Buffer.byteLength(payload, "utf8") > WINDOWS_CRED_MAX_BYTES) {
-    return false;
-  }
+export type WindowsCredentialReadResult =
+  | { readonly status: "found"; readonly value: string }
+  | { readonly status: "missing" };
+
+function statusCode(error: unknown): number | undefined {
+  if (!error || typeof error !== "object") return undefined;
+  if ("status" in error && typeof error.status === "number") return error.status;
+  return undefined;
+}
+
+export function windowsCredentialWrite(slot: string, payload: string, env: NodeJS.ProcessEnv = process.env): boolean {
+  if (Buffer.byteLength(payload, "utf8") > WINDOWS_CRED_MAX_BYTES) throw new Error("Windows credential payload exceeds the supported size.");
+  runCred("write", windowsCredentialTarget(slot), env, payload);
+  return true;
+}
+
+export function windowsCredentialReadResult(slot: string, env: NodeJS.ProcessEnv = process.env): WindowsCredentialReadResult {
   try {
-    runCred("write", windowsCredentialTarget(profile), env, payload);
-    return true;
-  } catch {
-    return false;
+    const value = runCred("read", windowsCredentialTarget(slot), env);
+    return value.length > 0 ? { status: "found", value } : { status: "missing" };
+  } catch (error) {
+    if (statusCode(error) === 2) return { status: "missing" };
+    throw error;
   }
 }
 
-export function windowsCredentialRead(
-  profile: string,
-  env: NodeJS.ProcessEnv = process.env
-): string | null {
-  try {
-    const out = runCred("read", windowsCredentialTarget(profile), env);
-    return out.length > 0 ? out : null;
-  } catch {
-    return null;
-  }
+export function windowsCredentialRead(slot: string, env: NodeJS.ProcessEnv = process.env): string | null {
+  const result = windowsCredentialReadResult(slot, env);
+  return result.status === "found" ? result.value : null;
 }
 
-export function windowsCredentialDelete(
-  profile: string,
-  env: NodeJS.ProcessEnv = process.env
-): void {
-  try {
-    runCred("delete", windowsCredentialTarget(profile), env);
-  } catch {
-    // none
-  }
+export function windowsCredentialDelete(slot: string, env: NodeJS.ProcessEnv = process.env): void {
+  runCred("delete", windowsCredentialTarget(slot), env);
 }
 
-export function windowsCredentialAvailable(
-  env: NodeJS.ProcessEnv = process.env
-): boolean {
-  try {
-    execFileSync(windowsPowershellBin(env), ["-NoProfile", "-Command", "exit 0"], {
-      stdio: "ignore",
-      timeout: 5_000,
-      windowsHide: true,
-      env: { ...process.env, ...env },
-    });
-    return true;
-  } catch {
-    return false;
-  }
+export function windowsCredentialAvailable(env: NodeJS.ProcessEnv = process.env): boolean {
+  try { execFileSync(windowsPowershellBin(env), ["-NoProfile", "-Command", "exit 0"], { stdio: "ignore", timeout: 5_000, windowsHide: true, env: { ...process.env, ...env } }); return true; } catch { return false; }
 }

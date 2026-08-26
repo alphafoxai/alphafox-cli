@@ -93,8 +93,8 @@ OIDC-provenance release.
 | Platform | Install | Update | Uninstall | Secrets |
 |----------|---------|--------|-----------|---------|
 | macOS | `npm install -g @alphafox/cli` or `npx @alphafox/cli` | `npm update -g @alphafox/cli` or pin `@<version>` | `npm uninstall -g @alphafox/cli` | Keychain Access |
-| Linux | same | same | same | Secret Service, or file fallback mode `0600` |
-| Windows | same | same | same | Credential Manager (`CredWrite`/`CredRead`); file fallback mode `0600` if unavailable |
+| Linux | same | same | same | Secret Service; explicit `ALPHAFOX_FORCE_FILE_KEYCHAIN=1` enables POSIX `0600` file mode |
+| Windows | same | same | same | Credential Manager (`CredWrite`/`CredRead`); file mode is unsupported |
 
 Fresh-machine acceptance (release checklist, not optional):
 

@@ -3,11 +3,13 @@ import {
   closeSync,
   cpSync,
   existsSync,
+  lstatSync,
   mkdirSync,
   openSync,
   readFileSync,
   readdirSync,
   renameSync,
+  rmSync,
   statSync,
   unlinkSync,
   writeFileSync,
@@ -93,6 +95,62 @@ export interface SkillsSyncDeps {
   readonly remove?: (names: readonly string[]) => Promise<void>;
   readonly now?: () => Date;
 }
+const SAFE_SKILL_NAME = /^[a-z0-9][a-z0-9-]*$/;
+
+function assertSafeSkillName(name: string): void {
+  if (!SAFE_SKILL_NAME.test(name)) {
+    throw Object.assign(new Error(`Invalid Skill name: ${name}`), {
+      type: "install",
+      subtype: "skills_name_invalid",
+    });
+  }
+}
+
+export function installSkillsFromBundle(
+  packageRoot: string,
+  installedRoot: string,
+  manifest: SkillsBundleManifest,
+  names: readonly string[]
+): void {
+  const sourceByName = new Map<string, string>();
+  const skillsRoot = join(packageRoot, "skills");
+  for (const entry of readdirSync(skillsRoot, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const skillRoot = join(skillsRoot, entry.name);
+    const name = readSkillName(join(skillRoot, "SKILL.md"));
+    if (name && manifest.skills.some((skill) => skill.name === name)) {
+      sourceByName.set(name, entry.name);
+    }
+  }
+  mkdirSync(installedRoot, { recursive: true });
+  for (const name of names) assertSafeSkillName(name);
+  for (const name of names) {
+    const sourceName = sourceByName.get(name);
+    if (!sourceName) {
+      throw Object.assign(new Error(`Skill source is missing: ${name}`), {
+        type: "install",
+        subtype: "skills_source_missing",
+      });
+    }
+    const target = join(installedRoot, name);
+    rmSync(target, { recursive: true, force: true });
+    cpSync(join(skillsRoot, sourceName), target, {
+      recursive: true,
+      dereference: true,
+    });
+  }
+}
+
+export function removeInstalledSkills(
+  installedRoot: string,
+  names: readonly string[]
+): void {
+  for (const name of names) assertSafeSkillName(name);
+  for (const name of names) {
+    rmSync(join(installedRoot, name), { recursive: true, force: true });
+  }
+}
+
 
 export function buildSkillsManifest(
   packageRoot: string,
@@ -125,6 +183,7 @@ export function buildSkillsManifest(
           }
         );
       }
+      assertSafeSkillName(name);
       const version = readSkillVersion(skillPath) ?? versions.packageVersion;
       if (version !== versions.packageVersion) {
         throw Object.assign(
@@ -197,6 +256,12 @@ export function loadAndVerifySkillsManifest(
       !Array.isArray(recorded.skills)
     ) {
       throw new Error("manifest shape is invalid");
+    }
+    for (const skill of recorded.skills) {
+      if (!skill || typeof skill !== "object" || typeof skill.name !== "string") {
+        throw new Error("manifest Skill entry is invalid");
+      }
+      assertSafeSkillName(skill.name);
     }
     const packageJson = JSON.parse(
       readFileSync(join(packageRoot, "package.json"), "utf8")
@@ -482,6 +547,9 @@ export function loadSkillsState(path: string): SkillsInstallState | null {
       subtype: "skills_state_invalid",
     });
   }
+  for (const name of Object.keys((parsed as SkillsInstallState).skills)) {
+    assertSafeSkillName(name);
+  }
   return parsed as SkillsInstallState;
 }
 
@@ -528,11 +596,15 @@ function listFiles(root: string): string[] {
   const out: string[] = [];
   for (const entry of readdirSync(root, { withFileTypes: true })) {
     const path = join(root, entry.name);
-    if (entry.isDirectory()) {
-      out.push(...listFiles(path));
-    } else if (entry.isFile() || statSync(path).isFile()) {
-      out.push(path);
+    const info = lstatSync(path);
+    if (info.isSymbolicLink()) {
+      throw Object.assign(new Error(`Skills bundle cannot contain a symbolic link: ${path}`), {
+        type: "install",
+        subtype: "skills_bundle_symlink",
+      });
     }
+    if (info.isDirectory()) out.push(...listFiles(path));
+    else if (info.isFile()) out.push(path);
   }
   return out;
 }

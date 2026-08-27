@@ -19,7 +19,7 @@ named `@alphafoxai/cli` (that name was never published; npmjs returns 404).
 | License | MIT |
 | Node | LTS **≥ 20** (`engines.node`) |
 | OS | macOS, Linux, Windows (npm install; no standalone native binary in v1) |
-| Package contents | `bin/`, `dist/`, `skills/`, `README.md`, `docs/`, `LICENSE` |
+| Package contents | `bin/`, `dist/`, `skills/`, `README.md`, `docs/`, `scripts/uninstall.cjs`, `LICENSE` |
 
 v1 does **not** ship independent GitHub Release binaries, so there is no extra
 binary signing/checksum channel. Integrity is npm pack integrity plus

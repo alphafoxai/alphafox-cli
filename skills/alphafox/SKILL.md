@@ -1,6 +1,6 @@
 ---
 name: alphafox
-description: AlphaFox CLI entry router. Use for any AlphaFox request — install, update, login, whoami, 回测, engine backtest, 清理回测缓存 / 历史数据, strategy definitions, create/list/start/stop a running strategy (trader), ticker/标的 resolve (美股 or crypto), market data, exchange connectors, wallet, subscriptions, notifications, or admin. If a CLI command prints `[alphafox] update available`, ask the user「检测到新的版本，是否需要我帮你升级？」and only then run `alphafox update --format json --no-input`. After a large backtest, if tape cache is large, ask「回测下载的历史数据比较大，要不要我帮你清理本地缓存？」then open `alphafox-cache`. Start here, then open the routed domain skill. Do not guess alphafox-engine-backtest vs alphafox-strategy vs alphafox-trading from memory.
+description: AlphaFox CLI entry router. Use for any AlphaFox request — install, update, login, whoami, 回测, engine backtest, 清理回测缓存 / 历史数据, strategy definitions, create/list/start/stop a running strategy (trader), ticker/标的 resolve (美股 or crypto), market data, exchange connectors, wallet, subscriptions, notifications, or admin. After a successful install and login, present the 新人引导 in this file (Lite square 带单员 + classic strategies). If a CLI command prints `[alphafox] update available`, ask the user「检测到新的版本，是否需要我帮你升级？」and only then run `alphafox update --format json --no-input`. After a large backtest, if tape cache is large, ask「回测下载的历史数据比较大，要不要我帮你清理本地缓存？」then open `alphafox-cache`. Start here, then open the routed domain skill. Do not guess alphafox-engine-backtest vs alphafox-strategy vs alphafox-trading from memory.
 version: 0.3.11
 ---
 
@@ -19,6 +19,7 @@ A **trader** is a running strategy instance (paper or live), not a person. Creat
 | User intent | Skill |
 |---|---|
 | Install, update, Skills status/sync, doctor, version, catalog, how to call the CLI | `alphafox-shared` |
+| 刚安装完 / 新人引导 / 热门带单员 / 经典策略介绍 | this file, **After install** |
 | Login, logout, whoami, profile, staging vs production | `alphafox-auth` |
 | Ticker / 标的 / 美股 / crypto / resolve a misspelled symbol | `alphafox-market` |
 | Engine WASM backtest, experiment, `engine-backtest run`, persist a local run | `alphafox-engine-backtest` |
@@ -56,6 +57,56 @@ alphafox update --format json --no-input
 4. Tell the user to **restart the AI tool** so the new Skills load.
 
 Do not install Skills from GitHub. Details and dry-run / check commands live in `alphafox-shared`.
+
+## After install
+
+After CLI + Skills are installed, login is `session: active`, and the AI tool has restarted, present this welcome **once**. Fetch live data first. Do not invent 带单员 names, ROI, or strategy scenarios.
+
+Classic product names to introduce (match `trading.strategy_definitions.list` `display.label` zh-CN / `name`; then `byId.get` that row — do not hardcode definition ids):
+
+1. 组合跟单策略
+2. 轮动马丁策略
+3. 网格策略
+4. 拼盘策略
+5. 滚仓宝策略
+
+```bash
+alphafox lite catalog_config get --format json --no-input
+alphafox lite signal_sources list --format json --no-input
+alphafox trading strategy_definitions list --format json --no-input
+```
+
+Keep Lite catalog order from `featuredSourceIds`. Resolve `id` → `name` from `lite.signal_sources` `sources[]`. Take the first **3** named rows. Optional ROI:
+
+```bash
+alphafox lite signal_source_metrics list --sourceIds <id,id,id> --window all --mode scalars --format json --no-input
+```
+
+Print `roi` as returned. If the catalog or metrics call fails, skip that part and say the square catalog could not be loaded — do not substitute other signal sources.
+
+For each classic name that matched a definition, `byId.get` and use Chinese `display.description` (fallback English `description`) as the scenario. Then one live leaderboard example:
+
+```bash
+alphafox trader_leaderboard list --strategyDefinitionId <id> --sort roi --order desc --positiveRoi true --window 30d --limit 1 --includePaper false --format json --no-input
+```
+
+Use `items[0].traderName` + `roiPercent` when present. Omit the leaderboard clause when the list is empty.
+
+Present in the operator's language, this shape:
+
+```text
+安装完成！
+以下是最近热门的一些带单员：{name}{、name}{、name}。
+您可以直接通过组合跟单策略来跟随这些带单员，做实时自动化交易。
+
+如果您想配置自己的交易策略，推荐先了解这些内置的经典策略。
+{策略名}：{display.description}。排行榜上 {traderName} 近 30 日收益 {roiPercent}%。
+…
+
+想跟单或者运行策略，告诉我即可。或者您想先看看排行榜，也可以直接告诉我。
+```
+
+Do not create a trader from this welcome. When they pick 跟单 / a classic strategy, read `alphafox-strategy` + `alphafox-trading` (+ `alphafox-market` if they name a ticker). When they ask for 排行榜, list `trader_leaderboard` (same flags, no `strategyDefinitionId` unless they named a type) and summarize — do not dump the envelope.
 
 ## Do not mix these backtest paths
 

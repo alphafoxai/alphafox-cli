@@ -180,6 +180,7 @@ describe("install helpers", () => {
     assert.ok(steps.some((s) => s.includes("重启")));
     assert.ok(steps.some((s) => s.includes("auth login --browser")));
     assert.ok(steps.some((s) => s.includes(AGENT_INSTALL_GUIDE_BLOB_URL)));
+    assert.ok(steps.some((s) => s.includes("After install")));
   });
 });
 

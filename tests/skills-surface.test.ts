@@ -76,6 +76,29 @@ describe("Skills surface", () => {
     assert.match(router, /Hidden copy variants/);
   });
 
+  it("teaches post-install welcome from the Lite square catalog", () => {
+    const router = readFileSync(join(skillsRoot, "alphafox", "SKILL.md"), "utf8");
+    const shared = readFileSync(
+      join(skillsRoot, "alphafox-shared", "SKILL.md"),
+      "utf8"
+    );
+    assert.match(router, /After install/);
+    assert.match(router, /lite catalog_config get/);
+    assert.match(router, /lite signal_sources list/);
+    assert.match(router, /featuredSourceIds/);
+    assert.match(router, /组合跟单策略/);
+    assert.match(router, /轮动马丁策略/);
+    assert.match(router, /网格策略/);
+    assert.match(router, /拼盘策略/);
+    assert.match(router, /滚仓宝策略/);
+    assert.match(router, /trader_leaderboard list/);
+    assert.match(router, /想跟单或者运行策略，告诉我即可/);
+    assert.match(router, /do not hardcode definition ids/i);
+    assert.match(shared, /After install/);
+    assert.equal(/lite_xyz_martingale/.test(router), false);
+    assert.equal(/hl_copy_trading/.test(router), false);
+  });
+
   it("does not teach chat product commands or paths", () => {
     const banned = [
       /chats\./,

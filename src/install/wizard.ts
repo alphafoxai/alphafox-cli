@@ -76,7 +76,8 @@ export function nextSteps(input: {
   }
   steps.push(
     "alphafox doctor --format json --no-input",
-    `Agent 安装指南：${AGENT_INSTALL_GUIDE_BLOB_URL}`
+    `Agent 安装指南：${AGENT_INSTALL_GUIDE_BLOB_URL}`,
+    "登录并重启后，按 alphafox skill 的 After install 向用户展示新人引导。"
   );
   if (input.dryRun) {
     steps.unshift("这是 --dry-run，去掉该参数再运行才会真正安装。");

@@ -92,8 +92,14 @@ Parse the JSON envelope: `ok === true` means success. Errors land on
 ## Step 4: Tell the user to restart
 
 Ask the user to **restart the AI tool** so the new Skills are loaded.
-Then they can ask the Agent to use AlphaFox. The entry skill `alphafox` routes
-to auth, market, engine-backtest, strategy, trading, and the rest.
+
+## Step 5: New-user welcome
+
+After restart and `alphafox auth status --verify` shows `session: active`,
+follow skill `alphafox` **After install**: fetch the Lite square catalog
+(`lite.catalog_config.get`, `lite.signal_sources.list`) and introduce the
+classic strategy definitions from `trading.strategy_definitions.list`. Do not
+invent 带单员 names. Do not create a trader until the user asks.
 
 ## Human wizard (do not run this from an Agent)
 

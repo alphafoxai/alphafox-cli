@@ -1,7 +1,7 @@
 ---
 name: alphafox-engine-backtest
 description: Local Engine WASM backtest (alphafox engine-backtest run|sweep) vs catalog experiment CRUD.
-version: 0.3.13
+version: 0.3.14
 ---
 
 # Engine Backtest

@@ -1,7 +1,7 @@
 ---
 name: alphafox-account
 description: Account, wallet, and subscription read paths.
-version: 0.3.11
+version: 0.3.12
 ---
 
 # Account / wallet

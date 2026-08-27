@@ -232,6 +232,11 @@ export interface TapeLoadResult {
   readonly coverageIssues: readonly TapeCoverageIssue[];
 }
 
+export interface EnginePreparedTape {
+  readonly handle: string;
+  readonly fingerprint: string;
+}
+
 export interface BacktestClientLike {
   init(): Promise<string>;
   version(): Promise<string>;
@@ -249,12 +254,28 @@ export interface BacktestClientLike {
     readonly configSchemaVersion: number;
     readonly config: unknown;
   }): Promise<EngineBacktestPlan | EngineBacktestFailure>;
-  runBacktest(
+  prepareTape(
+    tape: EngineBacktestTapeInput,
+    buffers: Record<string, ArrayBuffer>
+  ): Promise<EnginePreparedTape>;
+  runPreparedBacktest(
+    handle: string,
+    scenario: EngineBacktestScenario,
+    onProgress?: (fraction: number) => void
+  ): Promise<EngineBacktestResult>;
+  runPreparedBacktestBatch(
+    handle: string,
+    batch: EngineBacktestBatchRequest,
+    onProgress?: (fraction: number) => void
+  ): Promise<EngineBacktestBatchResult>;
+  releaseTape(handle: string): Promise<{ readonly released: true }>;
+  /** Legacy one-shot WASM API. CLI host must not call these. */
+  runBacktest?(
     scenario: EngineBacktestScenario,
     buffers: Record<string, ArrayBuffer>,
     onProgress?: (fraction: number) => void
   ): Promise<EngineBacktestResult>;
-  runBacktestBatch(
+  runBacktestBatch?(
     batch: EngineBacktestBatchRequest,
     buffers: Record<string, ArrayBuffer>,
     onProgress?: (fraction: number) => void
@@ -281,6 +302,7 @@ export interface BacktestRunnerModule {
       readonly toMs: number;
       readonly dataQualityMode?: DataQualityMode;
       readonly cacheDir?: string;
+      readonly seriesConcurrency?: number;
       readonly onProgress?: (progress: TapeLoadProgress) => void;
     },
     options?: unknown

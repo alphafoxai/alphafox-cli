@@ -29,6 +29,7 @@ import {
   engineBacktestHelpData,
   type EngineBacktestCliFlags,
 } from "../src/engine-backtest/run-command";
+import { ENGINE_BACKTEST_TAPE_SERIES_CONCURRENCY } from "../src/engine-backtest/prepared-tape";
 import {
   cloneTapeBuffers,
   executeEngineBacktestSweep,
@@ -147,13 +148,14 @@ function fakeClient(overrides: Partial<BacktestClientLike> = {}): BacktestClient
       definitions: [{ id: "grid", configSchemaVersion: 4 }],
     }),
     planBacktest: async () => PLAN,
-    runBacktest: async (scenario) => ({
+    prepareTape: async () => ({ handle: "tape-1", fingerprint: "fp-1" }),
+    runPreparedBacktest: async (_handle, scenario) => ({
       runId: scenario.runId,
       status: "completed",
       engineVersion: "test-engine",
       metrics: METRICS,
     }),
-    runBacktestBatch: async (batch) => ({
+    runPreparedBacktestBatch: async (_handle, batch) => ({
       batchId: batch.batchId,
       status: "completed",
       results: batch.variants.map((variant) => ({
@@ -162,6 +164,13 @@ function fakeClient(overrides: Partial<BacktestClientLike> = {}): BacktestClient
         metrics: METRICS,
       })),
     }),
+    releaseTape: async () => ({ released: true as const }),
+    runBacktest: async () => {
+      throw new Error("one-shot runBacktest is not the CLI production path");
+    },
+    runBacktestBatch: async () => {
+      throw new Error("one-shot runBacktestBatch is not the CLI production path");
+    },
     terminate: () => undefined,
     ...overrides,
   };
@@ -219,6 +228,7 @@ function runnerDeps(overrides: {
       readonly timeframe: string;
       readonly minWarmupCandles: number;
     }[];
+    readonly seriesConcurrency?: number;
   }) => Promise<TapeLoadResult> | TapeLoadResult;
   readonly apiRequest?: (
     options: { readonly method: string; readonly path: string; readonly body?: unknown }
@@ -248,6 +258,7 @@ function runnerDeps(overrides: {
         readonly timeframe: string;
         readonly minWarmupCandles: number;
       }[];
+      readonly seriesConcurrency?: number;
     }) =>
       overrides.loadTape
         ? await overrides.loadTape(req)
@@ -901,7 +912,7 @@ describe("engine-backtest sweep execute", () => {
           runnerDeps({
             loadTokens: authedTokens,
             client: fakeClient({
-              runBacktestBatch: async () => {
+              runPreparedBacktestBatch: async () => {
                 throw new EngineBacktestError({
                   type: "runtime",
                   subtype: "cancelled",
@@ -927,13 +938,16 @@ describe("engine-backtest sweep execute", () => {
     );
   });
 
-  it("runs --no-persist with one broad tape, cloned buffers, and zero writes", async () => {
+  it("runs --no-persist with one broad tape, one prepare per worker, and zero writes", async () => {
     const source = new ArrayBuffer(8);
-    const seenBuffers: ArrayBuffer[] = [];
+    const preparedBuffers: ArrayBuffer[] = [];
+    const batchHandles: string[] = [];
     const batches: EngineBacktestBatchRequest[] = [];
     const apiCalls: string[] = [];
     let tapeCalls = 0;
     let maxWarmup = -1;
+    let seriesConcurrency: number | undefined;
+    let oneShotBatches = 0;
     const client = fakeClient({
       planBacktest: async ({ config }) => {
         const period =
@@ -955,13 +969,17 @@ describe("engine-backtest sweep execute", () => {
           ],
         };
       },
-      runBacktestBatch: async (batch, buffers) => {
+      prepareTape: async (_tape, buffers) => {
+        preparedBuffers.push(buffers.k0 as ArrayBuffer);
+        return { handle: "tape-1", fingerprint: "fp-1" };
+      },
+      runPreparedBacktestBatch: async (handle, batch) => {
+        batchHandles.push(handle);
         batches.push(batch);
-        seenBuffers.push(buffers.k0 as ArrayBuffer);
         return {
           batchId: batch.batchId,
           status: "completed",
-          results: batch.variants.map((variant, index) => {
+          results: batch.variants.map((variant) => {
             const period = (
               variant.config as { strategy: { period: number } }
             ).strategy.period;
@@ -972,6 +990,10 @@ describe("engine-backtest sweep execute", () => {
             };
           }),
         };
+      },
+      runBacktestBatch: async () => {
+        oneShotBatches += 1;
+        throw new Error("one-shot runBacktestBatch is not the CLI production path");
       },
     });
     const progress: Array<{ stage: string; fraction: number }> = [];
@@ -994,6 +1016,7 @@ describe("engine-backtest sweep execute", () => {
           client,
           loadTape: async (req) => {
             tapeCalls += 1;
+            seriesConcurrency = req.seriesConcurrency;
             maxWarmup = Math.max(
               0,
               ...(req.seriesRequirements ?? []).map(
@@ -1007,6 +1030,7 @@ describe("engine-backtest sweep execute", () => {
             return jsonResponse(500, { message: "no writes" });
           },
         }),
+        maxVariantsPerBatch: 1,
         writeLine: (value) => {
           const row = value as { event?: string; stage?: string; fraction?: number };
           if (row.event === "progress" && row.stage) {
@@ -1017,6 +1041,7 @@ describe("engine-backtest sweep execute", () => {
     );
 
     assert.equal(tapeCalls, 1);
+    assert.equal(seriesConcurrency, ENGINE_BACKTEST_TAPE_SERIES_CONCURRENCY);
     assert.equal(maxWarmup, 200);
     assert.equal(apiCalls.length, 0);
     assert.equal(result.persisted, false);
@@ -1028,9 +1053,12 @@ describe("engine-backtest sweep execute", () => {
     assert.deepEqual(result.best?.coordinate.values, [12]);
     assert.equal(result.best?.returnPct, 20);
     assert.deepEqual(result.best?.config, { strategy: { period: 12, spacing: 0.6 } });
-    assert.equal(seenBuffers.length, 1);
-    assert.notEqual(seenBuffers[0], source);
+    assert.equal(preparedBuffers.length, 1);
+    assert.equal(batchHandles.length, 3);
+    assert.ok(batchHandles.every((handle) => handle === "tape-1"));
+    assert.notEqual(preparedBuffers[0], source);
     assert.equal(source.byteLength, 8);
+    assert.equal(oneShotBatches, 0);
     assert.ok(progress.some((row) => row.stage === "planning"));
     assert.ok(progress.some((row) => row.stage === "sweep"));
     assert.ok(
@@ -1043,10 +1071,17 @@ describe("engine-backtest sweep execute", () => {
       let inFlight = 0;
       let max = 0;
       let clients = 0;
+      let prepares = 0;
       const createClient = () => {
         clients += 1;
+        const handle = `tape-${clients}`;
         return fakeClient({
-          runBacktestBatch: async (batch) => {
+          prepareTape: async () => {
+            prepares += 1;
+            return { handle, fingerprint: "fp-1" };
+          },
+          runPreparedBacktestBatch: async (usedHandle, batch) => {
+            assert.equal(usedHandle, handle);
             inFlight += 1;
             max = Math.max(max, inFlight);
             await new Promise((resolve) => setTimeout(resolve, 15));
@@ -1091,16 +1126,18 @@ describe("engine-backtest sweep execute", () => {
           maxVariantsPerBatch: 1,
         }
       );
-      return { max, clients };
+      return { max, clients, prepares };
     }
 
     const free = await maxInFlight("free", "8");
     assert.equal(free.max, 1);
     assert.equal(free.clients, 1);
+    assert.equal(free.prepares, 1);
 
     const pro = await maxInFlight("pro", "3");
     assert.equal(pro.max, 3);
     assert.ok(pro.clients >= 3 && pro.clients <= 8);
+    assert.equal(pro.prepares, pro.clients);
   });
 
   it("plans fast searches with the shared kernel and returns every executed point", async () => {
@@ -1154,7 +1191,7 @@ describe("engine-backtest sweep execute", () => {
       isolatedEnv(),
       runnerDeps({
         client: fakeClient({
-          runBacktestBatch: async (batch) => ({
+          runPreparedBacktestBatch: async (_handle, batch) => ({
             batchId: batch.batchId,
             status: "completed",
             results: batch.variants.map((variant) => {

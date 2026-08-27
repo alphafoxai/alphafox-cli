@@ -29,6 +29,7 @@ import {
   loadConfigValue,
   type EngineBacktestCliFlags,
 } from "../src/engine-backtest/run-command";
+import { ENGINE_BACKTEST_TAPE_SERIES_CONCURRENCY } from "../src/engine-backtest/prepared-tape";
 import type {
   BacktestClientLike,
   EngineBacktestMetrics,
@@ -131,7 +132,8 @@ function fakeClient(overrides: Partial<BacktestClientLike> = {}): BacktestClient
       ],
     }),
     planBacktest: async () => PLAN,
-    runBacktest: async (scenario) => ({
+    prepareTape: async () => ({ handle: "tape-1", fingerprint: "fp-1" }),
+    runPreparedBacktest: async (_handle, scenario) => ({
       runId: scenario.runId,
       status: "completed",
       engineVersion: "test-engine",
@@ -140,7 +142,7 @@ function fakeClient(overrides: Partial<BacktestClientLike> = {}): BacktestClient
       orders: [],
       openPositions: [],
     }),
-    runBacktestBatch: async (batch) => ({
+    runPreparedBacktestBatch: async (_handle, batch) => ({
       batchId: batch.batchId,
       status: "completed",
       results: batch.variants.map((variant) => ({
@@ -149,6 +151,13 @@ function fakeClient(overrides: Partial<BacktestClientLike> = {}): BacktestClient
         metrics: METRICS,
       })),
     }),
+    releaseTape: async () => ({ released: true as const }),
+    runBacktest: async () => {
+      throw new Error("one-shot runBacktest is not the CLI production path");
+    },
+    runBacktestBatch: async () => {
+      throw new Error("one-shot runBacktestBatch is not the CLI production path");
+    },
     terminate: () => undefined,
     ...overrides,
   };
@@ -619,8 +628,12 @@ describe("engine-backtest orchestration", () => {
         calls.push(`plan:${req.definitionId}:${req.configSchemaVersion}`);
         return PLAN;
       },
-      runBacktest: async (scenario, _buffers, onProgress) => {
-        calls.push(`wasm:${scenario.runId}`);
+      prepareTape: async () => {
+        calls.push("prepare:tape-1");
+        return { handle: "tape-1", fingerprint: "fp-1" };
+      },
+      runPreparedBacktest: async (handle, scenario, onProgress) => {
+        calls.push(`prepared-run:${handle}:${scenario.runId}`);
         onProgress?.(1);
         return {
           runId: scenario.runId,
@@ -632,6 +645,14 @@ describe("engine-backtest orchestration", () => {
             { t: 1_775_808_060_000, equity: 11_000 },
           ],
         };
+      },
+      releaseTape: async (handle) => {
+        calls.push(`release:${handle}`);
+        return { released: true as const };
+      },
+      runBacktest: async () => {
+        calls.push("one-shot");
+        throw new Error("one-shot runBacktest is not the CLI production path");
       },
       terminate: () => {
         calls.push("terminate");
@@ -664,8 +685,9 @@ describe("engine-backtest orchestration", () => {
         createNodeBacktestClient: () => client,
         loadTape: async (req) => {
           calls.push(
-            `tape:${req.symbols.join(",")}:${req.fromMs}:${req.toMs}:${req.dataQualityMode}`
+            `tape:${req.symbols.join(",")}:${req.fromMs}:${req.toMs}:${req.dataQualityMode}:${req.seriesConcurrency}`
           );
+          assert.equal(req.seriesConcurrency, ENGINE_BACKTEST_TAPE_SERIES_CONCURRENCY);
           assert.equal(req.exchangeId, "binance_perp_usdt");
           assert.equal(req.baseTimeframe, "1m");
           assert.deepEqual(req.timeframes, PLAN.timeframes);
@@ -737,9 +759,11 @@ describe("engine-backtest orchestration", () => {
       "plan:grid:4",
       "api:GET:/api/v1/subscriptions/me",
       "exchange:binance",
-      `tape:BTC/USDT:USDT:${Date.parse("2026-08-01T00:00:00Z")}:${Date.parse("2026-08-09T00:00:00Z")}:basic`,
+      `tape:BTC/USDT:USDT:${Date.parse("2026-08-01T00:00:00Z")}:${Date.parse("2026-08-09T00:00:00Z")}:basic:${ENGINE_BACKTEST_TAPE_SERIES_CONCURRENCY}`,
       "assemble:grid",
-      "wasm:00000000-0000-0000-0000-000000000001",
+      "prepare:tape-1",
+      "prepared-run:tape-1:00000000-0000-0000-0000-000000000001",
+      "release:tape-1",
       "api:POST:/api/v1/engine-backtest/experiments/11111111-1111-1111-1111-111111111111/runs",
       "terminate",
     ]);
@@ -841,6 +865,130 @@ describe("engine-backtest orchestration", () => {
       { symbol: "BTC/USDT:USDT", timeframe: "4h", minWarmupCandles: 200 },
       { symbol: "BTC/USDT:USDT", timeframe: "1m", minWarmupCandles: 0 },
     ]);
+  });
+
+  it("fails closed on a missing prepared-tape method and does not one-shot", async () => {
+    let oneShot = 0;
+    const client = fakeClient({
+      runBacktest: async () => {
+        oneShot += 1;
+        throw new Error("one-shot runBacktest is not the CLI production path");
+      },
+    });
+    const broken = {
+      ...client,
+      prepareTape: undefined,
+    } as unknown as BacktestClientLike;
+    await assert.rejects(
+      () =>
+        executeEngineBacktestRun(
+          parseEngineBacktestRunArgs([
+            "--experiment",
+            "11111111-1111-1111-1111-111111111111",
+            "--definition",
+            "grid",
+            "--config",
+            "{}",
+            "--exchange",
+            "binance",
+            "--range",
+            "2026-08-01..2026-08-08",
+            "--initial-equity",
+            "10000",
+            "--no-persist",
+            "--tier",
+            "pro",
+          ]),
+          FLAGS,
+          { ALPHAFOX_CONFIG_DIR: mkdtempSync(join(tmpdir(), "alphafox-cfg-")) },
+          {
+            createNodeBacktestClient: () => broken,
+            loadTape: async () => sampleTape(),
+            assembleScenario: (input) => sampleScenario(input.runId),
+            resolveTapeExchange: () => ({
+              id: "binance_perp_usdt",
+              label: "Binance",
+              ccxtId: "binanceusdm",
+              marketType: "swap",
+              quoteAsset: "USDT",
+            }),
+            defaultExecutionModel: DEFAULT_EXECUTION_MODEL,
+          }
+        ),
+      (err: unknown) => {
+        assert.ok(err instanceof EngineBacktestError);
+        assert.equal(err.subtype, "prepared_tape_unavailable");
+        return true;
+      }
+    );
+    assert.equal(oneShot, 0);
+  });
+
+  it("fails closed on prepared-handle mismatch and does not one-shot", async () => {
+    let oneShot = 0;
+    await assert.rejects(
+      () =>
+        executeEngineBacktestRun(
+          parseEngineBacktestRunArgs([
+            "--experiment",
+            "11111111-1111-1111-1111-111111111111",
+            "--definition",
+            "grid",
+            "--config",
+            "{}",
+            "--exchange",
+            "binance",
+            "--range",
+            "2026-08-01..2026-08-08",
+            "--initial-equity",
+            "10000",
+            "--no-persist",
+            "--tier",
+            "pro",
+          ]),
+          FLAGS,
+          { ALPHAFOX_CONFIG_DIR: mkdtempSync(join(tmpdir(), "alphafox-cfg-")) },
+          {
+            createNodeBacktestClient: () =>
+              fakeClient({
+                runPreparedBacktest: async () => ({
+                  runId: "run-1",
+                  status: "failed",
+                  engineVersion: "test-engine",
+                  metrics: METRICS,
+                  errors: [
+                    {
+                      code: "prepared_tape_mismatch",
+                      message: "tape fingerprint mismatch",
+                    },
+                  ],
+                }),
+                runBacktest: async () => {
+                  oneShot += 1;
+                  throw new Error(
+                    "one-shot runBacktest is not the CLI production path"
+                  );
+                },
+              }),
+            loadTape: async () => sampleTape(),
+            assembleScenario: (input) => sampleScenario(input.runId),
+            resolveTapeExchange: () => ({
+              id: "binance_perp_usdt",
+              label: "Binance",
+              ccxtId: "binanceusdm",
+              marketType: "swap",
+              quoteAsset: "USDT",
+            }),
+            defaultExecutionModel: DEFAULT_EXECUTION_MODEL,
+          }
+        ),
+      (err: unknown) => {
+        assert.ok(err instanceof EngineBacktestError);
+        assert.equal(err.subtype, "prepared_tape_mismatch");
+        return true;
+      }
+    );
+    assert.equal(oneShot, 0);
   });
 
   it("does not POST runs.create with --no-persist", async () => {
@@ -971,7 +1119,7 @@ describe("engine-backtest orchestration", () => {
       {
         createNodeBacktestClient: () =>
           fakeClient({
-            runBacktest: async (scenario) => {
+            runPreparedBacktest: async (_handle, scenario) => {
               runCompleted = true;
               return {
                 runId: scenario.runId,

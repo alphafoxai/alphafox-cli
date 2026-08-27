@@ -11,7 +11,7 @@ import {
   summarizeTapeCoverageNotice,
 } from "./coverage-notice";
 import { EngineBacktestError, isEngineBacktestError } from "./errors";
-import { loadConfigValue } from "./load-config";
+import { loadEngineBacktestConfig } from "./load-config";
 import {
   ENGINE_BACKTEST_RUN_USAGE,
   ENGINE_BACKTEST_SWEEP_USAGE,
@@ -25,6 +25,13 @@ import {
   experimentPageUrl,
 } from "./persist";
 import { resolveTapeCacheDir } from "../cache/paths";
+import {
+  ENGINE_BACKTEST_TAPE_SERIES_CONCURRENCY,
+  mapPreparedTapeError,
+  prepareWorkerTape,
+  releaseWorkerTape,
+  requireCompletedPreparedRun,
+} from "./prepared-tape";
 import { mergeReplayTimeframeWithPlan } from "./replay-timeframe";
 import {
   loadBacktestRunner,
@@ -291,7 +298,7 @@ export async function executeEngineBacktestRun(
     requireAuth(profile, env, tokensFn);
   }
 
-  const config = loadConfigValue(args.configRaw, {
+  const config = loadEngineBacktestConfig(args.configRaw, {
     cwd: deps.cwd,
     readFile: deps.readFile,
   });
@@ -431,6 +438,7 @@ export async function executeEngineBacktestRun(
         toMs: args.range.toMs,
         dataQualityMode: args.dataQualityMode,
         cacheDir: resolveTapeCacheDir(env),
+        seriesConcurrency: ENGINE_BACKTEST_TAPE_SERIES_CONCURRENCY,
         onProgress: (progress: TapeLoadProgress) => {
           emitProgress(
             flags,
@@ -475,20 +483,26 @@ export async function executeEngineBacktestRun(
       executionModel,
     });
 
-    const result = await client.runBacktest(
-      scenario,
-      tapeResult.buffers,
-      (fraction) => {
-        emitProgress(flags, writeLine, "wasm", fraction);
-      }
+    const prepared = await prepareWorkerTape(
+      client,
+      tapeResult.tape,
+      tapeResult.buffers
     );
-    if (result.status === "failed") {
-      throw new EngineBacktestError({
-        type: "runtime",
-        subtype: "backtest_failed",
-        message: "runBacktest returned status=failed",
-        details: { errors: result.errors, runId: result.runId },
-      });
+    let result;
+    try {
+      result = requireCompletedPreparedRun(
+        await client.runPreparedBacktest(
+          prepared.handle,
+          scenario,
+          (fraction) => {
+            emitProgress(flags, writeLine, "wasm", fraction);
+          }
+        )
+      );
+    } catch (error) {
+      throw mapPreparedTapeError(error);
+    } finally {
+      await releaseWorkerTape(client, prepared.handle);
     }
 
     const engineVersion =

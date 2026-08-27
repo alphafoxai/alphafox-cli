@@ -42,28 +42,34 @@ The human answers knobs. You write JSON.
 
 1. Confirm the definition from `byId.get` in the operator's language (what it is, what drives it, how positions change).
 2. From `strategyConfigSchema` plus common required fields, ask **only** values the human must choose: symbols (resolve first), direction / mode, size, signal source, leverage. Do not walk every optional key.
-3. Write `strategy-config.json` as:
+3. Write `strategy-config.json` as the trader object:
+
+```json
+{
+  "common": {},
+  "strategy": {}
+}
+```
+
+`common` is shared risk / SLTP / execution / market. `strategy` is this type's parameters and decision logic. Do not use top-level `settings`, `policyId`, or `policyParams`. `configSchemaVersion` comes from the definition (`byId.get` / list); keep it off this file.
+
+4. Keys and enums come from the definition schema, not from this skill. Do not ship a default `grid.json` / `dca.json`. Reuse this source file for `engine-backtest --config` and as `trading.traders.create` `config`.
+
+## Validate config
+
+Read `alphafox schema trading.strategy_definitions.byId.validate_config` first. Catalog `request.body` may look like a free `JsonObject`; still send the HTTP envelope, wrapping the source file — do not overwrite `strategy-config.json`:
 
 ```json
 {
   "configSchemaVersion": 4,
-  "config": {
-    "common": {},
-    "strategy": {}
-  }
+  "config": { "common": {}, "strategy": {} }
 }
 ```
 
-`configSchemaVersion` comes from the definition (`configSchemaVersion` on `byId.get` / list). Omit it only when the schema says it is optional; when present it must match the definition. `common` is shared risk / SLTP / execution / market. `strategy` is this type's parameters and decision logic. Do not use top-level `settings`, `policyId`, or `policyParams`.
-
-4. Keys and enums come from the definition schema, not from this skill. Do not ship a default `grid.json` / `dca.json`.
-
-## Validate config
-
-Read `alphafox schema trading.strategy_definitions.byId.validate_config` first. Catalog `request.body` may look like a free `JsonObject`; still send the envelope above. The server checks the definition schema.
+`config` is the contents of `strategy-config.json`. `configSchemaVersion` must match the definition.
 
 ```bash
-alphafox trading strategy_definitions byId validate_config --definitionId <id> --config @./strategy-config.json --format json --no-input
+alphafox trading strategy_definitions byId validate_config --definitionId <id> --config @./validate-config.json --format json --no-input
 ```
 
 `body_schema` / `body_schema_missing` (exit `64`): re-read the operation schema. Server field-path errors: fix that path. Do not retry with a different envelope.

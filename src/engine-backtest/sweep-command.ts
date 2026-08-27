@@ -11,7 +11,7 @@ import {
   summarizeTapeCoverageNotice,
 } from "./coverage-notice";
 import { EngineBacktestError, isEngineBacktestError } from "./errors";
-import { loadConfigValue } from "./load-config";
+import { loadConfigValue, loadEngineBacktestConfig } from "./load-config";
 import { parseSweepAxesDocument } from "./parse-axes";
 import {
   DEFAULT_EXECUTION_MODEL,
@@ -24,6 +24,13 @@ import {
   sweepsPath,
   uniqueSeriesField,
 } from "./persist";
+import {
+  ENGINE_BACKTEST_TAPE_SERIES_CONCURRENCY,
+  mapPreparedTapeError,
+  prepareWorkerTape,
+  releaseWorkerTape,
+  throwIfPreparedTapeErrors,
+} from "./prepared-tape";
 import { mergeReplayTimeframeWithPlan } from "./replay-timeframe";
 import {
   loadBacktestRunner,
@@ -61,7 +68,7 @@ import type {
   TapeLoadResult,
 } from "./types";
 
-/** WASM `runBacktestBatch` hard limit. Keep in sync with Engine. */
+/** WASM prepared-batch variant hard limit. Keep in sync with Engine. */
 export const MAX_ENGINE_BACKTEST_BATCH_VARIANTS = 256;
 /** Sweep chunk size: below the 256 cap so JSONL can refresh mid-search. */
 export const SWEEP_WASM_BATCH_VARIANTS = 32;
@@ -89,13 +96,7 @@ interface PlannedSweepCoordinate {
   readonly plan: EngineSupportedBacktestPlan;
 }
 
-export function cloneTapeBuffers(
-  sourceBuffers: Readonly<Record<string, ArrayBuffer>>
-): Record<string, ArrayBuffer> {
-  return Object.fromEntries(
-    Object.entries(sourceBuffers).map(([key, buffer]) => [key, buffer.slice(0)])
-  );
-}
+export { cloneTapeBuffers } from "./prepared-tape";
 
 export function splitBatchChunk<T>(
   chunk: readonly T[],
@@ -150,7 +151,7 @@ export async function executeEngineBacktestSweep(
   }
 
   const config = asConfigRecord(
-    loadConfigValue(args.configRaw, {
+    loadEngineBacktestConfig(args.configRaw, {
       cwd: deps.cwd,
       readFile: deps.readFile,
     })
@@ -292,6 +293,7 @@ export async function executeEngineBacktestSweep(
           toMs: args.range.toMs,
           dataQualityMode: args.dataQualityMode,
           cacheDir: resolveTapeCacheDir(env),
+          seriesConcurrency: ENGINE_BACKTEST_TAPE_SERIES_CONCURRENCY,
           onProgress: (progress: TapeLoadProgress) => {
             emitProgress(
               flags,
@@ -822,6 +824,86 @@ async function planCoordinate(input: {
   }
 }
 
+async function runPreparedWorkerBatches(args: {
+  readonly client: BacktestClientLike;
+  readonly handle: string;
+  readonly chunk: Array<{
+    readonly index: number;
+    readonly item: PlannedSweepCoordinate;
+  }>;
+  readonly completed: Array<SweepPoint | undefined>;
+  readonly input: {
+    readonly runner: BacktestRunnerModule;
+    readonly tape: EngineBacktestScenario["tape"];
+    readonly definitionId: string;
+    readonly configSchemaVersion: number;
+    readonly subscriptionTier: SubscriptionTier;
+    readonly initialEquity: number;
+    readonly executionModel: EngineBacktestScenario["executionModel"];
+    readonly mintId: () => string;
+    readonly maxVariantsPerBatch: number;
+    readonly onProgress: (done: number, points: readonly SweepPoint[]) => void;
+  };
+}): Promise<void> {
+  for (const subChunk of splitBatchChunk(
+    args.chunk,
+    args.input.maxVariantsPerBatch
+  )) {
+    const scenarios = subChunk.map((item) =>
+      args.input.runner.assembleScenario({
+        runId: args.input.mintId(),
+        definitionId: args.input.definitionId,
+        configSchemaVersion: args.input.configSchemaVersion,
+        config: item.item.config,
+        subscriptionTier: args.input.subscriptionTier,
+        initialEquity: args.input.initialEquity,
+        tape: args.input.tape,
+        executionModel: args.input.executionModel,
+      })
+    );
+    const first = scenarios[0];
+    if (!first) continue;
+    const { tape: _tape, ...baseScenario } = first;
+    const batch: EngineBacktestBatchRequest = {
+      version: 1,
+      batchId: args.input.mintId(),
+      baseScenario,
+      variants: scenarios.map((scenario) => ({
+        runId: scenario.runId,
+        config: scenario.trader.config,
+      })),
+      tape: args.input.tape,
+    };
+    const result = await args.client.runPreparedBacktestBatch(
+      args.handle,
+      batch
+    );
+    throwIfPreparedTapeErrors(result.errors, result);
+    if (result.results.length !== subChunk.length) {
+      throw new EngineBacktestError({
+        type: "runtime",
+        subtype: "batch_result_count",
+        message:
+          "runPreparedBacktestBatch returned an unexpected result count",
+        details: {
+          expected: subChunk.length,
+          actual: result.results.length,
+        },
+      });
+    }
+    subChunk.forEach((entry, index) => {
+      args.completed[entry.index] = readBatchPoint(
+        entry.item.coordinate,
+        result.results[index]!
+      );
+    });
+    const finished = args.completed.filter(
+      (point): point is SweepPoint => point !== undefined
+    );
+    args.input.onProgress(finished.length, finished);
+  }
+}
+
 async function executeSweepBatches(input: {
   readonly clients: readonly BacktestClientLike[];
   readonly runner: BacktestRunnerModule;
@@ -852,55 +934,23 @@ async function executeSweepBatches(input: {
   await Promise.all(
     chunks.map(async (chunk, workerIndex) => {
       const client = workers[workerIndex]!;
-      for (const subChunk of splitBatchChunk(chunk, input.maxVariantsPerBatch)) {
-        const scenarios = subChunk.map((item) =>
-          input.runner.assembleScenario({
-            runId: input.mintId(),
-            definitionId: input.definitionId,
-            configSchemaVersion: input.configSchemaVersion,
-            config: item.item.config,
-            subscriptionTier: input.subscriptionTier,
-            initialEquity: input.initialEquity,
-            tape: input.tape,
-            executionModel: input.executionModel,
-          })
-        );
-        const first = scenarios[0];
-        if (!first) continue;
-        const { tape: _tape, ...baseScenario } = first;
-        const batch: EngineBacktestBatchRequest = {
-          version: 1,
-          batchId: input.mintId(),
-          baseScenario,
-          variants: scenarios.map((scenario) => ({
-            runId: scenario.runId,
-            config: scenario.trader.config,
-          })),
-          tape: input.tape,
-        };
-        const result = await client.runBacktestBatch(
-          batch,
-          cloneTapeBuffers(input.buffers)
-        );
-        if (result.results.length !== subChunk.length) {
-          throw new EngineBacktestError({
-            type: "runtime",
-            subtype: "batch_result_count",
-            message: "runBacktestBatch returned an unexpected result count",
-            details: {
-              expected: subChunk.length,
-              actual: result.results.length,
-            },
-          });
-        }
-        subChunk.forEach((entry, index) => {
-          const point = result.results[index]!;
-          completed[entry.index] = readBatchPoint(entry.item.coordinate, point);
+      const prepared = await prepareWorkerTape(
+        client,
+        input.tape,
+        input.buffers
+      );
+      try {
+        await runPreparedWorkerBatches({
+          client,
+          handle: prepared.handle,
+          chunk,
+          completed,
+          input,
         });
-        const finished = completed.filter(
-          (point): point is SweepPoint => point !== undefined
-        );
-        input.onProgress(finished.length, finished);
+      } catch (error) {
+        mapPreparedTapeError(error);
+      } finally {
+        await releaseWorkerTape(client, prepared.handle);
       }
     })
   );
@@ -926,7 +976,8 @@ function readBatchPoint(
   return {
     coordinate,
     status: "failed",
-    error: point.errors?.[0]?.message ?? "runBacktestBatch variant failed",
+    error:
+      point.errors?.[0]?.message ?? "runPreparedBacktestBatch variant failed",
   };
 }
 

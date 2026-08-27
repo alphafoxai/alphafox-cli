@@ -63,10 +63,19 @@ describe("Skills surface", () => {
     assert.match(strategy, /configSchemaVersion/);
     assert.match(strategy, /"common"/);
     assert.match(strategy, /"strategy"/);
+    assert.match(strategy, /strategy-config.json/);
+    assert.match(strategy, /validate-config.json/);
+    assert.match(strategy, /do not overwrite `strategy-config.json`/);
     assert.match(strategy, /settings/);
     assert.match(strategy, /policyId/);
     assert.match(strategy, /alphafox-trading/);
     assert.match(strategy, /alphafox-engine-backtest/);
+    const engine = readFileSync(
+      join(skillsRoot, "engine-backtest", "SKILL.md"),
+      "utf8"
+    );
+    assert.match(engine, /\{ common, strategy \}/);
+    assert.match(engine, /validate_config/);
     assert.match(strategy, /Do not enumerate engine strategy IDs/);
     assert.equal(/rebate_copy_trading/.test(strategy), false);
     assert.equal(/hl_copy_trading/.test(strategy), false);

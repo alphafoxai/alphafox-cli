@@ -113,3 +113,19 @@ npx @alphafox/cli@latest install
 That wizard installs the CLI globally, verifies and syncs the packaged Skills,
 and may prompt for `alphafox auth login --browser`. It is TTY-oriented.
 Agents must follow Steps 1–4 in this document rather than the wizard.
+
+## Uninstall
+
+Uninstall is a standalone script, not `alphafox uninstall`. After the user
+explicitly asks to uninstall:
+
+```shell
+curl -fsSL https://raw.githubusercontent.com/alphafoxai/alphafox-cli/main/scripts/uninstall.cjs | node -- --dry-run
+curl -fsSL https://raw.githubusercontent.com/alphafoxai/alphafox-cli/main/scripts/uninstall.cjs | node -- --yes
+```
+
+That removes the global `@alphafox/cli` package, Agent Skills under
+`~/.agents/skills` (and Claude / Cursor / Codex / Grok links),
+`~/.config/alphafox`, login tokens, and local Engine backtest caches.
+It does not delete running traders or other server-side data. Ask the user
+to restart the AI tool afterwards. Do not invent a CLI subcommand.

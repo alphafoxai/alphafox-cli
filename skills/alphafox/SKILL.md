@@ -18,7 +18,7 @@ A **trader** is a running strategy instance (paper or live), not a person. Creat
 
 | User intent | Skill |
 |---|---|
-| Install, update, Skills status/sync, doctor, version, catalog, how to call the CLI | `alphafox-shared` |
+| Install, update, uninstall, Skills status/sync, doctor, version, catalog, how to call the CLI | `alphafox-shared` |
 | 刚安装完 / 新人引导 / 热门带单员 / 经典策略介绍 | this file, **After install** |
 | Login, logout, whoami, profile, staging vs production | `alphafox-auth` |
 | Ticker / 标的 / 美股 / crypto / resolve a misspelled symbol | `alphafox-market` |

@@ -24,6 +24,13 @@ npx @alphafox/cli version --format json --no-input
 npx @alphafox/cli doctor --format json --no-input
 ```
 
+Uninstall is **not** `alphafox uninstall`. After an explicit user request:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/alphafoxai/alphafox-cli/main/scripts/uninstall.cjs | node -- --dry-run
+curl -fsSL https://raw.githubusercontent.com/alphafoxai/alphafox-cli/main/scripts/uninstall.cjs | node -- --yes
+```
+
 After install, `auth status --verify` shows `session: active`, and the AI tool has restarted, follow skill `alphafox` **After install** (Lite square 带单员 + classic strategies). Do not skip that welcome.
 
 The CLI checks npm at most once every 24 hours and only prints a notice on

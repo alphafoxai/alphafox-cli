@@ -54,6 +54,32 @@ Locally modified Skills are reported and preserved; use
 `alphafox skills sync --force --yes` only when you intend to replace them.
 Restart the AI tool after a sync.
 
+## Uninstall
+
+This is **not** an `alphafox` subcommand. The script removes the global npm
+package, Agent Skills (including Claude / Cursor / Codex / Grok links), local
+config, login tokens, and Engine backtest caches. It does **not** delete
+server-side traders or account data.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/alphafoxai/alphafox-cli/main/scripts/uninstall.cjs | node -- --yes
+```
+
+Preview first:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/alphafoxai/alphafox-cli/main/scripts/uninstall.cjs | node -- --dry-run
+```
+
+From a git checkout:
+
+```bash
+node scripts/uninstall.cjs --dry-run
+node scripts/uninstall.cjs --yes
+```
+
+Restart AI tools afterwards so Skills unload.
+
 ## Quick start
 
 After Method 1 or 2:

@@ -15,6 +15,7 @@
     "vendor",
     "README.md",
     "docs",
+    "scripts/uninstall.cjs",
     "LICENSE"
   ],
   "scripts": {

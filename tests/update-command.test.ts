@@ -45,6 +45,7 @@ const SYNCED: SkillsSyncResult = {
     skills: [],
     orphans: [],
     summary: { current: 1, missing: 0, stale: 0, modified: 0 },
+    agentLinks: [],
     restartRequired: false,
   },
   restartRequired: true,

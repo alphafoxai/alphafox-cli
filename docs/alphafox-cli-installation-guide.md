@@ -24,6 +24,11 @@ npm install -g @alphafox/cli
 alphafox skills sync --format json --no-input
 ```
 
+`alphafox skills sync` writes the verified bundle to `~/.agents/skills` and
+then links each Skill into `~/.claude/skills` so Claude Code can discover it.
+Cursor (`~/.cursor/skills`) and Codex (`~/.codex/skills`) are linked when those
+tools are already present. `alphafox skills status` reports `agentLinks`.
+
 Do not install Skills from GitHub `main` as a fallback. The CLI verifies the
 manifest and hashes inside the npm package before syncing. If sync fails, stop
 and report the error rather than downloading a different Skills version.

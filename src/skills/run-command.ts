@@ -7,6 +7,12 @@ import { createDefaultInstallRunner } from "../install/exec";
 import { findAlphafoxPackageRoot } from "../install/package-root";
 import type { InstallRunner } from "../install/types";
 import {
+  agentHomeDir,
+  applyAgentLinkPass,
+  attachAgentLinks,
+  removeAgentLinks,
+} from "./agent-links";
+import {
   inspectSkills,
   loadAndVerifySkillsManifest,
   loadSkillsState,
@@ -66,11 +72,14 @@ export function inspectCurrentSkills(
   packageRoot = resolveCurrentSkillsPackageRoot()
 ): SkillsStatus {
   const manifest = loadAndVerifySkillsManifest(packageRoot);
-  return inspectSkills({
-    manifest,
-    installedRoot: installedSkillsRoot(env),
-    state: loadSkillsState(skillsStatePath(env)),
-  });
+  return attachAgentLinks(
+    inspectSkills({
+      manifest,
+      installedRoot: installedSkillsRoot(env),
+      state: loadSkillsState(skillsStatePath(env)),
+    }),
+    env
+  );
 }
 
 export async function syncCurrentSkills(
@@ -86,42 +95,63 @@ export async function syncCurrentSkills(
   const runner =
     deps.runner ??
     createDefaultInstallRunner(env, [__dirname, process.cwd()]);
+  const canonicalRoot = installedSkillsRoot(env);
   const manifest = loadAndVerifySkillsManifest(packageRoot);
-  return await syncSkills(
+  const result = await syncSkills(
     {
       manifest,
       packageRoot,
-      installedRoot: installedSkillsRoot(env),
+      installedRoot: canonicalRoot,
       statePath: skillsStatePath(env),
       dryRun: input.dryRun,
       force: input.force,
     },
-    {
-      install: async (names) => {
-        await runner.exec(
-          "npx",
-          [
-            "-y",
-            "skills",
-            "add",
-            packageRoot,
-            "-y",
-            "-g",
-            "--skill",
-            ...names,
-          ],
-          { timeoutMs: SKILLS_TIMEOUT_MS }
-        );
-      },
-      remove: async (names) => {
-        await runner.exec(
-          "npx",
-          ["-y", "skills", "remove", ...names, "-y", "-g"],
-          { timeoutMs: SKILLS_TIMEOUT_MS }
-        );
-      },
-    }
+    skillsBundleDeps(runner, packageRoot, canonicalRoot, env)
   );
+  return applyAgentLinkPass(result, {
+    dryRun: input.dryRun,
+    env,
+    canonicalRoot,
+  });
+}
+
+function skillsBundleDeps(
+  runner: InstallRunner,
+  packageRoot: string,
+  canonicalRoot: string,
+  env: NodeJS.ProcessEnv
+) {
+  return {
+    install: async (names: readonly string[]) => {
+      await runner.exec(
+        "npx",
+        [
+          "-y",
+          "skills",
+          "add",
+          packageRoot,
+          "-y",
+          "-g",
+          "--skill",
+          ...names,
+        ],
+        { timeoutMs: SKILLS_TIMEOUT_MS }
+      );
+    },
+    remove: async (names: readonly string[]) => {
+      await runner.exec(
+        "npx",
+        ["-y", "skills", "remove", ...names, "-y", "-g"],
+        { timeoutMs: SKILLS_TIMEOUT_MS }
+      );
+      removeAgentLinks({
+        canonicalRoot,
+        skillNames: names,
+        homeDir: agentHomeDir(env),
+        env,
+      });
+    },
+  };
 }
 
 export async function cmdSkills(
@@ -142,6 +172,7 @@ export async function cmdSkills(
         ],
         notes: [
           "Skills are synced only from the verified bundle inside the installed @alphafox/cli package",
+          "Sync also links Skills into ~/.claude/skills (and ~/.cursor/skills, ~/.codex/skills when those agents are present)",
           "Modified Skills are preserved unless --force --yes is explicit",
           "Restart the AI tool after a successful sync",
         ],

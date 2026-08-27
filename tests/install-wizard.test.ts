@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import {
   cpSync,
+  existsSync,
   mkdtempSync,
   mkdirSync,
+  readlinkSync,
   readdirSync,
   writeFileSync,
 } from "node:fs";
@@ -71,6 +73,7 @@ function fakeRunner(input: {
   const runnerEnv = {
     ALPHAFOX_SKILLS_DIR: installedSkills,
     ALPHAFOX_CONFIG_DIR: join(sandbox, "config"),
+    ALPHAFOX_AGENT_HOME: join(sandbox, "home"),
     ...(input.env ?? {}),
   };
   const runner: InstallRunner = {
@@ -239,7 +242,6 @@ describe("install wizard", () => {
     const result = await runInstallWizard(flags(), {}, runner);
     assert.equal(result.cli.action, "skipped");
     assert.equal(result.cli.version, "0.2.0");
-    assert.equal(result.skills.action, "skipped");
     assert.equal(result.skills.alreadyPresent, true);
     assert.equal(
       execCalls.some((c) => c.command === "npm" && c.args[0] === "install"),
@@ -249,6 +251,24 @@ describe("install wizard", () => {
       execCalls.some((c) => c.command === "npx" && argsHas(c.args, "add")),
       false
     );
+    assert.equal(result.skills.action, "installed");
+    assert.equal(result.skills.restartRequired, true);
+    const claudeSkill = join(
+      runner.env.ALPHAFOX_AGENT_HOME!,
+      ".claude",
+      "skills",
+      "alphafox"
+    );
+    assert.equal(existsSync(join(claudeSkill, "SKILL.md")), true);
+    assert.equal(
+      readlinkSync(claudeSkill),
+      join(runner.env.ALPHAFOX_SKILLS_DIR!, "alphafox")
+    );
+    const claude = result.skills.agentLinks?.find(
+      (item) => item.id === "claude-code"
+    );
+    assert.ok(claude?.linked.includes("alphafox"));
+    assert.deepEqual(claude?.missing, []);
   });
 
   it("installs CLI then skills from the global package path", async () => {

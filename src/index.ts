@@ -87,6 +87,7 @@ export {
   syncSkills,
   writeSkillsManifest,
 } from "./skills/manager";
+export type { AgentSkillLinkStatus } from "./skills/manager";
 export {
   inspectCurrentSkills,
   installedSkillsRoot,

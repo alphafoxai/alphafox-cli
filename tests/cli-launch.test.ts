@@ -65,6 +65,8 @@ describe("cli launch", () => {
     assert.equal(json.ok, true);
     assert.equal(json.data.bundleVersion, json.data.skills[0].expectedVersion);
     assert.ok(json.data.summary.missing > 0);
+    assert.ok(Array.isArray(json.data.agentLinks));
+    assert.equal(json.data.agentLinks[0]?.id, "claude-code");
     assert.equal(json.data.restartRequired, true);
     rmSync(root, { recursive: true, force: true });
   });

@@ -1,3 +1,5 @@
+import type { AgentSkillLinkStatus } from "../skills/manager";
+
 /** @deprecated AlphaFox Skills updates must use the verified npm package bundle. */
 export const SKILLS_GITHUB_SOURCE = "alphafoxai/alphafox-cli";
 export const SKILLS_NAME_PREFIX = "alphafox-";
@@ -37,6 +39,7 @@ export interface InstallSkillsStep {
   readonly removed?: readonly string[];
   readonly blocked?: readonly string[];
   readonly backupDir?: string;
+  readonly agentLinks?: readonly AgentSkillLinkStatus[];
   readonly restartRequired?: boolean;
 }
 

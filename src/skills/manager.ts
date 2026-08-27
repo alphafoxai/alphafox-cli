@@ -62,6 +62,14 @@ export interface InspectedSkill {
   readonly managed: boolean;
 }
 
+export interface AgentSkillLinkStatus {
+  readonly id: "claude-code" | "cursor" | "codex";
+  readonly skillsDir: string;
+  readonly linked: readonly string[];
+  readonly missing: readonly string[];
+  readonly blocked: readonly string[];
+}
+
 export interface SkillsStatus {
   readonly bundleVersion: string;
   readonly contractVersion: string;
@@ -75,6 +83,7 @@ export interface SkillsStatus {
     readonly modified: boolean;
   }[];
   readonly summary: Readonly<Record<SkillStatus, number>>;
+  readonly agentLinks: readonly AgentSkillLinkStatus[];
   readonly restartRequired: boolean;
 }
 
@@ -319,6 +328,7 @@ export function inspectSkills(input: {
     skills,
     orphans,
     summary,
+    agentLinks: [],
     restartRequired:
       summary.missing + summary.stale + summary.modified + orphans.length > 0,
   };

@@ -86,10 +86,11 @@ skills then use public `operationId`s; an explicit local-execution skill may
 call its co-versioned built-in command.
 
 `alphafox install` (and the [Agent install guide](docs/alphafox-cli-installation-guide.md))
-verify the packaged Skills manifest and sync managed files into Agent skill
-directories (`.cursor/skills`, `.claude/skills`, `~/.agents/skills`, …).
-Use `alphafox skills status` to inspect missing, stale, or modified Skills and
-`alphafox skills sync` to repair safe drift.
+verify the packaged Skills manifest, copy it into `~/.agents/skills`, and link
+each Skill into `~/.claude/skills` (plus `~/.cursor/skills` / `~/.codex/skills`
+when those agents exist). Use `alphafox skills status` to inspect missing,
+stale, modified, or unlinked Skills and `alphafox skills sync` to repair safe
+drift — including Claude Code links when the canonical bundle is already current.
 
 ## Docs
 

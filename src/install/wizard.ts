@@ -2,14 +2,8 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 import { CLI_PACKAGE, CLI_VERSION } from "../version";
-import {
-  loadAndVerifySkillsManifest,
-  syncSkills,
-} from "../skills/manager";
-import {
-  installedSkillsRoot,
-  skillsStatePath,
-} from "../skills/run-command";
+import { loadAndVerifySkillsManifest } from "../skills/manager";
+import { syncCurrentSkills } from "../skills/run-command";
 import { createDefaultInstallRunner } from "./exec";
 import {
   findAlphafoxPackageRoot,
@@ -29,7 +23,6 @@ import {
 } from "./types";
 
 const NPM_TIMEOUT_MS = 120_000;
-const SKILLS_TIMEOUT_MS = 120_000;
 
 export function parseInstallArgs(args: readonly string[]): {
   readonly noAuth: boolean;
@@ -290,40 +283,10 @@ async function stepInstallSkills(
       : `正在同步 AI Skills ${manifest.packageVersion}…`
   );
   try {
-    const result = await syncSkills(
-      {
-        manifest,
-        packageRoot: source,
-        installedRoot: installedSkillsRoot(runner.env),
-        statePath: skillsStatePath(runner.env),
-        dryRun: flags.dryRun,
-        force: false,
-      },
-      {
-        install: async (names) => {
-          await runner.exec(
-            "npx",
-            [
-              "-y",
-              "skills",
-              "add",
-              source,
-              "-y",
-              "-g",
-              "--skill",
-              ...names,
-            ],
-            { timeoutMs: SKILLS_TIMEOUT_MS }
-          );
-        },
-        remove: async (names) => {
-          await runner.exec(
-            "npx",
-            ["-y", "skills", "remove", ...names, "-y", "-g"],
-            { timeoutMs: SKILLS_TIMEOUT_MS }
-          );
-        },
-      }
+    const result = await syncCurrentSkills(
+      { force: false, dryRun: flags.dryRun },
+      runner.env,
+      { runner, packageRoot: source }
     );
     const action: InstallSkillsStep["action"] =
       result.blocked.length > 0
@@ -354,6 +317,7 @@ async function stepInstallSkills(
       removed: result.removed,
       blocked: result.blocked,
       backupDir: result.backupDir,
+      agentLinks: result.status.agentLinks,
       restartRequired: result.restartRequired,
     };
   } catch (err) {

@@ -14,7 +14,7 @@ Co-versioned with `@alphafox/cli`. Query compatibility with `alphafox version --
 
 Prefer the wizard (CLI + Agent Skills) or the Agent install guide. Do not treat
 `npm install -g @alphafox/cli` as enough for Agents — Skills must be registered
-with `alphafox skills sync`.
+with `alphafox skills sync` (canonical store plus `~/.claude/skills` links).
 
 ```bash
 npx @alphafox/cli@latest install

@@ -12,6 +12,11 @@ import {
   parseRangeFlag,
 } from "../src/engine-backtest/parse-args";
 import {
+  ENGINE_BACKTEST_ACTIVITY_MAX_FILLED_ORDERS,
+  ENGINE_BACKTEST_ACTIVITY_MAX_UTF8_BYTES,
+  utf8ByteLength,
+} from "../src/engine-backtest/activity";
+import {
   buildCreateRunRequest,
   DEFAULT_EXECUTION_MODEL,
   exclusiveTapeEndToRangeEnd,
@@ -114,6 +119,42 @@ function sampleTape(): TapeLoadResult {
     buffers: { k0: new ArrayBuffer(8) },
     coverageWarnings: [],
     coverageIssues: [],
+  };
+}
+
+function wasmOrder(input: {
+  readonly id: string;
+  readonly side: string;
+  readonly positionSide?: string;
+  readonly price: number;
+  readonly filledQuantity: number;
+  readonly fee?: number;
+  readonly timestamp: string;
+  readonly status?: string;
+  readonly reduceOnly?: boolean;
+  readonly message?: string;
+  readonly executionReason?: "liquidation";
+}) {
+  const reduceOnly =
+    input.reduceOnly ??
+    ((input.positionSide === "long" && input.side === "sell") ||
+      (input.positionSide === "short" && input.side === "buy"));
+  return {
+    clientOrderId: `c-${input.id}`,
+    orderId: input.id,
+    symbol: "BTC/USDT:USDT",
+    side: input.side,
+    ...(input.positionSide ? { positionSide: input.positionSide } : {}),
+    type: "limit",
+    status: input.status ?? "closed",
+    reduceOnly,
+    price: input.price,
+    contractAmount: input.filledQuantity,
+    filledQuantity: input.filledQuantity,
+    fee: input.fee ?? 0,
+    timestamp: input.timestamp,
+    ...(input.message ? { message: input.message } : {}),
+    ...(input.executionReason ? { executionReason: input.executionReason } : {}),
   };
 }
 
@@ -340,6 +381,12 @@ describe("engine-backtest persist", () => {
     assert.equal(body.configSchemaVersion, 4);
     assert.deepEqual(body.metrics, METRICS);
     assert.equal(body.returnCurve, undefined);
+    assert.equal(body.activity?.schemaVersion, 1);
+    assert.equal(body.activity?.filledOrderTotal, 0);
+    assert.equal(body.activity?.truncated, false);
+    assert.deepEqual(body.activity?.filledOrders, []);
+    assert.deepEqual(body.activity?.openPositions, []);
+    assert.deepEqual(body.activity?.accountAdjustments, []);
   });
 
   it("persists coverageIssues so web can show start vs mid-range notices", () => {
@@ -398,6 +445,149 @@ describe("engine-backtest persist", () => {
       [1_775_808_000_000, 0],
       [1_775_808_060_000, 0.1],
     ]);
+  });
+
+  it("projects wasm fills, positions, and adjustments into persist activity", () => {
+    const canceled = wasmOrder({
+      id: "o-cancel",
+      side: "sell",
+      positionSide: "long",
+      price: 101,
+      filledQuantity: 0,
+      timestamp: "2026-08-01T00:00:30.000Z",
+      status: "canceled",
+    });
+    const body = buildCreateRunRequest({
+      clientRunId: "22222222-2222-2222-2222-222222222222",
+      scenario: sampleScenario(),
+      metrics: { ...METRICS, netPnl: 9.5 },
+      exchangeId: "binance",
+      dataQualityMode: "strict",
+      engineVersion: "test-engine",
+      orders: [
+        wasmOrder({
+          id: "o-open",
+          side: "buy",
+          positionSide: "long",
+          price: 100,
+          filledQuantity: 1,
+          fee: 0.2,
+          timestamp: "2026-08-01T00:00:00.000Z",
+        }),
+        canceled,
+        wasmOrder({
+          id: "o-close",
+          side: "sell",
+          positionSide: "long",
+          price: 110,
+          filledQuantity: 1,
+          fee: 0.3,
+          timestamp: "2026-08-01T00:01:00.000Z",
+        }),
+      ],
+      openPositions: [
+        {
+          symbol: "BTC/USDT:USDT",
+          side: "long",
+          contracts: 0,
+          entryPrice: 110,
+          markPrice: 112,
+          unrealizedPnl: 0,
+          leverage: 3,
+        },
+      ],
+      accountAdjustments: [
+        {
+          type: "liquidation_equity_floor",
+          amount: 0,
+          timestamp: "2026-08-01T00:01:00.000Z",
+        },
+      ],
+    });
+    const btc = body.activity?.attribution.symbols.find(
+      (row) => row.symbol === "BTC/USDT:USDT"
+    );
+    assert.equal(btc?.realizedPnl, 10);
+    assert.equal(btc?.feesPaid, 0.5);
+    assert.equal(btc?.canceledOrderCount, 1);
+    assert.equal(btc?.filledOrderCount, 2);
+    assert.equal(btc?.tradeCount, 1);
+    assert.equal(body.activity?.filledOrderTotal, 2);
+    assert.equal(body.activity?.truncated, false);
+    assert.deepEqual(
+      body.activity?.filledOrders.map((order) => order.orderId),
+      ["o-open", "o-close"]
+    );
+    assert.equal(body.activity?.filledOrders.some((order) => order.orderId === "o-cancel"), false);
+    assert.equal(body.activity?.openPositions[0]?.markPrice, 112);
+    assert.equal(body.activity?.accountAdjustments[0]?.type, "liquidation_equity_floor");
+  });
+
+  it("keeps only the last 2000 filled orders and marks the tail truncated", () => {
+    const extra = 3;
+    const total = ENGINE_BACKTEST_ACTIVITY_MAX_FILLED_ORDERS + extra;
+    const orders = Array.from({ length: total }, (_, index) =>
+      wasmOrder({
+        id: `o-${index}`,
+        side: "buy",
+        positionSide: "long",
+        price: 100,
+        filledQuantity: 1,
+        timestamp: new Date(1_775_808_000_000 + index * 1000).toISOString(),
+      })
+    );
+    const body = buildCreateRunRequest({
+      clientRunId: "22222222-2222-2222-2222-222222222222",
+      scenario: sampleScenario(),
+      metrics: METRICS,
+      exchangeId: "binance",
+      dataQualityMode: "strict",
+      engineVersion: "test-engine",
+      orders,
+    });
+    assert.equal(body.activity?.filledOrderTotal, total);
+    assert.equal(body.activity?.truncated, true);
+    assert.equal(
+      body.activity?.filledOrders.length,
+      ENGINE_BACKTEST_ACTIVITY_MAX_FILLED_ORDERS
+    );
+    assert.equal(body.activity?.filledOrders[0]?.orderId, `o-${extra}`);
+    assert.equal(
+      body.activity?.filledOrders.at(-1)?.orderId,
+      `o-${total - 1}`
+    );
+  });
+
+  it("shrinks the filled-order tail until activity fits the UTF-8 budget", () => {
+    const orders = Array.from({ length: 80 }, (_, index) =>
+      wasmOrder({
+        id: `o-${index}`,
+        side: "buy",
+        positionSide: "long",
+        price: 100,
+        filledQuantity: 1,
+        timestamp: new Date(1_775_808_000_000 + index * 1000).toISOString(),
+        message: "x".repeat(20_000),
+      })
+    );
+    const body = buildCreateRunRequest({
+      clientRunId: "22222222-2222-2222-2222-222222222222",
+      scenario: sampleScenario(),
+      metrics: METRICS,
+      exchangeId: "binance",
+      dataQualityMode: "strict",
+      engineVersion: "test-engine",
+      orders,
+    });
+    assert.ok(body.activity);
+    assert.ok(
+      utf8ByteLength(JSON.stringify(body.activity)) <=
+        ENGINE_BACKTEST_ACTIVITY_MAX_UTF8_BYTES
+    );
+    assert.equal(body.activity?.filledOrderTotal, 80);
+    assert.equal(body.activity?.truncated, true);
+    assert.ok((body.activity?.filledOrders.length ?? 80) < 80);
+    assert.equal(body.activity?.filledOrders.at(-1)?.orderId, "o-79");
   });
 
   it("defaults executionModel to runner/web values", () => {
@@ -644,6 +834,38 @@ describe("engine-backtest orchestration", () => {
             { t: 1_775_808_000_000, equity: 10_000 },
             { t: 1_775_808_060_000, equity: 11_000 },
           ],
+          orders: [
+            wasmOrder({
+              id: "o-open",
+              side: "buy",
+              positionSide: "long",
+              price: 100,
+              filledQuantity: 1,
+              fee: 0.2,
+              timestamp: "2026-08-01T00:00:00.000Z",
+            }),
+            wasmOrder({
+              id: "o-close",
+              side: "sell",
+              positionSide: "long",
+              price: 110,
+              filledQuantity: 1,
+              fee: 0.3,
+              timestamp: "2026-08-01T00:01:00.000Z",
+            }),
+          ],
+          openPositions: [
+            {
+              symbol: "BTC/USDT:USDT",
+              side: "long",
+              contracts: 0,
+              entryPrice: 110,
+              markPrice: 112,
+              unrealizedPnl: 0,
+              leverage: 3,
+            },
+          ],
+          accountAdjustments: [],
         };
       },
       releaseTape: async (handle) => {
@@ -776,6 +998,14 @@ describe("engine-backtest orchestration", () => {
       };
       clientRunId: string;
       returnCurve?: ReadonlyArray<readonly [number, number]>;
+      activity?: {
+        schemaVersion: number;
+        filledOrderTotal: number;
+        truncated: boolean;
+        filledOrders: Array<{ orderId: string }>;
+        openPositions: Array<{ markPrice: number }>;
+        attribution: { symbols: Array<{ realizedPnl: number }> };
+      };
     };
     assert.equal(body.snapshot.rangeEnd, "2026-08-08");
     assert.equal(body.snapshot.exchangeId, "binance_perp_usdt");
@@ -785,6 +1015,15 @@ describe("engine-backtest orchestration", () => {
       [1_775_808_000_000, 0],
       [1_775_808_060_000, 0.1],
     ]);
+    assert.equal(body.activity?.schemaVersion, 1);
+    assert.equal(body.activity?.filledOrderTotal, 2);
+    assert.equal(body.activity?.truncated, false);
+    assert.deepEqual(
+      body.activity?.filledOrders.map((order) => order.orderId),
+      ["o-open", "o-close"]
+    );
+    assert.equal(body.activity?.openPositions[0]?.markPrice, 112);
+    assert.equal(body.activity?.attribution.symbols[0]?.realizedPnl, 10);
     assert.equal(result.persisted, true);
     assert.equal(result.runId, "run-persisted-1");
     assert.equal(result.experimentId, "11111111-1111-1111-1111-111111111111");

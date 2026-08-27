@@ -1,3 +1,5 @@
+import type { EngineBacktestActivity } from "./activity";
+
 export type SubscriptionTier = "free" | "pro" | "pro_max";
 export type DataQualityMode = "strict" | "basic";
 
@@ -139,6 +141,7 @@ export interface EngineBacktestResult {
   readonly equityCurve?: unknown[];
   readonly orders?: unknown[];
   readonly openPositions?: unknown[];
+  readonly accountAdjustments?: unknown[];
   readonly errors?: Array<{ code: string; message: string; path?: string }>;
   readonly warnings?: string[];
 }
@@ -351,6 +354,8 @@ export interface CreateRunRequestBody {
   readonly configSchemaVersion: number;
   /** Compact [[unix_ms, cumulative_return]]; omitted when the local run has no series. */
   readonly returnCurve?: ReadonlyArray<readonly [number, number]>;
+  /** Ledger snapshot + filled-order tail. Omitted only when persist is skipped. */
+  readonly activity?: EngineBacktestActivity;
 }
 
 export interface EngineBacktestRunSuccess {

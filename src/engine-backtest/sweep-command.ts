@@ -11,6 +11,7 @@ import {
   summarizeTapeCoverageNotice,
 } from "./coverage-notice";
 import { EngineBacktestError, isEngineBacktestError } from "./errors";
+import { projectDcaFirstOrderAmountForLegacyRuntime } from "./dca-first-order-amount-compat";
 import { loadConfigValue, loadEngineBacktestConfig } from "./load-config";
 import { parseSweepAxesDocument } from "./parse-axes";
 import {
@@ -784,10 +785,10 @@ async function planCoordinate(input: {
   readonly axes: SweepPlan["axes"];
   readonly coordinate: SweepCoordinate;
 }): Promise<PlannedSweepCoordinate | SweepPoint> {
-  const nextConfig = applySweepCoordinate(
-    input.config,
-    input.axes,
-    input.coordinate
+  const nextConfig = asConfigRecord(
+    projectDcaFirstOrderAmountForLegacyRuntime(
+      applySweepCoordinate(input.config, input.axes, input.coordinate)
+    )
   );
   try {
     const plan = await input.client.planBacktest({

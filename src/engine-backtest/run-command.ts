@@ -11,6 +11,7 @@ import {
   summarizeTapeCoverageNotice,
 } from "./coverage-notice";
 import { EngineBacktestError, isEngineBacktestError } from "./errors";
+import { projectDcaFirstOrderAmountForLegacyRuntime } from "./dca-first-order-amount-compat";
 import { loadEngineBacktestConfig } from "./load-config";
 import {
   ENGINE_BACKTEST_RUN_USAGE,
@@ -298,10 +299,12 @@ export async function executeEngineBacktestRun(
     requireAuth(profile, env, tokensFn);
   }
 
-  const config = loadEngineBacktestConfig(args.configRaw, {
-    cwd: deps.cwd,
-    readFile: deps.readFile,
-  });
+  const config = projectDcaFirstOrderAmountForLegacyRuntime(
+    loadEngineBacktestConfig(args.configRaw, {
+      cwd: deps.cwd,
+      readFile: deps.readFile,
+    })
+  );
 
   let experimentId = args.experimentId;
   if (!experimentId && !createExperiment) {
@@ -476,7 +479,9 @@ export async function executeEngineBacktestRun(
       runId,
       definitionId: args.definitionId,
       configSchemaVersion,
-      config: plan.effectiveConfig ?? config,
+      config: projectDcaFirstOrderAmountForLegacyRuntime(
+        plan.effectiveConfig ?? config
+      ),
       subscriptionTier,
       initialEquity: args.initialEquity!,
       tape: tapeResult.tape,
@@ -554,6 +559,9 @@ export async function executeEngineBacktestRun(
         engineVersion,
         equityCurve: result.equityCurve,
         coverageIssues: tapeResult.coverageIssues,
+        orders: result.orders,
+        openPositions: result.openPositions,
+        accountAdjustments: result.accountAdjustments,
       });
       const res = await postJson(api, profile, env, runsPath(experimentId), body, mintId);
       persistedRunId = extractEntityId(res.json);

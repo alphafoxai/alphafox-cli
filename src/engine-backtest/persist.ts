@@ -1,7 +1,14 @@
 import type { ProfileName } from "../config/profiles";
-import { EngineBacktestError } from "./errors";
-import { compressEngineBacktestReturnCurve } from "./return-curve";
+import {
+  buildEngineBacktestActivityFromCompleted,
+  readActivityAdjustments,
+  readActivityOrders,
+  readActivityPositions,
+} from "./activity";
 import { snapshotCoverageIssues } from "./coverage-notice";
+import { EngineBacktestError } from "./errors";
+import { attributeEngineBacktestResult } from "./result-attribution";
+import { compressEngineBacktestReturnCurve } from "./return-curve";
 import type {
   CreateRunRequestBody,
   CreateSweepPointSummary,
@@ -64,6 +71,9 @@ export function buildCreateRunRequest(input: {
   readonly engineVersion: string;
   readonly equityCurve?: unknown;
   readonly coverageIssues?: readonly TapeCoverageIssue[];
+  readonly orders?: unknown;
+  readonly openPositions?: unknown;
+  readonly accountAdjustments?: unknown;
 }): CreateRunRequestBody {
   const { scenario } = input;
   const rangeStart = scenario.tape.from.slice(0, 10);
@@ -103,6 +113,24 @@ export function buildCreateRunRequest(input: {
     initialEquity: snapshot.initialEquity,
     equityCurve: input.equityCurve,
   });
+  const orders = readActivityOrders(input.orders);
+  const openPositions = readActivityPositions(input.openPositions);
+  const accountAdjustments = readActivityAdjustments(input.accountAdjustments);
+  const activity = buildEngineBacktestActivityFromCompleted({
+    attribution: attributeEngineBacktestResult({
+      result: {
+        metrics: input.metrics,
+        orders,
+        openPositions,
+        accountAdjustments,
+      },
+      markets: scenario.tape.markets,
+      symbols,
+    }),
+    orders,
+    openPositions,
+    accountAdjustments,
+  });
 
   return {
     clientRunId: input.clientRunId,
@@ -111,6 +139,7 @@ export function buildCreateRunRequest(input: {
     engineVersion,
     configSchemaVersion: snapshot.configSchemaVersion,
     ...(returnCurve ? { returnCurve } : {}),
+    activity,
   };
 }
 

@@ -1052,7 +1052,10 @@ describe("engine-backtest sweep execute", () => {
     assert.ok(result.elapsedMs >= 0);
     assert.deepEqual(result.best?.coordinate.values, [12]);
     assert.equal(result.best?.returnPct, 20);
-    assert.deepEqual(result.best?.config, { strategy: { period: 12, spacing: 0.6 } });
+    assert.deepEqual(result.best?.config, {
+      strategy: { period: 12, spacing: 0.6 },
+      common: { execution: { leverage: 10 } },
+    });
     assert.equal(preparedBuffers.length, 1);
     assert.equal(batchHandles.length, 3);
     assert.ok(batchHandles.every((handle) => handle === "tape-1"));

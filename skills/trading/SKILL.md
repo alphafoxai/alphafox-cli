@@ -1,7 +1,7 @@
 ---
 name: alphafox-trading
 description: Running strategies (traders) — create, list, start, and stop. A trader is a live or paper strategy instance (grid, dca, copy, …), not a person. Default Engine create uses autoStart true (创建即开始). Use autoStart false only when the user asks to create without starting. After create or start, include https://www.alphafox.app/zh/dashboard/traders/{traderId}.
-version: 0.3.14
+version: 0.3.15
 ---
 
 # Running strategies (traders)

@@ -108,6 +108,37 @@ describe("Skills surface", () => {
     assert.equal(/hl_copy_trading/.test(router), false);
   });
 
+  it("teaches dashboard links and create-and-start by default", () => {
+    const shared = readFileSync(
+      join(skillsRoot, "alphafox-shared", "SKILL.md"),
+      "utf8"
+    );
+    const trading = readFileSync(join(skillsRoot, "trading", "SKILL.md"), "utf8");
+    const engine = readFileSync(
+      join(skillsRoot, "engine-backtest", "SKILL.md"),
+      "utf8"
+    );
+    const router = readFileSync(join(skillsRoot, "alphafox", "SKILL.md"), "utf8");
+    assert.match(
+      shared,
+      /https:\/\/www\.alphafox\.app\/zh\/dashboard\/traders\/\{traderId\}/
+    );
+    assert.match(
+      shared,
+      /https:\/\/www\.alphafox\.app\/zh\/dashboard\/traders\/backtest\/\{experimentId\}/
+    );
+    assert.match(
+      shared,
+      /https:\/\/www\.alphafox\.app\/zh\/dashboard\/leaderboard/
+    );
+    assert.match(trading, /autoStart.*true/);
+    assert.match(trading, /autoStart: false/);
+    assert.match(trading, /dashboard\/traders\/\{traderId\}/);
+    assert.match(engine, /dashboard\/traders\/backtest\/\{experimentId\}/);
+    assert.match(router, /dashboard\/leaderboard/);
+    assert.match(router, /autoStart: true/);
+  });
+
   it("does not teach chat product commands or paths", () => {
     const banned = [
       /chats\./,

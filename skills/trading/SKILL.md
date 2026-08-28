@@ -1,6 +1,6 @@
 ---
 name: alphafox-trading
-description: Running strategies (traders) — create, list, start, and stop. A trader is a live or paper strategy instance (grid, dca, copy, …), not a person.
+description: Running strategies (traders) — create, list, start, and stop. A trader is a live or paper strategy instance (grid, dca, copy, …), not a person. Default Engine create uses autoStart true (创建即开始). Use autoStart false only when the user asks to create without starting. After create or start, include https://www.alphafox.app/zh/dashboard/traders/{traderId}.
 version: 0.3.14
 ---
 
@@ -39,6 +39,12 @@ alphafox trading traders create --config @./create-trader.json --yes --format js
 ```
 
 `trading.traders.create` is `high-risk-write` and needs `--yes`. Copy creates follow whatever `risk` the schema reports — `--dry-run` first, then `--yes` when required.
+
+Default Engine create is **创建即开始**: set `autoStart` to `true` in the body. Omitting `autoStart` is not the same — the server treats a missing flag as do-not-start. Use `autoStart: false` only when the operator explicitly asks to create without starting (创建但不启动 / 暂时不开始 / 先创建不要跑). Do not create-then-`byId.start` as the default path.
+
+After a successful create (or a later start), include the trader dashboard URL from `alphafox-shared` (`https://www.alphafox.app/zh/dashboard/traders/{traderId}`).
+
+Create `config` must include `common.execution.leverage` unless the operator chose another value. Default **10**, matching the website form. Omitting it is not 10x — Engine uses **1x**.
 
 If a required field is missing, re-read the schema and ask the operator. Do not invent ids. The CLI has no authoring-session surface; instantiate from a definition, connector, and config.
 

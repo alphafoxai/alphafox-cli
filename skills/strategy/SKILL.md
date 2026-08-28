@@ -41,7 +41,7 @@ Explain the type from those fields. Missing a layer → say unknown; do not fill
 The human answers knobs. You write JSON.
 
 1. Confirm the definition from `byId.get` in the operator's language (what it is, what drives it, how positions change).
-2. From `strategyConfigSchema` plus common required fields, ask **only** values the human must choose: symbols (resolve first), direction / mode, size, signal source, leverage. Do not walk every optional key.
+2. From `strategyConfigSchema` plus common required fields, ask **only** values the human must choose: symbols (resolve first), direction / mode, size, signal source, leverage. Do not walk every optional key. If the operator does not pick leverage, write `common.execution.leverage: 10` (website form default). Omitting the field is not the same — Engine treats a missing leverage as **1x**.
 3. Write `strategy-config.json` as the trader object:
 
 ```json
@@ -74,7 +74,7 @@ alphafox trading strategy_definitions byId validate_config --definitionId <id> -
 
 `body_schema` / `body_schema_missing` (exit `64`): re-read the operation schema. Server field-path errors: fix that path. Do not retry with a different envelope.
 
-After it validates: create with `alphafox-trading`, or backtest with `alphafox-engine-backtest`. Do not create or backtest from this skill.
+After it validates: create with `alphafox-trading` (default `autoStart: true`), or backtest with `alphafox-engine-backtest`. Do not create or backtest from this skill. Dashboard URLs after those actions live in `alphafox-shared`.
 
 ## operationIds
 

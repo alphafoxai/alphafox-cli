@@ -1,6 +1,6 @@
 ---
 name: alphafox-engine-backtest
-description: Local Engine WASM backtest (alphafox engine-backtest run|sweep) vs catalog experiment CRUD.
+description: Local Engine WASM backtest (alphafox engine-backtest run|sweep) vs catalog experiment CRUD. After a persisted run, include https://www.alphafox.app/zh/dashboard/traders/backtest/{experimentId}.
 version: 0.3.14
 ---
 
@@ -52,7 +52,7 @@ alphafox engine-backtest run \
   --format jsonl --no-input
 ```
 
-`--config` is `{ common, strategy }` (the source file from skill `alphafox-strategy`). It is not the `validate_config` HTTP body `{ configSchemaVersion, config }`.
+`--config` is `{ common, strategy }` (the source file from skill `alphafox-strategy`). It is not the `validate_config` HTTP body `{ configSchemaVersion, config }`. Missing `common.execution.leverage` is filled to **10** before plan/run (same as the website form). An explicit leverage is kept. Engine runtime still treats a raw omitted field as 1x — do not skip this key in the source file.
 
 Also valid: `--from` / `--to` instead of `--range`. `--create-experiment --name "..."` when there is no `--experiment` (needs `strategyDefinitionId` + `strategyDefinitionDisplay` `{zh,en}`; pass `--definition-label-zh` / `--definition-label-en` or the CLI falls back to the definition id). Persisted runs use the account tier from `subscriptions.me.get`; if `--tier` is supplied, it must match. With `--no-persist`, `runs.create` is skipped and `--tier` may simulate `free|pro|pro_max` (default `pro`). `--data-quality` defaults to `basic` (soft gaps finish the run and appear as `coverageNotice`; `prefix_gap` is less severe than `internal_gap`). `--data-quality strict` still fails on any gap. `--replay-timeframe` defaults to `1m` (allowed `1m|3m|5m|15m|30m|1h|4h`); this is the replay/download bar and is merged with plan indicator timeframes so a 4h RSI grid still replays on 1m. `runs.create` is `write`, not `high-risk-write` — do not add `--yes`. Do not update or delete experiments through this command.
 
@@ -78,7 +78,7 @@ alphafox engine-backtest sweep \
 
 `--mode` is `neighborhood|range`. `--search-mode` is `standard|fast`. `--concurrency` is 1–8; Free is always serial. After every local coordinate finishes, the command POSTs **one** `engine_backtest.experiments.byId.sweeps.create` summary (4 MiB / point-error caps). It never calls `runs.create` per coordinate and never writes Tape, curves, or full configs. `--no-persist` stays zero-write. A cancelled or incomplete search is not persisted. The same `clientSweepId` is reused if you rebuild the create body for retry; unknown write results (no Sweep id) fail instead of reporting `persisted: true`.
 
-`--format jsonl` includes `planning`, `tape`, `sweep`, and `persist` stages. The final envelope includes counts, `elapsedMs`, best coordinate/config, `sweepId`, `persisted`, and an Experiment URL with `?tab=sweep`.
+`--format jsonl` includes `planning`, `tape`, `sweep`, and `persist` stages. The final envelope includes counts, `elapsedMs`, best coordinate/config, `sweepId`, `persisted`, and an Experiment URL with `?tab=sweep`. After persist, include that dashboard URL in the reply (`https://www.alphafox.app/zh/dashboard/traders/backtest/{experimentId}?tab=sweep`).
 
 Read / delete history through typed catalog commands. Delete is high-risk-write:
 
@@ -94,7 +94,7 @@ Owner isolation and 7-day expiry are enforced by the server. Applying a coordina
 
 1. Edit config JSON.
 2. `engine-backtest run` (reuse `--experiment` after the first create).
-3. Read `data.metrics` / `data.engineVersion` / `data.runId` / `data.experimentUrl`. After the run, also read `data.coverageNotice` (`warning` = mid-range candle gaps; `notice` = start / other soft gaps).
+3. Read `data.metrics` / `data.engineVersion` / `data.runId` / `data.experimentId` / `data.experimentUrl`. After the run, also read `data.coverageNotice` (`warning` = mid-range candle gaps; `notice` = start / other soft gaps). When an Experiment id exists, include the backtest dashboard URL from `alphafox-shared` (`https://www.alphafox.app/zh/dashboard/traders/backtest/{experimentId}`) in the reply — do not stop at metrics or the raw CLI `experimentUrl`.
 4. Adjust parameters and run again. Do not invent a token flag if persist returns 401 — `alphafox auth login`.
 5. After a long-range or 1m run, follow `alphafox-cache`: `alphafox cache status`. If `data.tape.large` is true, ask **回测下载的历史数据比较大，要不要我帮你清理本地缓存？** and wait for yes.
 

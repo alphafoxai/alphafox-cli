@@ -11,8 +11,8 @@ import {
   summarizeTapeCoverageNotice,
 } from "./coverage-notice";
 import { EngineBacktestError, isEngineBacktestError } from "./errors";
-import { projectDcaFirstOrderAmountForLegacyRuntime } from "./dca-first-order-amount-compat";
 import { loadEngineBacktestConfig } from "./load-config";
+import { prepareEngineBacktestConfig } from "./web-ui-config-defaults";
 import {
   ENGINE_BACKTEST_RUN_USAGE,
   ENGINE_BACKTEST_SWEEP_USAGE,
@@ -299,7 +299,7 @@ export async function executeEngineBacktestRun(
     requireAuth(profile, env, tokensFn);
   }
 
-  const config = projectDcaFirstOrderAmountForLegacyRuntime(
+  const config = prepareEngineBacktestConfig(
     loadEngineBacktestConfig(args.configRaw, {
       cwd: deps.cwd,
       readFile: deps.readFile,
@@ -479,9 +479,7 @@ export async function executeEngineBacktestRun(
       runId,
       definitionId: args.definitionId,
       configSchemaVersion,
-      config: projectDcaFirstOrderAmountForLegacyRuntime(
-        plan.effectiveConfig ?? config
-      ),
+      config: prepareEngineBacktestConfig(plan.effectiveConfig ?? config),
       subscriptionTier,
       initialEquity: args.initialEquity!,
       tape: tapeResult.tape,

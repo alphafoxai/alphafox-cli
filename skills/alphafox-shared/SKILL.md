@@ -1,6 +1,6 @@
 ---
 name: alphafox-shared
-description: Shared AlphaFox CLI rules for Agents — auth, profiles, envelopes, risk gates, and public operationIds only.
+description: Shared AlphaFox CLI rules for Agents — auth, profiles, envelopes, risk gates, public operationIds, and dashboard links after 回测 / 运行策略 / 排行榜.
 version: 0.3.14
 ---
 
@@ -117,6 +117,22 @@ Uncataloged writes cannot carry a non-empty body. Find the `operationId` first.
 - Prefer `--dry-run` first for trader create/start/stop, withdrawals, admin writes.
 - Never auto-retry unknown write outcomes.
 - CLI `--yes` is UX only; the server still enforces role, ownership, and scopes.
+
+## Dashboard links
+
+After a persisted backtest, after creating or starting a trader, or when the operator asks 排行榜, include the matching web URL in the reply. Do not stop at CLI ids or `experimentUrl` alone.
+
+Production (default profile):
+
+| Surface | URL |
+|---|---|
+| Trader | `https://www.alphafox.app/zh/dashboard/traders/{traderId}` |
+| Backtest | `https://www.alphafox.app/zh/dashboard/traders/backtest/{experimentId}` |
+| Leaderboard | `https://www.alphafox.app/zh/dashboard/leaderboard` |
+
+`--profile staging` → host `https://staging.alphafox.app`. `--profile local` → `http://127.0.0.1:3000`. Keep `/zh/dashboard/...`.
+
+`traderId` is `data.trader.id` from create (or the id just started). `experimentId` is the persisted Experiment id (`data.experimentId`, or the `--experiment` / create-experiment id). Skip the backtest link only when persist was skipped and there is no Experiment id.
 
 ## Public operationIds only
 

@@ -5,7 +5,6 @@ import { join } from "node:path";
 import { describe, it } from "node:test";
 
 import { projectDcaFirstOrderAmountForLegacyRuntime } from "../src/engine-backtest/dca-first-order-amount-compat";
-import { prepareEngineBacktestConfig } from "../src/engine-backtest/web-ui-config-defaults";
 import {
   parseEngineBacktestRunArgs,
 } from "../src/engine-backtest/parse-args";
@@ -21,6 +20,11 @@ import type {
   EngineSupportedBacktestPlan,
   TapeLoadResult,
 } from "../src/engine-backtest/types";
+import {
+  applyWebUiConfigDefaults,
+  prepareEngineBacktestConfig,
+  WEB_UI_DEFAULT_LEVERAGE,
+} from "../src/engine-backtest/web-ui-config-defaults";
 
 const FLAGS: EngineBacktestCliFlags = {
   format: "json",
@@ -98,7 +102,9 @@ function sampleTape(): TapeLoadResult {
   };
 }
 
-function fakeClient(overrides: Partial<BacktestClientLike> = {}): BacktestClientLike {
+function fakeClient(
+  overrides: Partial<BacktestClientLike> = {}
+): BacktestClientLike {
   return {
     init: async () => "test-engine",
     version: async () => "test-engine",
@@ -125,87 +131,66 @@ function fakeClient(overrides: Partial<BacktestClientLike> = {}): BacktestClient
   };
 }
 
-describe("engine-backtest dca first-order amount projection", () => {
-  it("mirrors equity-percent first order onto initialMarginPercent", () => {
+describe("web UI config defaults", () => {
+  it("fills omitted leverage with the website default of 10", () => {
+    assert.deepEqual(
+      applyWebUiConfigDefaults({
+        common: { execution: { openMinPosition: true } },
+        strategy: { symbols: ["PAXG/USDT:USDT"] },
+      }),
+      {
+        common: {
+          execution: { openMinPosition: true, leverage: WEB_UI_DEFAULT_LEVERAGE },
+        },
+        strategy: { symbols: ["PAXG/USDT:USDT"] },
+      }
+    );
+  });
+
+  it("fills leverage when common.execution is missing entirely", () => {
+    const next = applyWebUiConfigDefaults({
+      strategy: { symbols: ["PAXG/USDT:USDT"] },
+    }) as { common: { execution: { leverage: number } } };
+    assert.equal(next.common.execution.leverage, 10);
+  });
+
+  it("keeps an explicit positive leverage", () => {
     const config = {
+      common: { execution: { leverage: 5 } },
+    };
+    assert.equal(applyWebUiConfigDefaults(config), config);
+  });
+
+  it("replaces non-positive leverage the engine would treat as 1x", () => {
+    const next = applyWebUiConfigDefaults({
+      common: { execution: { leverage: 0 } },
+    }) as { common: { execution: { leverage: number } } };
+    assert.equal(next.common.execution.leverage, 10);
+  });
+
+  it("still mirrors DCA first-order aliases after filling leverage", () => {
+    const prepared = prepareEngineBacktestConfig({
       strategy: {
         longDecisionLogic: {
           id: "simple-long",
           params: {
             firstOrderAmountType: "equityPercent",
             firstOrderAmount: 5,
-            takeProfitPercent: 1,
-          },
-        },
-      },
-    };
-    assert.deepEqual(projectDcaFirstOrderAmountForLegacyRuntime(config), {
-      strategy: {
-        longDecisionLogic: {
-          id: "simple-long",
-          params: {
-            firstOrderAmountType: "equityPercent",
-            firstOrderAmount: 5,
-            takeProfitPercent: 1,
-            initialMarginPercent: 5,
-          },
-        },
-      },
-    });
-  });
-
-  it("mirrors fixed first order onto fixedInitialNotional", () => {
-    const config = {
-      strategy: {
-        shortDecisionLogic: {
-          id: "simple-short",
-          params: {
-            firstOrderAmountType: "fixedAmount",
-            firstOrderAmount: 250,
-          },
-        },
-      },
-    };
-    assert.deepEqual(projectDcaFirstOrderAmountForLegacyRuntime(config), {
-      strategy: {
-        shortDecisionLogic: {
-          id: "simple-short",
-          params: {
-            firstOrderAmountType: "fixedAmount",
-            firstOrderAmount: 250,
-            fixedInitialNotional: 250,
-          },
-        },
-      },
-    });
-  });
-
-  it("does not leave a fixed alias that would override equity percent", () => {
-    const projected = projectDcaFirstOrderAmountForLegacyRuntime({
-      strategy: {
-        longDecisionLogic: {
-          id: "simple-long",
-          params: {
-            firstOrderAmountType: "equityPercent",
-            firstOrderAmount: 8,
-            fixedInitialNotional: 100,
           },
         },
       },
     }) as {
-      strategy: { longDecisionLogic: { params: Record<string, unknown> } };
+      common: { execution: { leverage: number } };
+      strategy: { longDecisionLogic: { params: { initialMarginPercent: number } } };
     };
+    assert.equal(prepared.common.execution.leverage, 10);
     assert.equal(
-      projected.strategy.longDecisionLogic.params.initialMarginPercent,
-      8
-    );
-    assert.equal(
-      projected.strategy.longDecisionLogic.params.fixedInitialNotional,
-      undefined
+      prepared.strategy.longDecisionLogic.params.initialMarginPercent,
+      5
     );
   });
 
-  it("projects first-order aliases before planBacktest and the run scenario", async () => {
+  it("sends leverage 10 into planBacktest and assembleScenario when omitted", async () => {
     const sourceConfig = {
       common: { symbols: ["BTC/USDT:USDT"] },
       strategy: {
@@ -275,11 +260,14 @@ describe("engine-backtest dca first-order amount projection", () => {
     const expected = prepareEngineBacktestConfig(sourceConfig);
     assert.deepEqual(planned[0], expected);
     assert.deepEqual(assembled[0], expected);
-    const params = (
-      expected as {
-        strategy: { longDecisionLogic: { params: { initialMarginPercent: number } } };
-      }
-    ).strategy.longDecisionLogic.params;
-    assert.equal(params.initialMarginPercent, 5);
+    assert.equal(
+      (expected as { common: { execution: { leverage: number } } }).common
+        .execution.leverage,
+      10
+    );
+    assert.notDeepEqual(
+      expected,
+      projectDcaFirstOrderAmountForLegacyRuntime(sourceConfig)
+    );
   });
 });

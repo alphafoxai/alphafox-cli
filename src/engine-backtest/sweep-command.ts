@@ -11,8 +11,8 @@ import {
   summarizeTapeCoverageNotice,
 } from "./coverage-notice";
 import { EngineBacktestError, isEngineBacktestError } from "./errors";
-import { projectDcaFirstOrderAmountForLegacyRuntime } from "./dca-first-order-amount-compat";
 import { loadConfigValue, loadEngineBacktestConfig } from "./load-config";
+import { prepareEngineBacktestConfig } from "./web-ui-config-defaults";
 import { parseSweepAxesDocument } from "./parse-axes";
 import {
   DEFAULT_EXECUTION_MODEL,
@@ -152,10 +152,12 @@ export async function executeEngineBacktestSweep(
   }
 
   const config = asConfigRecord(
-    loadEngineBacktestConfig(args.configRaw, {
-      cwd: deps.cwd,
-      readFile: deps.readFile,
-    })
+    prepareEngineBacktestConfig(
+      loadEngineBacktestConfig(args.configRaw, {
+        cwd: deps.cwd,
+        readFile: deps.readFile,
+      })
+    )
   );
   const axisInputs = parseSweepAxesDocument(
     loadConfigValue(args.axesRaw, {
@@ -786,7 +788,7 @@ async function planCoordinate(input: {
   readonly coordinate: SweepCoordinate;
 }): Promise<PlannedSweepCoordinate | SweepPoint> {
   const nextConfig = asConfigRecord(
-    projectDcaFirstOrderAmountForLegacyRuntime(
+    prepareEngineBacktestConfig(
       applySweepCoordinate(input.config, input.axes, input.coordinate)
     )
   );

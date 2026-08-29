@@ -8,13 +8,11 @@ Agent and human entry for the versioned Public Application API on alphafox-web.
 
 ## Public API catalog
 
-CLI catalog is generated from `@alphafoxai/contracts/public-api`. Do not hand-edit `src/catalog/generated/*.json`. Run `node scripts/generate-catalog.mjs`. The generator picks the largest available Operation Registry (sibling contracts, website `node_modules`, or `ALPHAFOX_CONTRACTS_ROOT`) and overlays sibling `createTrader` when that schema is already Engine-shaped. A stale sibling registry must not drop `engine_backtest` sweeps.
+CLI catalog is generated from `@alphafoxai/contracts/public-api`. Do not hand-edit `src/catalog/generated/*.json`. Run `node scripts/generate-catalog.mjs`. Prefer `ALPHAFOX_CONTRACTS_ROOT`, then sibling `../alphafox-contracts`, then other installed copies. A stale website `node_modules` registry must not win just because it has more rows.
 
-Chat product (`chats.*`, `chat_summaries.*`) and web `/api/v1/backtests` (`backtests.*`) are **not** a CLI surface. Omit them at generate time. Do not call them via typed commands, `schema`, or `alphafox api`. Local Engine WASM (`engine-backtest run`) and `engine_backtest.*` stay.
+Chat workbench, Chat Backtest (`backtests.*`), and Strategy Plaza (`strategy_plaza.*`) were removed from contracts `2.0.0`. Omit those prefixes at generate time as a safety net. Do not call them via typed commands, `schema`, or `alphafox api`. Local Engine WASM (`engine-backtest run`) and `engine_backtest.*` stay.
 
-`trading.traders.create` must match the website Engine create body: `strategyDefinitionId` + `config` + `exchangeConnectorId` (+ `name`, `configSchemaVersion`). Do not invent `chatId` or integer `strategyId` to make create work. Those fields belong to the Chat compile path (`traderInit*`, trader snapshots), not Engine instantiate. Hyperliquid / rebate copy use `trading.hl_copy_traders.create` / `trading.rebate_copy_traders.create`.
-
-Do not remove chat schemas from alphafox-contracts, and do not set `chats.*` `includeInCli: false`. The website chat product and `/api/v1` allowlist still use them. Chat is omitted only on the CLI surface.
+`trading.traders.create` must match the website Engine create body: `strategyDefinitionId` + `config` + `exchangeConnectorId` (+ `name`, `configSchemaVersion`). Do not invent `chatId` or integer `strategyId` to make create work. Hyperliquid / rebate copy use `trading.hl_copy_traders.create` / `trading.rebate_copy_traders.create`.
 
 ## Agent skills
 

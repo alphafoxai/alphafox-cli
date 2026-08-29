@@ -15,11 +15,11 @@ Human-mentioned tickers must be resolved with `alphafox resolve-symbols` (`skill
 | Intent | Use | Do not |
 |---|---|---|
 | Iterate a strategy locally (pull tape + run wasm + optional persist) | `alphafox engine-backtest run` (hyphen, built-in) | Do not treat this as server-side execution of `engine_backtest.experiments.byId.runs.create` |
-| Local parameter search with explicit axes; persist one Sweep after completion | `alphafox engine-backtest sweep` | Never loop `runs.create` per coordinate. Do not call `backtests.*` |
+| Local parameter search with explicit axes; persist one Sweep after completion | `alphafox engine-backtest sweep` | Never loop `runs.create` per coordinate. Do not call the retired web Chat Backtest job path |
 | Local search with zero writes | `alphafox engine-backtest sweep ... --no-persist` | Do not persist a cancelled or incomplete search |
 | List / get / delete persisted Sweeps | Catalog `engine_backtest.experiments.byId.sweeps.*` | Do not invent a second catalog. Delete is high-risk and needs `--yes` |
 | List / get / create / rename / delete experiments and persisted runs | Catalog `engine_backtest.*` (underscore) | Do not invent a second catalog |
-| Web `/api/v1/backtests` job | — | Not a CLI surface. Do not call `backtests.*` or `/api/v1/backtests` |
+| Retired web Chat Backtest job | — | Removed from the catalog. Do not call `/api/v1/backtests` |
 
 Read the create-experiment body with `alphafox schema` **before** composing JSON. Do not invent experiment fields. Large create/run/sweep payloads use `--config @file`, never a guessed `--body`.
 
@@ -114,4 +114,4 @@ Owner isolation and 7-day expiry are enforced by the server. Applying a coordina
 - `engine_backtest.experiments.byId.sweeps.byId.get`
 - High-risk (not this skill's run/sweep path): `engine_backtest.experiments.byId.update` / `.byId.delete` / `.byId.runs.byId.delete` / `.byId.sweeps.byId.delete`
 
-`backtests.*` is not an Engine Sweep or Engine Run surface. Do not call it from this skill.
+The retired web Chat Backtest job path is not an Engine Sweep or Engine Run surface. Do not call `/api/v1/backtests` from this skill.

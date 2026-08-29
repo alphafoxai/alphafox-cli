@@ -127,8 +127,12 @@ describe("cli launch", () => {
     assert.ok(json.data.operations.includes("trading.traders.create"));
     assert.equal(json.data.operations.includes("chats.create"), false);
     assert.equal(json.data.operations.includes("backtests.create"), false);
+    assert.equal(
+      json.data.operations.includes("strategy_plaza.publications.list"),
+      false
+    );
     assert.ok(json.data.operations.length > 24);
-    assert.equal(json.data.contractVersion, "2026-08-13");
+    assert.equal(json.data.contractVersion, "2026-08-29");
   });
 
   it("schema rejects omitted chat operations", () => {

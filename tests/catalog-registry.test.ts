@@ -21,8 +21,8 @@ import registryJson from "../src/catalog/generated/registry.json";
 describe("generated operation catalog", () => {
   it("is generated from the public-api registry, not a handwritten 24-op list", () => {
     assert.equal(CATALOG_SOURCE.package, "@alphafoxai/contracts");
-    assert.equal(CATALOG_SOURCE.registryVersion, "1.1.0");
-    assert.equal(CATALOG_VERSION, "2026-08-13");
+    assert.equal(CATALOG_SOURCE.registryVersion, "2.0.0");
+    assert.equal(CATALOG_VERSION, "2026-08-29");
     assert.ok(
       CATALOG_OPERATIONS.length >= 200,
       `expected >= 200 operations, got ${CATALOG_OPERATIONS.length}`
@@ -107,7 +107,7 @@ describe("generated operation catalog", () => {
     );
   });
 
-  it("omits chat product and web backtests.* from the CLI catalog", () => {
+  it("omits retired chat, Chat Backtest, and Strategy Plaza from the CLI catalog", () => {
     const generatedIds = (
       registryJson as { operations: readonly { operationId: string }[] }
     ).operations.map((op) => op.operationId);
@@ -115,16 +115,22 @@ describe("generated operation catalog", () => {
     assert.equal(generatedIds.includes("chats.create"), false);
     assert.equal(generatedIds.includes("chats.byId.get"), false);
     assert.equal(generatedIds.includes("chat_summaries.list"), false);
+    assert.equal(
+      generatedIds.includes("strategy_plaza.publications.list"),
+      false
+    );
     for (const id of [
       "backtests.create",
       "chats.create",
       "chats.byId.get",
       "chat_summaries.list",
+      "strategy_plaza.publications.list",
     ]) {
       assert.equal(findCatalogOperation(id), undefined, id);
       assert.equal(getOperationSchemaDocument(id), undefined, id);
     }
     assert.equal(isOmittedCatalogOperation("backtests.byId.stream"), true);
+    assert.equal(isOmittedCatalogOperation("strategy_plaza.publications.list"), true);
     assert.equal(
       isOmittedCatalogOperation("engine_backtest.experiments.create"),
       false
@@ -136,7 +142,8 @@ describe("generated operation catalog", () => {
         (op) =>
           op.operationId === "chats" ||
           op.operationId.startsWith("chats.") ||
-          op.operationId.startsWith("chat_")
+          op.operationId.startsWith("chat_") ||
+          op.operationId.startsWith("strategy_plaza.")
       ),
       false
     );
@@ -145,12 +152,17 @@ describe("generated operation catalog", () => {
     assert.equal(isFacadeAllowlistedPath("/api/v1/chats"), false);
     assert.equal(isFacadeAllowlistedPath("/api/v1/chats/abc"), false);
     assert.equal(isFacadeAllowlistedPath("/api/v1/chat-summaries"), false);
+    assert.equal(isFacadeAllowlistedPath("/api/v1/strategy-plaza/publications"), false);
     assert.equal(
       isFacadeAllowlistedPath("/api/v1/engine-backtest/experiments"),
       true
     );
     assert.equal(resolveTypedCommand(["backtests", "create"]).kind, "missing");
     assert.equal(resolveTypedCommand(["chats", "create"]).kind, "missing");
+    assert.equal(
+      resolveTypedCommand(["strategy_plaza", "publications", "list"]).kind,
+      "missing"
+    );
   });
 
   it("capability manifest and schema documents cover every CLI operationId", () => {

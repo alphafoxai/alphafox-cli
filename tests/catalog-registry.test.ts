@@ -21,7 +21,7 @@ import registryJson from "../src/catalog/generated/registry.json";
 describe("generated operation catalog", () => {
   it("is generated from the public-api registry, not a handwritten 24-op list", () => {
     assert.equal(CATALOG_SOURCE.package, "@alphafoxai/contracts");
-    assert.equal(CATALOG_SOURCE.registryVersion, "2.0.0");
+    assert.equal(CATALOG_SOURCE.registryVersion, "2.0.1");
     assert.equal(CATALOG_VERSION, "2026-08-29");
     assert.ok(
       CATALOG_OPERATIONS.length >= 200,
@@ -131,6 +131,18 @@ describe("generated operation catalog", () => {
     }
     assert.equal(isOmittedCatalogOperation("backtests.byId.stream"), true);
     assert.equal(isOmittedCatalogOperation("strategy_plaza.publications.list"), true);
+    assert.equal(
+      generatedIds.includes("internal.engine_backtest.sweeps.purge.create"),
+      false
+    );
+    assert.equal(
+      findCatalogOperation("internal.engine_backtest.sweeps.purge.create"),
+      undefined
+    );
+    assert.equal(
+      isOmittedCatalogOperation("internal.engine_backtest.sweeps.purge.create"),
+      true
+    );
     assert.equal(
       isOmittedCatalogOperation("engine_backtest.experiments.create"),
       false

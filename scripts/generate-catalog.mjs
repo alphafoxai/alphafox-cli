@@ -240,7 +240,9 @@ function isOmittedCatalogOperation(operationId) {
     operationId === "chat_summaries" ||
     operationId.startsWith("chat_summaries.") ||
     operationId === "strategy_plaza" ||
-    operationId.startsWith("strategy_plaza.")
+    operationId.startsWith("strategy_plaza.") ||
+    operationId === "internal" ||
+    operationId.startsWith("internal.")
   );
 }
 

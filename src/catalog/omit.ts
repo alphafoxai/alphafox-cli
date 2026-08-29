@@ -6,6 +6,7 @@
  * - Strategy Plaza publications (`strategy_plaza` / `strategy_plaza.*`)
  * Local Engine WASM (`engine-backtest run`) and `engine_backtest.*` stay.
  * Match `backtests` / `backtests.*` only — never `engine_backtest.*`.
+ * Internal maintenance (`internal` / `internal.*`) is not a public facade.
  */
 export function isOmittedCatalogOperation(operationId: string): boolean {
   return (
@@ -16,6 +17,8 @@ export function isOmittedCatalogOperation(operationId: string): boolean {
     operationId === "chat_summaries" ||
     operationId.startsWith("chat_summaries.") ||
     operationId === "strategy_plaza" ||
-    operationId.startsWith("strategy_plaza.")
+    operationId.startsWith("strategy_plaza.") ||
+    operationId === "internal" ||
+    operationId.startsWith("internal.")
   );
 }

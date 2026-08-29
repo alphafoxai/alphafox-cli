@@ -113,7 +113,7 @@ Do not create a trader from this welcome. When they pick 跟单 / a classic stra
 
 - Local Engine tape + wasm + optional persist → `alphafox-engine-backtest` (`alphafox engine-backtest run`, hyphen).
 - Experiment catalog CRUD → same skill, underscore catalog `engine_backtest.*`.
-- Web `/api/v1/backtests` (`backtests.*`) is **not** a CLI surface. Do not call it via typed commands, `schema`, or `alphafox api`.
+- The old web Chat Backtest job path is gone from the catalog. Do not call `/api/v1/backtests` via typed commands, `schema`, or `alphafox api`.
 
 Ambiguous “帮我回测” → `alphafox-engine-backtest`, after resolving symbols.
 

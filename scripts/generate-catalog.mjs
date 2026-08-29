@@ -5,11 +5,12 @@
  * buildOperationSchemaDocument, and getCompatibilityRange are the only inputs.
  *
  * Contracts root resolution:
- *   ALPHAFOX_CONTRACTS_ROOT, else the candidate with the largest Operation
- *   Registry (sibling ../alphafox-contracts, ../alphafox-web node_modules,
- *   CLI node_modules). Sibling createTrader is overlaid when it is already
- *   Engine-shaped (strategyDefinitionId + config) so a stale sibling registry
- *   does not drop newer ops such as engine_backtest sweeps.
+ *   ALPHAFOX_CONTRACTS_ROOT if set, else sibling ../alphafox-contracts when
+ *   it has a public-api build, else the newest remaining installed copy
+ *   (website node_modules, CLI node_modules). Do not pick a larger stale
+ *   registry over a newer sibling — retirement shrinks the operation list.
+ *   Sibling createTrader is overlaid when it is already Engine-shaped
+ *   (strategyDefinitionId + config).
  *
  * Usage:
  *   node scripts/generate-catalog.mjs           # write generated JSON
@@ -109,26 +110,53 @@ function registryOperationCount(contractsRoot) {
   }
 }
 
+function registryContractVersion(contractsRoot) {
+  try {
+    return String(
+      loadPublicApi(contractsRoot).OPERATION_REGISTRY.contractVersion ?? ""
+    );
+  } catch {
+    return "";
+  }
+}
+
 function resolveContractsRoot() {
-  const candidates = listContractsCandidates();
+  if (process.env.ALPHAFOX_CONTRACTS_ROOT) {
+    const explicit = existingPackageRoot(process.env.ALPHAFOX_CONTRACTS_ROOT);
+    if (!explicit) {
+      throw new Error(
+        `ALPHAFOX_CONTRACTS_ROOT is not a package: ${process.env.ALPHAFOX_CONTRACTS_ROOT}`
+      );
+    }
+    if (registryOperationCount(explicit) < 0) {
+      throw new Error(
+        `alphafox-contracts public-api build missing under ${explicit}. Run pnpm build there first.`
+      );
+    }
+    return explicit;
+  }
+
+  const sibling = siblingContractsRoot();
+  if (sibling && registryOperationCount(sibling) >= 0) {
+    return sibling;
+  }
+
+  const candidates = listContractsCandidates().filter(
+    (path) => registryOperationCount(path) >= 0
+  );
   if (candidates.length === 0) {
     throw new Error(
       "Cannot find alphafox-contracts. Set ALPHAFOX_CONTRACTS_ROOT or clone it as ../alphafox-contracts (same layout as alphafox-web for MVP tests)."
     );
   }
   let best = candidates[0];
-  let bestCount = registryOperationCount(best);
+  let bestVersion = registryContractVersion(best);
   for (const candidate of candidates.slice(1)) {
-    const count = registryOperationCount(candidate);
-    if (count > bestCount) {
+    const version = registryContractVersion(candidate);
+    if (version > bestVersion) {
       best = candidate;
-      bestCount = count;
+      bestVersion = version;
     }
-  }
-  if (bestCount < 0) {
-    throw new Error(
-      `alphafox-contracts public-api build missing under ${best}. Run pnpm build there first.`
-    );
   }
   return best;
 }
@@ -200,7 +228,7 @@ function stableStringify(value) {
 
 /**
  * Keep in sync with src/catalog/omit.ts.
- * Chat product and web /api/v1/backtests are not a CLI surface.
+ * Retired chat / Chat Backtest / Strategy Plaza prefixes.
  * Match backtests / backtests.* only — never engine_backtest.*.
  */
 function isOmittedCatalogOperation(operationId) {
@@ -210,7 +238,9 @@ function isOmittedCatalogOperation(operationId) {
     operationId === "chats" ||
     operationId.startsWith("chats.") ||
     operationId === "chat_summaries" ||
-    operationId.startsWith("chat_summaries.")
+    operationId.startsWith("chat_summaries.") ||
+    operationId === "strategy_plaza" ||
+    operationId.startsWith("strategy_plaza.")
   );
 }
 

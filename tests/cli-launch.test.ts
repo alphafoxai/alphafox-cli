@@ -281,7 +281,7 @@ describe("cli launch", () => {
       "--traderId",
       "t1",
       "--body",
-      '{"reason":"resume","invented":1}',
+      '{"startType":"manual_start","invented":1}',
       "--dry-run",
     ]);
     assert.equal(extra.status, 64, extra.stderr + extra.stdout);
@@ -295,14 +295,14 @@ describe("cli launch", () => {
       "--traderId",
       "t1",
       "--body",
-      '{"reason":"resume"}',
+      "{}",
       "--dry-run",
     ]);
     assert.equal(ok.status, 0, ok.stderr + ok.stdout);
     const json = JSON.parse(ok.stdout);
     assert.equal(json.data.dryRun, true);
     assert.equal(json.data.operationId, "trading.traders.byId.start");
-    assert.deepEqual(json.data.body, { reason: "resume" });
+    assert.deepEqual(json.data.body, {});
   });
 
   it("uncataloged write with a non-empty body fails closed", () => {

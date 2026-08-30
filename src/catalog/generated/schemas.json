@@ -615,115 +615,69 @@
                   "type": "string",
                   "minLength": 1
                 },
+                "userId": {
+                  "type": "string",
+                  "minLength": 1
+                },
                 "name": {
                   "type": "string",
                   "minLength": 1
                 },
-                "mode": {
+                "strategyDefinitionId": {
                   "type": "string",
-                  "enum": [
-                    "paper",
-                    "live"
-                  ]
+                  "minLength": 1
                 },
-                "status": {
+                "exchangeConnectorId": {
                   "type": "string",
-                  "enum": [
-                    "created",
-                    "starting",
-                    "running",
-                    "stopping",
-                    "stopped",
-                    "failed"
-                  ]
+                  "minLength": 1
                 },
-                "strategyId": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "configSchemaVersion": {
                   "type": "integer",
-                  "exclusiveMinimum": 0,
+                  "minimum": -9007199254740991,
                   "maximum": 9007199254740991
                 },
-                "strategyName": {
-                  "type": "string",
-                  "minLength": 1
+                "configRevision": {
+                  "type": "number"
                 },
-                "exchangeConnectId": {
-                  "type": "string",
-                  "minLength": 1
+                "shareParameters": {
+                  "type": "boolean"
                 },
-                "exchangeConnectName": {
-                  "type": "string",
-                  "minLength": 1
+                "hiddenFromLeaderboard": {
+                  "type": "boolean"
                 },
-                "exchangePlatform": {
-                  "type": "string",
-                  "enum": [
-                    "Binance",
-                    "Okx",
-                    "GateIo",
-                    "Bybit",
-                    "Bitget",
-                    "HyperLiquid",
-                    "Aster",
-                    "Htx",
-                    "Polymarket"
-                  ]
-                },
-                "venue": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "instruments": {
-                  "type": "array",
-                  "items": {
+                "config": {
+                  "type": "object",
+                  "propertyNames": {
                     "type": "string",
                     "minLength": 1
-                  }
-                },
-                "equity": {
-                  "type": "number"
-                },
-                "pnl": {
-                  "type": "number"
-                },
-                "maxDrawdownPct": {
-                  "type": "number"
-                },
-                "heartbeatAt": {
-                  "type": "string",
-                  "format": "date-time",
-                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                },
-                "latestError": {
-                  "type": "string",
-                  "minLength": 1
+                  },
+                  "additionalProperties": {}
                 },
                 "createdAt": {
-                  "type": "string",
-                  "format": "date-time",
-                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  "type": "string"
                 },
                 "updatedAt": {
-                  "type": "string",
-                  "format": "date-time",
-                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  "type": "string"
                 }
               },
               "required": [
                 "id",
+                "userId",
                 "name",
-                "mode",
-                "status",
-                "strategyId",
-                "strategyName",
-                "exchangeConnectId",
-                "exchangeConnectName",
-                "exchangePlatform",
-                "venue",
-                "instruments",
+                "strategyDefinitionId",
+                "exchangeConnectorId",
+                "enabled",
+                "configSchemaVersion",
+                "configRevision",
+                "shareParameters",
+                "config",
                 "createdAt",
                 "updatedAt"
               ],
-              "additionalProperties": false
+              "additionalProperties": {}
             }
           }
         },
@@ -22493,1398 +22447,125 @@
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
-          "detail": {
+          "trader": {
             "type": "object",
             "properties": {
-              "trader": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "name": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "mode": {
-                    "type": "string",
-                    "enum": [
-                      "paper",
-                      "live"
-                    ]
-                  },
-                  "status": {
-                    "type": "string",
-                    "enum": [
-                      "created",
-                      "starting",
-                      "running",
-                      "stopping",
-                      "stopped",
-                      "failed"
-                    ]
-                  },
-                  "strategyId": {
-                    "type": "integer",
-                    "exclusiveMinimum": 0,
-                    "maximum": 9007199254740991
-                  },
-                  "strategyName": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "exchangeConnectId": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "exchangeConnectName": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "exchangePlatform": {
-                    "type": "string",
-                    "enum": [
-                      "Binance",
-                      "Okx",
-                      "GateIo",
-                      "Bybit",
-                      "Bitget",
-                      "HyperLiquid",
-                      "Aster",
-                      "Htx",
-                      "Polymarket"
-                    ]
-                  },
-                  "venue": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "instruments": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "minLength": 1
-                    }
-                  },
-                  "equity": {
-                    "type": "number"
-                  },
-                  "pnl": {
-                    "type": "number"
-                  },
-                  "maxDrawdownPct": {
-                    "type": "number"
-                  },
-                  "heartbeatAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  },
-                  "latestError": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "createdAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  },
-                  "updatedAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  },
-                  "strategyDescription": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "failureReason": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "startedAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  },
-                  "stoppedAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  }
-                },
-                "required": [
-                  "id",
-                  "name",
-                  "mode",
-                  "status",
-                  "strategyId",
-                  "strategyName",
-                  "exchangeConnectId",
-                  "exchangeConnectName",
-                  "exchangePlatform",
-                  "venue",
-                  "instruments",
-                  "createdAt",
-                  "updatedAt"
-                ],
-                "additionalProperties": false
-              },
-              "runtimeSettings": {
-                "type": "object",
-                "properties": {
-                  "symbols": {
-                    "minItems": 1,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "minLength": 1
-                    }
-                  },
-                  "interval": {
-                    "type": "string",
-                    "enum": [
-                      "1m",
-                      "3m",
-                      "5m",
-                      "15m",
-                      "30m",
-                      "1h",
-                      "2h",
-                      "4h",
-                      "6h",
-                      "8h",
-                      "12h",
-                      "1d",
-                      "1w"
-                    ]
-                  },
-                  "maxGrossLeverage": {
-                    "type": "number",
-                    "minimum": 0
-                  },
-                  "minNotionalViolationMode": {
-                    "type": "string",
-                    "enum": [
-                      "adjust",
-                      "ignore"
-                    ]
-                  }
-                },
-                "required": [
-                  "symbols",
-                  "interval"
-                ],
-                "additionalProperties": false
-              },
-              "riskSettings": {
-                "type": "object",
-                "properties": {
-                  "enabled": {
-                    "default": false,
-                    "type": "boolean"
-                  },
-                  "checkCadenceMs": {
-                    "default": 10000,
-                    "type": "integer",
-                    "exclusiveMinimum": 0,
-                    "maximum": 9007199254740991
-                  },
-                  "account": {
-                    "default": {},
-                    "type": "object",
-                    "properties": {
-                      "stopLossEquity": {
-                        "type": "object",
-                        "properties": {
-                          "amount": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                          },
-                          "currency": {
-                            "type": "string",
-                            "const": "USDT"
-                          },
-                          "action": {
-                            "type": "string",
-                            "enum": [
-                              "stop_runtime",
-                              "cancel_orders_and_stop",
-                              "close_all_positions_and_stop"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "amount",
-                          "currency",
-                          "action"
-                        ],
-                        "additionalProperties": false
-                      },
-                      "takeProfitEquity": {
-                        "type": "object",
-                        "properties": {
-                          "amount": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                          },
-                          "currency": {
-                            "type": "string",
-                            "const": "USDT"
-                          },
-                          "action": {
-                            "type": "string",
-                            "enum": [
-                              "stop_runtime",
-                              "cancel_orders_and_stop",
-                              "close_all_positions_and_stop"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "amount",
-                          "currency",
-                          "action"
-                        ],
-                        "additionalProperties": false
-                      },
-                      "trailingStopLoss": {
-                        "type": "object",
-                        "properties": {
-                          "drawdownPercent": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                          },
-                          "baseline": {
-                            "type": "string",
-                            "enum": [
-                              "runtime_start",
-                              "config_update"
-                            ]
-                          },
-                          "action": {
-                            "type": "string",
-                            "enum": [
-                              "stop_runtime",
-                              "cancel_orders_and_stop",
-                              "close_all_positions_and_stop"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "drawdownPercent",
-                          "baseline",
-                          "action"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "additionalProperties": false
-                  },
-                  "position": {
-                    "default": {},
-                    "type": "object",
-                    "properties": {
-                      "stopLoss": {
-                        "type": "object",
-                        "properties": {
-                          "type": {
-                            "type": "string",
-                            "enum": [
-                              "price_percent",
-                              "unrealized_pnl"
-                            ]
-                          },
-                          "value": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                          },
-                          "reducePercent": {
-                            "type": "number",
-                            "exclusiveMinimum": 0,
-                            "maximum": 100
-                          },
-                          "orderType": {
-                            "type": "string",
-                            "enum": [
-                              "market",
-                              "limit"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "type",
-                          "value",
-                          "reducePercent",
-                          "orderType"
-                        ],
-                        "additionalProperties": false
-                      },
-                      "takeProfit": {
-                        "type": "object",
-                        "properties": {
-                          "type": {
-                            "type": "string",
-                            "enum": [
-                              "price_percent",
-                              "unrealized_pnl"
-                            ]
-                          },
-                          "value": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                          },
-                          "reducePercent": {
-                            "type": "number",
-                            "exclusiveMinimum": 0,
-                            "maximum": 100
-                          },
-                          "orderType": {
-                            "type": "string",
-                            "enum": [
-                              "market",
-                              "limit"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "type",
-                          "value",
-                          "reducePercent",
-                          "orderType"
-                        ],
-                        "additionalProperties": false
-                      },
-                      "trailingStopLoss": {
-                        "oneOf": [
-                          {
-                            "type": "object",
-                            "properties": {
-                              "mode": {
-                                "type": "string",
-                                "const": "price"
-                              },
-                              "activationPercent": {
-                                "type": "number",
-                                "minimum": 0
-                              },
-                              "callbackPercent": {
-                                "type": "number",
-                                "exclusiveMinimum": 0
-                              },
-                              "reducePercent": {
-                                "type": "number",
-                                "exclusiveMinimum": 0,
-                                "maximum": 100
-                              },
-                              "orderType": {
-                                "type": "string",
-                                "enum": [
-                                  "market",
-                                  "limit"
-                                ]
-                              }
-                            },
-                            "required": [
-                              "mode",
-                              "activationPercent",
-                              "callbackPercent",
-                              "reducePercent",
-                              "orderType"
-                            ],
-                            "additionalProperties": false
-                          },
-                          {
-                            "type": "object",
-                            "properties": {
-                              "mode": {
-                                "type": "string",
-                                "const": "unrealized_pnl"
-                              },
-                              "activationValue": {
-                                "type": "number",
-                                "exclusiveMinimum": 0
-                              },
-                              "callbackValue": {
-                                "type": "number",
-                                "exclusiveMinimum": 0
-                              },
-                              "reducePercent": {
-                                "type": "number",
-                                "exclusiveMinimum": 0,
-                                "maximum": 100
-                              },
-                              "orderType": {
-                                "type": "string",
-                                "enum": [
-                                  "market",
-                                  "limit"
-                                ]
-                              }
-                            },
-                            "required": [
-                              "mode",
-                              "activationValue",
-                              "callbackValue",
-                              "reducePercent",
-                              "orderType"
-                            ],
-                            "additionalProperties": false
-                          }
-                        ]
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                },
-                "required": [
-                  "enabled",
-                  "checkCadenceMs",
-                  "account",
-                  "position"
-                ],
-                "additionalProperties": false
-              },
-              "strategy": {
-                "type": "object",
-                "properties": {
-                  "chatId": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "id": {
-                    "type": "integer",
-                    "exclusiveMinimum": 0,
-                    "maximum": 9007199254740991
-                  },
-                  "name": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "description": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "code": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "derivedManifest": {
-                    "type": "object",
-                    "properties": {
-                      "schemaVersion": {
-                        "type": "string",
-                        "const": "alphafox.strategy-manifest.v1"
-                      },
-                      "name": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "description": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "series": {
-                        "type": "array",
-                        "items": {
-                          "type": "string",
-                          "enum": [
-                            "ohlcv",
-                            "open_interest",
-                            "oi_delta",
-                            "mark_price",
-                            "index_price",
-                            "funding_rate",
-                            "funding_rate_8h_norm",
-                            "basis",
-                            "basis_rate",
-                            "annualized_basis_rate",
-                            "circulating_supply",
-                            "total_supply",
-                            "max_supply",
-                            "liquidation_stats",
-                            "open_interest_sum",
-                            "open_interest_sum_value",
-                            "cmc_circulating_supply",
-                            "top_trader_position_long_short_ratio",
-                            "top_trader_account_long_short_ratio",
-                            "global_long_short_ratio",
-                            "taker_buy_sell_ratio",
-                            "taker_buy_volume",
-                            "taker_sell_volume"
-                          ]
-                        }
-                      },
-                      "params": {
-                        "default": {},
-                        "type": "object",
-                        "propertyNames": {
-                          "type": "string",
-                          "minLength": 1
-                        },
-                        "additionalProperties": {
-                          "type": "object",
-                          "properties": {
-                            "valueType": {
-                              "type": "string",
-                              "enum": [
-                                "string",
-                                "number",
-                                "boolean",
-                                "string[]",
-                                "number[]",
-                                "boolean[]"
-                              ]
-                            },
-                            "defaultValue": {
-                              "anyOf": [
-                                {
-                                  "anyOf": [
-                                    {
-                                      "type": "string"
-                                    },
-                                    {
-                                      "type": "number"
-                                    },
-                                    {
-                                      "type": "boolean"
-                                    }
-                                  ]
-                                },
-                                {
-                                  "minItems": 1,
-                                  "type": "array",
-                                  "items": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      }
-                                    ]
-                                  }
-                                }
-                              ]
-                            },
-                            "description": {
-                              "type": "string",
-                              "minLength": 1
-                            },
-                            "constraints": {
-                              "type": "object",
-                              "properties": {
-                                "min": {
-                                  "type": "number"
-                                },
-                                "max": {
-                                  "type": "number"
-                                },
-                                "options": {
-                                  "minItems": 1,
-                                  "type": "array",
-                                  "items": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      }
-                                    ]
-                                  }
-                                }
-                              },
-                              "additionalProperties": false
-                            }
-                          },
-                          "required": [
-                            "valueType",
-                            "defaultValue",
-                            "description"
-                          ],
-                          "additionalProperties": false
-                        }
-                      },
-                      "indicators": {
-                        "default": [],
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "key": {
-                              "type": "string",
-                              "minLength": 1
-                            },
-                            "type": {
-                              "type": "string",
-                              "enum": [
-                                "AC",
-                                "AD",
-                                "ADX",
-                                "AO",
-                                "ATR",
-                                "AccelerationBands",
-                                "BollingerBands",
-                                "BollingerBandsWidth",
-                                "BreakoutBarLow",
-                                "CCI",
-                                "CG",
-                                "CMF",
-                                "DEMA",
-                                "DMA",
-                                "DX",
-                                "EMA",
-                                "EMV",
-                                "ER",
-                                "HigherLowTrail",
-                                "IQR",
-                                "LinearRegression",
-                                "MACD",
-                                "MAD",
-                                "MOM",
-                                "OBV",
-                                "PSAR",
-                                "PVT",
-                                "REI",
-                                "RMA",
-                                "ROC",
-                                "RSI",
-                                "SMA",
-                                "SMA15",
-                                "StochasticOscillator",
-                                "StochasticRSI",
-                                "SuperTrend",
-                                "SwingHigh",
-                                "SwingLow",
-                                "TDS",
-                                "TR",
-                                "VROC",
-                                "VWAP",
-                                "VWMA",
-                                "WMA",
-                                "WSMA",
-                                "WaveTrend",
-                                "WilliamsR",
-                                "ZigZag"
-                              ]
-                            },
-                            "inputSeries": {
-                              "minItems": 1,
-                              "type": "array",
-                              "items": {
-                                "anyOf": [
-                                  {
-                                    "type": "string",
-                                    "enum": [
-                                      "ohlcv",
-                                      "open_interest",
-                                      "oi_delta",
-                                      "mark_price",
-                                      "index_price",
-                                      "funding_rate",
-                                      "funding_rate_8h_norm",
-                                      "basis",
-                                      "basis_rate",
-                                      "annualized_basis_rate",
-                                      "circulating_supply",
-                                      "total_supply",
-                                      "max_supply",
-                                      "liquidation_stats",
-                                      "open_interest_sum",
-                                      "open_interest_sum_value",
-                                      "cmc_circulating_supply",
-                                      "top_trader_position_long_short_ratio",
-                                      "top_trader_account_long_short_ratio",
-                                      "global_long_short_ratio",
-                                      "taker_buy_sell_ratio",
-                                      "taker_buy_volume",
-                                      "taker_sell_volume"
-                                    ]
-                                  },
-                                  {
-                                    "type": "string",
-                                    "enum": [
-                                      "open",
-                                      "high",
-                                      "low",
-                                      "close",
-                                      "volume"
-                                    ]
-                                  }
-                                ]
-                              }
-                            },
-                            "params": {
-                              "default": {},
-                              "type": "object",
-                              "propertyNames": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "additionalProperties": {
-                                "$ref": "#/$defs/__schema0"
-                              }
-                            }
-                          },
-                          "required": [
-                            "key",
-                            "type",
-                            "inputSeries",
-                            "params"
-                          ],
-                          "additionalProperties": false
-                        }
-                      }
-                    },
-                    "required": [
-                      "schemaVersion",
-                      "name",
-                      "description",
-                      "series",
-                      "params",
-                      "indicators"
-                    ],
-                    "additionalProperties": false
-                  },
-                  "paramValues": {
-                    "type": "object",
-                    "propertyNames": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "additionalProperties": {
-                      "anyOf": [
-                        {
-                          "anyOf": [
-                            {
-                              "type": "string"
-                            },
-                            {
-                              "type": "number"
-                            },
-                            {
-                              "type": "boolean"
-                            }
-                          ]
-                        },
-                        {
-                          "minItems": 1,
-                          "type": "array",
-                          "items": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "boolean"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
-                  }
-                },
-                "required": [
-                  "chatId",
-                  "id",
-                  "name",
-                  "description",
-                  "code",
-                  "derivedManifest",
-                  "paramValues"
-                ],
-                "additionalProperties": false
-              },
-              "connection": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "name": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "mode": {
-                    "type": "string",
-                    "enum": [
-                      "paper",
-                      "live"
-                    ]
-                  },
-                  "executionVenue": {
-                    "type": "string",
-                    "enum": [
-                      "internal_paper",
-                      "exchange_live",
-                      "exchange_demo"
-                    ]
-                  },
-                  "exchangePlatform": {
-                    "type": "string",
-                    "enum": [
-                      "Binance",
-                      "Okx",
-                      "GateIo",
-                      "Bybit",
-                      "Bitget",
-                      "HyperLiquid",
-                      "Aster",
-                      "Htx",
-                      "Polymarket"
-                    ]
-                  },
-                  "status": {
-                    "type": "string",
-                    "enum": [
-                      "active",
-                      "disabled",
-                      "dead",
-                      "permission_error",
-                      "sync_error"
-                    ]
-                  },
-                  "keyFingerprint": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "exchangeUid": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "permissionSummary": {
-                    "type": "object",
-                    "properties": {
-                      "read": {
-                        "type": "boolean"
-                      },
-                      "trade": {
-                        "type": "boolean"
-                      },
-                      "withdraw": {
-                        "type": "boolean"
-                      }
-                    },
-                    "required": [
-                      "read",
-                      "trade",
-                      "withdraw"
-                    ],
-                    "additionalProperties": false
-                  },
-                  "paperMargin": {
-                    "type": "number",
-                    "minimum": 0
-                  },
-                  "occupancy": {
-                    "type": "object",
-                    "properties": {
-                      "traderId": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "traderName": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "status": {
-                        "type": "string",
-                        "enum": [
-                          "created",
-                          "starting",
-                          "running",
-                          "stopping",
-                          "stopped",
-                          "failed"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "traderId",
-                      "traderName",
-                      "status"
-                    ],
-                    "additionalProperties": false
-                  },
-                  "deadReason": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "lastValidatedAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  },
-                  "createdAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  },
-                  "updatedAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  }
-                },
-                "required": [
-                  "id",
-                  "name",
-                  "mode",
-                  "executionVenue",
-                  "exchangePlatform",
-                  "status",
-                  "createdAt",
-                  "updatedAt"
-                ],
-                "additionalProperties": false
-              },
-              "account": {
-                "type": "object",
-                "properties": {
-                  "margin": {
-                    "type": "number"
-                  },
-                  "unPnl": {
-                    "type": "number"
-                  },
-                  "equity": {
-                    "type": "number"
-                  }
-                },
-                "required": [
-                  "margin",
-                  "unPnl",
-                  "equity"
-                ],
-                "additionalProperties": false
-              },
-              "metrics": {
-                "type": "object",
-                "properties": {
-                  "pnl": {
-                    "type": "number"
-                  },
-                  "equity": {
-                    "type": "number"
-                  },
-                  "winRatePct": {
-                    "type": "number"
-                  },
-                  "maxDrawdownPct": {
-                    "type": "number"
-                  },
-                  "runningDays": {
-                    "anyOf": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "annualizedReturnPct": {
-                    "anyOf": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "trades24h": {
-                    "anyOf": [
-                      {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 9007199254740991
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "totalTrades": {
-                    "anyOf": [
-                      {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 9007199254740991
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "totalFees": {
-                    "anyOf": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "averageHoldingMinutes": {
-                    "anyOf": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "winningTrades": {
-                    "anyOf": [
-                      {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 9007199254740991
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "losingTrades": {
-                    "anyOf": [
-                      {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 9007199254740991
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "longTrades": {
-                    "anyOf": [
-                      {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 9007199254740991
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "shortTrades": {
-                    "anyOf": [
-                      {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 9007199254740991
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "longShortRatio": {
-                    "anyOf": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "profitFactor": {
-                    "anyOf": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  }
-                },
-                "required": [
-                  "pnl",
-                  "equity",
-                  "winRatePct",
-                  "maxDrawdownPct",
-                  "runningDays",
-                  "annualizedReturnPct",
-                  "trades24h",
-                  "totalTrades",
-                  "totalFees",
-                  "averageHoldingMinutes",
-                  "winningTrades",
-                  "losingTrades",
-                  "longTrades",
-                  "shortTrades",
-                  "longShortRatio",
-                  "profitFactor"
-                ],
-                "additionalProperties": false
-              },
-              "equityCurve": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "timestamp": {
-                      "type": "number"
-                    },
-                    "equity": {
-                      "type": "number"
-                    }
-                  },
-                  "required": [
-                    "timestamp",
-                    "equity"
-                  ],
-                  "additionalProperties": false
-                }
-              },
-              "positions": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "propertyNames": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "additionalProperties": {}
-                }
-              },
-              "accountSnapshots": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "propertyNames": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "additionalProperties": {}
-                }
-              },
-              "orders": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "propertyNames": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "additionalProperties": {}
-                }
-              },
-              "runtimeEvents": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "type": {
-                      "type": "string",
-                      "enum": [
-                        "live.started",
-                        "live.bar_evaluated",
-                        "live.subscription_status",
-                        "live.order_submitted",
-                        "live.order_updated",
-                        "live.fill_received",
-                        "live.position_snapshot",
-                        "live.account_snapshot",
-                        "live.strategy_signal",
-                        "live.strategy_indicator",
-                        "live.warning",
-                        "live.failed",
-                        "live.stopped"
-                      ]
-                    },
-                    "traderId": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "userId": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "strategyId": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "timestamp": {
-                      "type": "string",
-                      "format": "date-time",
-                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                    },
-                    "workerOwnerId": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "runtimeImageVersion": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "processId": {
-                      "type": "integer",
-                      "exclusiveMinimum": 0,
-                      "maximum": 9007199254740991
-                    },
-                    "payload": {
-                      "default": {},
-                      "type": "object",
-                      "propertyNames": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "additionalProperties": {}
-                    }
-                  },
-                  "required": [
-                    "type",
-                    "traderId",
-                    "userId",
-                    "strategyId",
-                    "timestamp",
-                    "workerOwnerId",
-                    "runtimeImageVersion",
-                    "processId",
-                    "payload"
-                  ],
-                  "additionalProperties": false
-                }
-              },
-              "artifacts": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "artifactType": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "uri": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "createdAt": {
-                      "type": "string",
-                      "format": "date-time",
-                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                    },
-                    "metadata": {
-                      "type": "object",
-                      "propertyNames": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "additionalProperties": {}
-                    }
-                  },
-                  "required": [
-                    "id",
-                    "artifactType",
-                    "uri",
-                    "createdAt"
-                  ],
-                  "additionalProperties": false
-                }
-              },
-              "marketSnapshotId": {
+              "id": {
                 "type": "string",
                 "minLength": 1
-              }
-            },
-            "required": [
-              "trader",
-              "runtimeSettings",
-              "riskSettings",
-              "strategy",
-              "connection",
-              "metrics",
-              "equityCurve",
-              "positions",
-              "accountSnapshots",
-              "orders",
-              "runtimeEvents",
-              "artifacts"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "required": [
-          "detail"
-        ],
-        "additionalProperties": false,
-        "$defs": {
-          "__schema0": {
-            "anyOf": [
-              {
-                "type": "object",
-                "properties": {
-                  "ref": {
-                    "type": "string",
-                    "pattern": "^strategyParams\\.[A-Za-z_][A-Za-z0-9_]*$"
-                  }
-                },
-                "required": [
-                  "ref"
-                ],
-                "additionalProperties": false
               },
-              {
-                "type": "string"
+              "userId": {
+                "type": "string",
+                "minLength": 1
               },
-              {
-                "type": "number"
+              "name": {
+                "type": "string",
+                "minLength": 1
               },
-              {
+              "strategyDefinitionId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "exchangeConnectorId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enabled": {
                 "type": "boolean"
               },
-              {
-                "type": "null"
+              "configSchemaVersion": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               },
-              {
-                "type": "array",
-                "items": {
-                  "$ref": "#/$defs/__schema0"
-                }
+              "configRevision": {
+                "type": "number"
               },
-              {
+              "shareParameters": {
+                "type": "boolean"
+              },
+              "hiddenFromLeaderboard": {
+                "type": "boolean"
+              },
+              "config": {
                 "type": "object",
                 "propertyNames": {
                   "type": "string",
                   "minLength": 1
                 },
-                "additionalProperties": {
-                  "$ref": "#/$defs/__schema0"
-                }
+                "additionalProperties": {}
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "updatedAt": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "userId",
+              "name",
+              "strategyDefinitionId",
+              "exchangeConnectorId",
+              "enabled",
+              "configSchemaVersion",
+              "configRevision",
+              "shareParameters",
+              "config",
+              "createdAt",
+              "updatedAt"
+            ],
+            "additionalProperties": {}
+          },
+          "runtime": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "traderId": {
+                    "type": "string"
+                  },
+                  "state": {
+                    "type": "string"
+                  },
+                  "strategyDefinitionId": {
+                    "type": "string"
+                  },
+                  "traderName": {
+                    "type": "string"
+                  },
+                  "errorMessage": {
+                    "type": "string"
+                  },
+                  "configRevision": {
+                    "type": "number"
+                  },
+                  "updatedAt": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "traderId",
+                  "state",
+                  "strategyDefinitionId",
+                  "traderName",
+                  "configRevision",
+                  "updatedAt"
+                ],
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
               }
             ]
           }
-        }
+        },
+        "required": [
+          "trader",
+          "runtime"
+        ],
+        "additionalProperties": {}
       }
     },
     "error": {
@@ -24858,1262 +23539,125 @@
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
-          "runtime": {
+          "trader": {
             "type": "object",
             "properties": {
-              "trader": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "name": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "mode": {
-                    "type": "string",
-                    "enum": [
-                      "paper",
-                      "live"
-                    ]
-                  },
-                  "status": {
-                    "type": "string",
-                    "enum": [
-                      "created",
-                      "starting",
-                      "running",
-                      "stopping",
-                      "stopped",
-                      "failed"
-                    ]
-                  },
-                  "strategyId": {
-                    "type": "integer",
-                    "exclusiveMinimum": 0,
-                    "maximum": 9007199254740991
-                  },
-                  "strategyName": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "exchangeConnectId": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "exchangeConnectName": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "exchangePlatform": {
-                    "type": "string",
-                    "enum": [
-                      "Binance",
-                      "Okx",
-                      "GateIo",
-                      "Bybit",
-                      "Bitget",
-                      "HyperLiquid",
-                      "Aster",
-                      "Htx",
-                      "Polymarket"
-                    ]
-                  },
-                  "venue": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "instruments": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "minLength": 1
-                    }
-                  },
-                  "equity": {
-                    "type": "number"
-                  },
-                  "pnl": {
-                    "type": "number"
-                  },
-                  "maxDrawdownPct": {
-                    "type": "number"
-                  },
-                  "heartbeatAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  },
-                  "latestError": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "createdAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  },
-                  "updatedAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  },
-                  "strategyDescription": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "failureReason": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "startedAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  },
-                  "stoppedAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  }
-                },
-                "required": [
-                  "id",
-                  "name",
-                  "mode",
-                  "status",
-                  "strategyId",
-                  "strategyName",
-                  "exchangeConnectId",
-                  "exchangeConnectName",
-                  "exchangePlatform",
-                  "venue",
-                  "instruments",
-                  "createdAt",
-                  "updatedAt"
-                ],
-                "additionalProperties": false
-              },
-              "runtimeSettings": {
-                "type": "object",
-                "properties": {
-                  "symbols": {
-                    "minItems": 1,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "minLength": 1
-                    }
-                  },
-                  "interval": {
-                    "type": "string",
-                    "enum": [
-                      "1m",
-                      "3m",
-                      "5m",
-                      "15m",
-                      "30m",
-                      "1h",
-                      "2h",
-                      "4h",
-                      "6h",
-                      "8h",
-                      "12h",
-                      "1d",
-                      "1w"
-                    ]
-                  },
-                  "maxGrossLeverage": {
-                    "type": "number",
-                    "minimum": 0
-                  },
-                  "minNotionalViolationMode": {
-                    "type": "string",
-                    "enum": [
-                      "adjust",
-                      "ignore"
-                    ]
-                  }
-                },
-                "required": [
-                  "symbols",
-                  "interval"
-                ],
-                "additionalProperties": false
-              },
-              "riskSettings": {
-                "type": "object",
-                "properties": {
-                  "enabled": {
-                    "default": false,
-                    "type": "boolean"
-                  },
-                  "checkCadenceMs": {
-                    "default": 10000,
-                    "type": "integer",
-                    "exclusiveMinimum": 0,
-                    "maximum": 9007199254740991
-                  },
-                  "account": {
-                    "default": {},
-                    "type": "object",
-                    "properties": {
-                      "stopLossEquity": {
-                        "type": "object",
-                        "properties": {
-                          "amount": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                          },
-                          "currency": {
-                            "type": "string",
-                            "const": "USDT"
-                          },
-                          "action": {
-                            "type": "string",
-                            "enum": [
-                              "stop_runtime",
-                              "cancel_orders_and_stop",
-                              "close_all_positions_and_stop"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "amount",
-                          "currency",
-                          "action"
-                        ],
-                        "additionalProperties": false
-                      },
-                      "takeProfitEquity": {
-                        "type": "object",
-                        "properties": {
-                          "amount": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                          },
-                          "currency": {
-                            "type": "string",
-                            "const": "USDT"
-                          },
-                          "action": {
-                            "type": "string",
-                            "enum": [
-                              "stop_runtime",
-                              "cancel_orders_and_stop",
-                              "close_all_positions_and_stop"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "amount",
-                          "currency",
-                          "action"
-                        ],
-                        "additionalProperties": false
-                      },
-                      "trailingStopLoss": {
-                        "type": "object",
-                        "properties": {
-                          "drawdownPercent": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                          },
-                          "baseline": {
-                            "type": "string",
-                            "enum": [
-                              "runtime_start",
-                              "config_update"
-                            ]
-                          },
-                          "action": {
-                            "type": "string",
-                            "enum": [
-                              "stop_runtime",
-                              "cancel_orders_and_stop",
-                              "close_all_positions_and_stop"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "drawdownPercent",
-                          "baseline",
-                          "action"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "additionalProperties": false
-                  },
-                  "position": {
-                    "default": {},
-                    "type": "object",
-                    "properties": {
-                      "stopLoss": {
-                        "type": "object",
-                        "properties": {
-                          "type": {
-                            "type": "string",
-                            "enum": [
-                              "price_percent",
-                              "unrealized_pnl"
-                            ]
-                          },
-                          "value": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                          },
-                          "reducePercent": {
-                            "type": "number",
-                            "exclusiveMinimum": 0,
-                            "maximum": 100
-                          },
-                          "orderType": {
-                            "type": "string",
-                            "enum": [
-                              "market",
-                              "limit"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "type",
-                          "value",
-                          "reducePercent",
-                          "orderType"
-                        ],
-                        "additionalProperties": false
-                      },
-                      "takeProfit": {
-                        "type": "object",
-                        "properties": {
-                          "type": {
-                            "type": "string",
-                            "enum": [
-                              "price_percent",
-                              "unrealized_pnl"
-                            ]
-                          },
-                          "value": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                          },
-                          "reducePercent": {
-                            "type": "number",
-                            "exclusiveMinimum": 0,
-                            "maximum": 100
-                          },
-                          "orderType": {
-                            "type": "string",
-                            "enum": [
-                              "market",
-                              "limit"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "type",
-                          "value",
-                          "reducePercent",
-                          "orderType"
-                        ],
-                        "additionalProperties": false
-                      },
-                      "trailingStopLoss": {
-                        "oneOf": [
-                          {
-                            "type": "object",
-                            "properties": {
-                              "mode": {
-                                "type": "string",
-                                "const": "price"
-                              },
-                              "activationPercent": {
-                                "type": "number",
-                                "minimum": 0
-                              },
-                              "callbackPercent": {
-                                "type": "number",
-                                "exclusiveMinimum": 0
-                              },
-                              "reducePercent": {
-                                "type": "number",
-                                "exclusiveMinimum": 0,
-                                "maximum": 100
-                              },
-                              "orderType": {
-                                "type": "string",
-                                "enum": [
-                                  "market",
-                                  "limit"
-                                ]
-                              }
-                            },
-                            "required": [
-                              "mode",
-                              "activationPercent",
-                              "callbackPercent",
-                              "reducePercent",
-                              "orderType"
-                            ],
-                            "additionalProperties": false
-                          },
-                          {
-                            "type": "object",
-                            "properties": {
-                              "mode": {
-                                "type": "string",
-                                "const": "unrealized_pnl"
-                              },
-                              "activationValue": {
-                                "type": "number",
-                                "exclusiveMinimum": 0
-                              },
-                              "callbackValue": {
-                                "type": "number",
-                                "exclusiveMinimum": 0
-                              },
-                              "reducePercent": {
-                                "type": "number",
-                                "exclusiveMinimum": 0,
-                                "maximum": 100
-                              },
-                              "orderType": {
-                                "type": "string",
-                                "enum": [
-                                  "market",
-                                  "limit"
-                                ]
-                              }
-                            },
-                            "required": [
-                              "mode",
-                              "activationValue",
-                              "callbackValue",
-                              "reducePercent",
-                              "orderType"
-                            ],
-                            "additionalProperties": false
-                          }
-                        ]
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                },
-                "required": [
-                  "enabled",
-                  "checkCadenceMs",
-                  "account",
-                  "position"
-                ],
-                "additionalProperties": false
-              },
-              "strategy": {
-                "type": "object",
-                "properties": {
-                  "chatId": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "id": {
-                    "type": "integer",
-                    "exclusiveMinimum": 0,
-                    "maximum": 9007199254740991
-                  },
-                  "name": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "description": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "code": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "derivedManifest": {
-                    "type": "object",
-                    "properties": {
-                      "schemaVersion": {
-                        "type": "string",
-                        "const": "alphafox.strategy-manifest.v1"
-                      },
-                      "name": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "description": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "series": {
-                        "type": "array",
-                        "items": {
-                          "type": "string",
-                          "enum": [
-                            "ohlcv",
-                            "open_interest",
-                            "oi_delta",
-                            "mark_price",
-                            "index_price",
-                            "funding_rate",
-                            "funding_rate_8h_norm",
-                            "basis",
-                            "basis_rate",
-                            "annualized_basis_rate",
-                            "circulating_supply",
-                            "total_supply",
-                            "max_supply",
-                            "liquidation_stats",
-                            "open_interest_sum",
-                            "open_interest_sum_value",
-                            "cmc_circulating_supply",
-                            "top_trader_position_long_short_ratio",
-                            "top_trader_account_long_short_ratio",
-                            "global_long_short_ratio",
-                            "taker_buy_sell_ratio",
-                            "taker_buy_volume",
-                            "taker_sell_volume"
-                          ]
-                        }
-                      },
-                      "params": {
-                        "default": {},
-                        "type": "object",
-                        "propertyNames": {
-                          "type": "string",
-                          "minLength": 1
-                        },
-                        "additionalProperties": {
-                          "type": "object",
-                          "properties": {
-                            "valueType": {
-                              "type": "string",
-                              "enum": [
-                                "string",
-                                "number",
-                                "boolean",
-                                "string[]",
-                                "number[]",
-                                "boolean[]"
-                              ]
-                            },
-                            "defaultValue": {
-                              "anyOf": [
-                                {
-                                  "anyOf": [
-                                    {
-                                      "type": "string"
-                                    },
-                                    {
-                                      "type": "number"
-                                    },
-                                    {
-                                      "type": "boolean"
-                                    }
-                                  ]
-                                },
-                                {
-                                  "minItems": 1,
-                                  "type": "array",
-                                  "items": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      }
-                                    ]
-                                  }
-                                }
-                              ]
-                            },
-                            "description": {
-                              "type": "string",
-                              "minLength": 1
-                            },
-                            "constraints": {
-                              "type": "object",
-                              "properties": {
-                                "min": {
-                                  "type": "number"
-                                },
-                                "max": {
-                                  "type": "number"
-                                },
-                                "options": {
-                                  "minItems": 1,
-                                  "type": "array",
-                                  "items": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      }
-                                    ]
-                                  }
-                                }
-                              },
-                              "additionalProperties": false
-                            }
-                          },
-                          "required": [
-                            "valueType",
-                            "defaultValue",
-                            "description"
-                          ],
-                          "additionalProperties": false
-                        }
-                      },
-                      "indicators": {
-                        "default": [],
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "key": {
-                              "type": "string",
-                              "minLength": 1
-                            },
-                            "type": {
-                              "type": "string",
-                              "enum": [
-                                "AC",
-                                "AD",
-                                "ADX",
-                                "AO",
-                                "ATR",
-                                "AccelerationBands",
-                                "BollingerBands",
-                                "BollingerBandsWidth",
-                                "BreakoutBarLow",
-                                "CCI",
-                                "CG",
-                                "CMF",
-                                "DEMA",
-                                "DMA",
-                                "DX",
-                                "EMA",
-                                "EMV",
-                                "ER",
-                                "HigherLowTrail",
-                                "IQR",
-                                "LinearRegression",
-                                "MACD",
-                                "MAD",
-                                "MOM",
-                                "OBV",
-                                "PSAR",
-                                "PVT",
-                                "REI",
-                                "RMA",
-                                "ROC",
-                                "RSI",
-                                "SMA",
-                                "SMA15",
-                                "StochasticOscillator",
-                                "StochasticRSI",
-                                "SuperTrend",
-                                "SwingHigh",
-                                "SwingLow",
-                                "TDS",
-                                "TR",
-                                "VROC",
-                                "VWAP",
-                                "VWMA",
-                                "WMA",
-                                "WSMA",
-                                "WaveTrend",
-                                "WilliamsR",
-                                "ZigZag"
-                              ]
-                            },
-                            "inputSeries": {
-                              "minItems": 1,
-                              "type": "array",
-                              "items": {
-                                "anyOf": [
-                                  {
-                                    "type": "string",
-                                    "enum": [
-                                      "ohlcv",
-                                      "open_interest",
-                                      "oi_delta",
-                                      "mark_price",
-                                      "index_price",
-                                      "funding_rate",
-                                      "funding_rate_8h_norm",
-                                      "basis",
-                                      "basis_rate",
-                                      "annualized_basis_rate",
-                                      "circulating_supply",
-                                      "total_supply",
-                                      "max_supply",
-                                      "liquidation_stats",
-                                      "open_interest_sum",
-                                      "open_interest_sum_value",
-                                      "cmc_circulating_supply",
-                                      "top_trader_position_long_short_ratio",
-                                      "top_trader_account_long_short_ratio",
-                                      "global_long_short_ratio",
-                                      "taker_buy_sell_ratio",
-                                      "taker_buy_volume",
-                                      "taker_sell_volume"
-                                    ]
-                                  },
-                                  {
-                                    "type": "string",
-                                    "enum": [
-                                      "open",
-                                      "high",
-                                      "low",
-                                      "close",
-                                      "volume"
-                                    ]
-                                  }
-                                ]
-                              }
-                            },
-                            "params": {
-                              "default": {},
-                              "type": "object",
-                              "propertyNames": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "additionalProperties": {
-                                "$ref": "#/$defs/__schema0"
-                              }
-                            }
-                          },
-                          "required": [
-                            "key",
-                            "type",
-                            "inputSeries",
-                            "params"
-                          ],
-                          "additionalProperties": false
-                        }
-                      }
-                    },
-                    "required": [
-                      "schemaVersion",
-                      "name",
-                      "description",
-                      "series",
-                      "params",
-                      "indicators"
-                    ],
-                    "additionalProperties": false
-                  },
-                  "paramValues": {
-                    "type": "object",
-                    "propertyNames": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "additionalProperties": {
-                      "anyOf": [
-                        {
-                          "anyOf": [
-                            {
-                              "type": "string"
-                            },
-                            {
-                              "type": "number"
-                            },
-                            {
-                              "type": "boolean"
-                            }
-                          ]
-                        },
-                        {
-                          "minItems": 1,
-                          "type": "array",
-                          "items": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "boolean"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
-                  }
-                },
-                "required": [
-                  "chatId",
-                  "id",
-                  "name",
-                  "description",
-                  "code",
-                  "derivedManifest",
-                  "paramValues"
-                ],
-                "additionalProperties": false
-              },
-              "connection": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "name": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "mode": {
-                    "type": "string",
-                    "enum": [
-                      "paper",
-                      "live"
-                    ]
-                  },
-                  "executionVenue": {
-                    "type": "string",
-                    "enum": [
-                      "internal_paper",
-                      "exchange_live",
-                      "exchange_demo"
-                    ]
-                  },
-                  "exchangePlatform": {
-                    "type": "string",
-                    "enum": [
-                      "Binance",
-                      "Okx",
-                      "GateIo",
-                      "Bybit",
-                      "Bitget",
-                      "HyperLiquid",
-                      "Aster",
-                      "Htx",
-                      "Polymarket"
-                    ]
-                  },
-                  "status": {
-                    "type": "string",
-                    "enum": [
-                      "active",
-                      "disabled",
-                      "dead",
-                      "permission_error",
-                      "sync_error"
-                    ]
-                  },
-                  "keyFingerprint": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "exchangeUid": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "permissionSummary": {
-                    "type": "object",
-                    "properties": {
-                      "read": {
-                        "type": "boolean"
-                      },
-                      "trade": {
-                        "type": "boolean"
-                      },
-                      "withdraw": {
-                        "type": "boolean"
-                      }
-                    },
-                    "required": [
-                      "read",
-                      "trade",
-                      "withdraw"
-                    ],
-                    "additionalProperties": false
-                  },
-                  "paperMargin": {
-                    "type": "number",
-                    "minimum": 0
-                  },
-                  "occupancy": {
-                    "type": "object",
-                    "properties": {
-                      "traderId": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "traderName": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "status": {
-                        "type": "string",
-                        "enum": [
-                          "created",
-                          "starting",
-                          "running",
-                          "stopping",
-                          "stopped",
-                          "failed"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "traderId",
-                      "traderName",
-                      "status"
-                    ],
-                    "additionalProperties": false
-                  },
-                  "deadReason": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "lastValidatedAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  },
-                  "createdAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  },
-                  "updatedAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  }
-                },
-                "required": [
-                  "id",
-                  "name",
-                  "mode",
-                  "executionVenue",
-                  "exchangePlatform",
-                  "status",
-                  "createdAt",
-                  "updatedAt"
-                ],
-                "additionalProperties": false
-              },
-              "account": {
-                "type": "object",
-                "properties": {
-                  "cash": {
-                    "type": "number"
-                  },
-                  "margin": {
-                    "type": "number"
-                  },
-                  "equity": {
-                    "type": "number"
-                  },
-                  "unrealizedPnl": {
-                    "type": "number"
-                  },
-                  "realizedPnl": {
-                    "type": "number"
-                  },
-                  "exposure": {
-                    "type": "object",
-                    "properties": {
-                      "longExposure": {
-                        "type": "number"
-                      },
-                      "shortExposure": {
-                        "type": "number"
-                      },
-                      "grossExposure": {
-                        "type": "number"
-                      },
-                      "netExposure": {
-                        "type": "number"
-                      },
-                      "grossLeverage": {
-                        "type": "number"
-                      }
-                    },
-                    "required": [
-                      "longExposure",
-                      "shortExposure",
-                      "grossExposure",
-                      "netExposure",
-                      "grossLeverage"
-                    ],
-                    "additionalProperties": false
-                  },
-                  "currency": {
-                    "type": "string",
-                    "minLength": 1
-                  }
-                },
-                "required": [
-                  "cash",
-                  "margin",
-                  "equity",
-                  "unrealizedPnl",
-                  "realizedPnl",
-                  "exposure",
-                  "currency"
-                ],
-                "additionalProperties": false
-              },
-              "metrics": {
-                "type": "object",
-                "properties": {
-                  "pnl": {
-                    "type": "number"
-                  },
-                  "equity": {
-                    "type": "number"
-                  },
-                  "winRatePct": {
-                    "type": "number"
-                  },
-                  "maxDrawdownPct": {
-                    "type": "number"
-                  },
-                  "runningDays": {
-                    "anyOf": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "annualizedReturnPct": {
-                    "anyOf": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "trades24h": {
-                    "anyOf": [
-                      {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 9007199254740991
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "totalTrades": {
-                    "anyOf": [
-                      {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 9007199254740991
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "totalFees": {
-                    "anyOf": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "averageHoldingMinutes": {
-                    "anyOf": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "winningTrades": {
-                    "anyOf": [
-                      {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 9007199254740991
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "losingTrades": {
-                    "anyOf": [
-                      {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 9007199254740991
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "longTrades": {
-                    "anyOf": [
-                      {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 9007199254740991
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "shortTrades": {
-                    "anyOf": [
-                      {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 9007199254740991
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "longShortRatio": {
-                    "anyOf": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "profitFactor": {
-                    "anyOf": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  }
-                },
-                "required": [
-                  "pnl",
-                  "equity",
-                  "winRatePct",
-                  "maxDrawdownPct",
-                  "runningDays",
-                  "annualizedReturnPct",
-                  "trades24h",
-                  "totalTrades",
-                  "totalFees",
-                  "averageHoldingMinutes",
-                  "winningTrades",
-                  "losingTrades",
-                  "longTrades",
-                  "shortTrades",
-                  "longShortRatio",
-                  "profitFactor"
-                ],
-                "additionalProperties": false
-              },
-              "marketSnapshotId": {
+              "id": {
                 "type": "string",
                 "minLength": 1
-              }
-            },
-            "required": [
-              "trader",
-              "runtimeSettings",
-              "riskSettings",
-              "strategy",
-              "connection",
-              "account",
-              "metrics"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "required": [
-          "runtime"
-        ],
-        "additionalProperties": false,
-        "$defs": {
-          "__schema0": {
-            "anyOf": [
-              {
-                "type": "object",
-                "properties": {
-                  "ref": {
-                    "type": "string",
-                    "pattern": "^strategyParams\\.[A-Za-z_][A-Za-z0-9_]*$"
-                  }
-                },
-                "required": [
-                  "ref"
-                ],
-                "additionalProperties": false
               },
-              {
-                "type": "string"
+              "userId": {
+                "type": "string",
+                "minLength": 1
               },
-              {
-                "type": "number"
+              "name": {
+                "type": "string",
+                "minLength": 1
               },
-              {
+              "strategyDefinitionId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "exchangeConnectorId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enabled": {
                 "type": "boolean"
               },
-              {
-                "type": "null"
+              "configSchemaVersion": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               },
-              {
-                "type": "array",
-                "items": {
-                  "$ref": "#/$defs/__schema0"
-                }
+              "configRevision": {
+                "type": "number"
               },
-              {
+              "shareParameters": {
+                "type": "boolean"
+              },
+              "hiddenFromLeaderboard": {
+                "type": "boolean"
+              },
+              "config": {
                 "type": "object",
                 "propertyNames": {
                   "type": "string",
                   "minLength": 1
                 },
-                "additionalProperties": {
-                  "$ref": "#/$defs/__schema0"
-                }
+                "additionalProperties": {}
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "updatedAt": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "userId",
+              "name",
+              "strategyDefinitionId",
+              "exchangeConnectorId",
+              "enabled",
+              "configSchemaVersion",
+              "configRevision",
+              "shareParameters",
+              "config",
+              "createdAt",
+              "updatedAt"
+            ],
+            "additionalProperties": {}
+          },
+          "runtime": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "traderId": {
+                    "type": "string"
+                  },
+                  "state": {
+                    "type": "string"
+                  },
+                  "strategyDefinitionId": {
+                    "type": "string"
+                  },
+                  "traderName": {
+                    "type": "string"
+                  },
+                  "errorMessage": {
+                    "type": "string"
+                  },
+                  "configRevision": {
+                    "type": "number"
+                  },
+                  "updatedAt": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "traderId",
+                  "state",
+                  "strategyDefinitionId",
+                  "traderName",
+                  "configRevision",
+                  "updatedAt"
+                ],
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
               }
             ]
           }
-        }
+        },
+        "required": [
+          "trader",
+          "runtime"
+        ],
+        "additionalProperties": {}
       }
     },
     "error": {
@@ -26300,9 +23844,19 @@
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
-          "reason": {
+          "startType": {
+            "type": "string"
+          },
+          "enableSLTPMonitoring": {
+            "type": "boolean"
+          },
+          "expectedCoverageType": {
             "type": "string",
-            "minLength": 1
+            "enum": [
+              "included",
+              "payg",
+              "waived"
+            ]
           }
         },
         "additionalProperties": false
@@ -26318,24 +23872,51 @@
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
-          "traderId": {
-            "type": "string",
-            "minLength": 1
-          },
           "status": {
-            "type": "string",
-            "enum": [
-              "created",
-              "starting",
-              "running",
-              "stopping",
-              "stopped",
-              "failed"
-            ]
+            "type": "object",
+            "properties": {
+              "traderId": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              },
+              "strategyDefinitionId": {
+                "type": "string"
+              },
+              "traderName": {
+                "type": "string"
+              },
+              "errorMessage": {
+                "type": "string"
+              },
+              "configRevision": {
+                "type": "number"
+              },
+              "updatedAt": {
+                "type": "string"
+              },
+              "exchangeConnectorId": {
+                "type": "string"
+              },
+              "workerId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "traderId",
+              "state",
+              "strategyDefinitionId",
+              "traderName",
+              "configRevision",
+              "updatedAt",
+              "exchangeConnectorId",
+              "workerId"
+            ],
+            "additionalProperties": {}
           }
         },
         "required": [
-          "traderId",
           "status"
         ],
         "additionalProperties": false
@@ -26428,11 +24009,16 @@
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
-          "reason": {
-            "type": "string",
-            "minLength": 1
+          "stopType": {
+            "type": "string"
+          },
+          "closePositions": {
+            "type": "boolean"
           }
         },
+        "required": [
+          "closePositions"
+        ],
         "additionalProperties": false
       },
       "pathParamNames": [
@@ -26446,24 +24032,51 @@
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
-          "traderId": {
-            "type": "string",
-            "minLength": 1
-          },
           "status": {
-            "type": "string",
-            "enum": [
-              "created",
-              "starting",
-              "running",
-              "stopping",
-              "stopped",
-              "failed"
-            ]
+            "type": "object",
+            "properties": {
+              "traderId": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              },
+              "strategyDefinitionId": {
+                "type": "string"
+              },
+              "traderName": {
+                "type": "string"
+              },
+              "errorMessage": {
+                "type": "string"
+              },
+              "configRevision": {
+                "type": "number"
+              },
+              "updatedAt": {
+                "type": "string"
+              },
+              "exchangeConnectorId": {
+                "type": "string"
+              },
+              "workerId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "traderId",
+              "state",
+              "strategyDefinitionId",
+              "traderName",
+              "configRevision",
+              "updatedAt",
+              "exchangeConnectorId",
+              "workerId"
+            ],
+            "additionalProperties": {}
           }
         },
         "required": [
-          "traderId",
           "status"
         ],
         "additionalProperties": false
@@ -26750,351 +24363,32 @@
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
-          "runtimeSettings": {
-            "type": "object",
-            "properties": {
-              "symbols": {
-                "minItems": 1,
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              },
-              "interval": {
-                "type": "string",
-                "enum": [
-                  "1m",
-                  "3m",
-                  "5m",
-                  "15m",
-                  "30m",
-                  "1h",
-                  "2h",
-                  "4h",
-                  "6h",
-                  "8h",
-                  "12h",
-                  "1d",
-                  "1w"
-                ]
-              },
-              "maxGrossLeverage": {
-                "type": "number",
-                "minimum": 0
-              },
-              "minNotionalViolationMode": {
-                "type": "string",
-                "enum": [
-                  "adjust",
-                  "ignore"
-                ]
-              }
-            },
-            "additionalProperties": false
+          "name": {
+            "type": "string",
+            "minLength": 1
           },
-          "strategyParamValues": {
+          "exchangeConnectorId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "configSchemaVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "config": {
             "type": "object",
             "propertyNames": {
               "type": "string",
               "minLength": 1
             },
-            "additionalProperties": {
-              "anyOf": [
-                {
-                  "anyOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "number"
-                    },
-                    {
-                      "type": "boolean"
-                    }
-                  ]
-                },
-                {
-                  "minItems": 1,
-                  "type": "array",
-                  "items": {
-                    "anyOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "boolean"
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
+            "additionalProperties": {}
           },
-          "riskSettings": {
-            "type": "object",
-            "properties": {
-              "enabled": {
-                "default": false,
-                "type": "boolean"
-              },
-              "checkCadenceMs": {
-                "default": 10000,
-                "type": "integer",
-                "exclusiveMinimum": 0,
-                "maximum": 9007199254740991
-              },
-              "account": {
-                "default": {},
-                "type": "object",
-                "properties": {
-                  "stopLossEquity": {
-                    "type": "object",
-                    "properties": {
-                      "amount": {
-                        "type": "number",
-                        "exclusiveMinimum": 0
-                      },
-                      "currency": {
-                        "type": "string",
-                        "const": "USDT"
-                      },
-                      "action": {
-                        "type": "string",
-                        "enum": [
-                          "stop_runtime",
-                          "cancel_orders_and_stop",
-                          "close_all_positions_and_stop"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "amount",
-                      "currency",
-                      "action"
-                    ],
-                    "additionalProperties": false
-                  },
-                  "takeProfitEquity": {
-                    "type": "object",
-                    "properties": {
-                      "amount": {
-                        "type": "number",
-                        "exclusiveMinimum": 0
-                      },
-                      "currency": {
-                        "type": "string",
-                        "const": "USDT"
-                      },
-                      "action": {
-                        "type": "string",
-                        "enum": [
-                          "stop_runtime",
-                          "cancel_orders_and_stop",
-                          "close_all_positions_and_stop"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "amount",
-                      "currency",
-                      "action"
-                    ],
-                    "additionalProperties": false
-                  },
-                  "trailingStopLoss": {
-                    "type": "object",
-                    "properties": {
-                      "drawdownPercent": {
-                        "type": "number",
-                        "exclusiveMinimum": 0
-                      },
-                      "baseline": {
-                        "type": "string",
-                        "enum": [
-                          "runtime_start",
-                          "config_update"
-                        ]
-                      },
-                      "action": {
-                        "type": "string",
-                        "enum": [
-                          "stop_runtime",
-                          "cancel_orders_and_stop",
-                          "close_all_positions_and_stop"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "drawdownPercent",
-                      "baseline",
-                      "action"
-                    ],
-                    "additionalProperties": false
-                  }
-                },
-                "additionalProperties": false
-              },
-              "position": {
-                "default": {},
-                "type": "object",
-                "properties": {
-                  "stopLoss": {
-                    "type": "object",
-                    "properties": {
-                      "type": {
-                        "type": "string",
-                        "enum": [
-                          "price_percent",
-                          "unrealized_pnl"
-                        ]
-                      },
-                      "value": {
-                        "type": "number",
-                        "exclusiveMinimum": 0
-                      },
-                      "reducePercent": {
-                        "type": "number",
-                        "exclusiveMinimum": 0,
-                        "maximum": 100
-                      },
-                      "orderType": {
-                        "type": "string",
-                        "enum": [
-                          "market",
-                          "limit"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "type",
-                      "value",
-                      "reducePercent",
-                      "orderType"
-                    ],
-                    "additionalProperties": false
-                  },
-                  "takeProfit": {
-                    "type": "object",
-                    "properties": {
-                      "type": {
-                        "type": "string",
-                        "enum": [
-                          "price_percent",
-                          "unrealized_pnl"
-                        ]
-                      },
-                      "value": {
-                        "type": "number",
-                        "exclusiveMinimum": 0
-                      },
-                      "reducePercent": {
-                        "type": "number",
-                        "exclusiveMinimum": 0,
-                        "maximum": 100
-                      },
-                      "orderType": {
-                        "type": "string",
-                        "enum": [
-                          "market",
-                          "limit"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "type",
-                      "value",
-                      "reducePercent",
-                      "orderType"
-                    ],
-                    "additionalProperties": false
-                  },
-                  "trailingStopLoss": {
-                    "oneOf": [
-                      {
-                        "type": "object",
-                        "properties": {
-                          "mode": {
-                            "type": "string",
-                            "const": "price"
-                          },
-                          "activationPercent": {
-                            "type": "number",
-                            "minimum": 0
-                          },
-                          "callbackPercent": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                          },
-                          "reducePercent": {
-                            "type": "number",
-                            "exclusiveMinimum": 0,
-                            "maximum": 100
-                          },
-                          "orderType": {
-                            "type": "string",
-                            "enum": [
-                              "market",
-                              "limit"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "mode",
-                          "activationPercent",
-                          "callbackPercent",
-                          "reducePercent",
-                          "orderType"
-                        ],
-                        "additionalProperties": false
-                      },
-                      {
-                        "type": "object",
-                        "properties": {
-                          "mode": {
-                            "type": "string",
-                            "const": "unrealized_pnl"
-                          },
-                          "activationValue": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                          },
-                          "callbackValue": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                          },
-                          "reducePercent": {
-                            "type": "number",
-                            "exclusiveMinimum": 0,
-                            "maximum": 100
-                          },
-                          "orderType": {
-                            "type": "string",
-                            "enum": [
-                              "market",
-                              "limit"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "mode",
-                          "activationValue",
-                          "callbackValue",
-                          "reducePercent",
-                          "orderType"
-                        ],
-                        "additionalProperties": false
-                      }
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            },
-            "additionalProperties": false
+          "shareParameters": {
+            "type": "boolean"
+          },
+          "hiddenFromLeaderboard": {
+            "type": "boolean"
           },
           "notificationSettings": {
             "type": "object",
@@ -27189,1402 +24483,128 @@
     "response": {
       "contentType": "application/json",
       "success": {
-        "title": "traderDetailResponseSchema",
+        "title": "createTraderResponseSchema",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
-          "detail": {
+          "trader": {
             "type": "object",
             "properties": {
-              "trader": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "name": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "mode": {
-                    "type": "string",
-                    "enum": [
-                      "paper",
-                      "live"
-                    ]
-                  },
-                  "status": {
-                    "type": "string",
-                    "enum": [
-                      "created",
-                      "starting",
-                      "running",
-                      "stopping",
-                      "stopped",
-                      "failed"
-                    ]
-                  },
-                  "strategyId": {
-                    "type": "integer",
-                    "exclusiveMinimum": 0,
-                    "maximum": 9007199254740991
-                  },
-                  "strategyName": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "exchangeConnectId": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "exchangeConnectName": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "exchangePlatform": {
-                    "type": "string",
-                    "enum": [
-                      "Binance",
-                      "Okx",
-                      "GateIo",
-                      "Bybit",
-                      "Bitget",
-                      "HyperLiquid",
-                      "Aster",
-                      "Htx",
-                      "Polymarket"
-                    ]
-                  },
-                  "venue": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "instruments": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "minLength": 1
-                    }
-                  },
-                  "equity": {
-                    "type": "number"
-                  },
-                  "pnl": {
-                    "type": "number"
-                  },
-                  "maxDrawdownPct": {
-                    "type": "number"
-                  },
-                  "heartbeatAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  },
-                  "latestError": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "createdAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  },
-                  "updatedAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  },
-                  "strategyDescription": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "failureReason": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "startedAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  },
-                  "stoppedAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  }
-                },
-                "required": [
-                  "id",
-                  "name",
-                  "mode",
-                  "status",
-                  "strategyId",
-                  "strategyName",
-                  "exchangeConnectId",
-                  "exchangeConnectName",
-                  "exchangePlatform",
-                  "venue",
-                  "instruments",
-                  "createdAt",
-                  "updatedAt"
-                ],
-                "additionalProperties": false
-              },
-              "runtimeSettings": {
-                "type": "object",
-                "properties": {
-                  "symbols": {
-                    "minItems": 1,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "minLength": 1
-                    }
-                  },
-                  "interval": {
-                    "type": "string",
-                    "enum": [
-                      "1m",
-                      "3m",
-                      "5m",
-                      "15m",
-                      "30m",
-                      "1h",
-                      "2h",
-                      "4h",
-                      "6h",
-                      "8h",
-                      "12h",
-                      "1d",
-                      "1w"
-                    ]
-                  },
-                  "maxGrossLeverage": {
-                    "type": "number",
-                    "minimum": 0
-                  },
-                  "minNotionalViolationMode": {
-                    "type": "string",
-                    "enum": [
-                      "adjust",
-                      "ignore"
-                    ]
-                  }
-                },
-                "required": [
-                  "symbols",
-                  "interval"
-                ],
-                "additionalProperties": false
-              },
-              "riskSettings": {
-                "type": "object",
-                "properties": {
-                  "enabled": {
-                    "default": false,
-                    "type": "boolean"
-                  },
-                  "checkCadenceMs": {
-                    "default": 10000,
-                    "type": "integer",
-                    "exclusiveMinimum": 0,
-                    "maximum": 9007199254740991
-                  },
-                  "account": {
-                    "default": {},
-                    "type": "object",
-                    "properties": {
-                      "stopLossEquity": {
-                        "type": "object",
-                        "properties": {
-                          "amount": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                          },
-                          "currency": {
-                            "type": "string",
-                            "const": "USDT"
-                          },
-                          "action": {
-                            "type": "string",
-                            "enum": [
-                              "stop_runtime",
-                              "cancel_orders_and_stop",
-                              "close_all_positions_and_stop"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "amount",
-                          "currency",
-                          "action"
-                        ],
-                        "additionalProperties": false
-                      },
-                      "takeProfitEquity": {
-                        "type": "object",
-                        "properties": {
-                          "amount": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                          },
-                          "currency": {
-                            "type": "string",
-                            "const": "USDT"
-                          },
-                          "action": {
-                            "type": "string",
-                            "enum": [
-                              "stop_runtime",
-                              "cancel_orders_and_stop",
-                              "close_all_positions_and_stop"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "amount",
-                          "currency",
-                          "action"
-                        ],
-                        "additionalProperties": false
-                      },
-                      "trailingStopLoss": {
-                        "type": "object",
-                        "properties": {
-                          "drawdownPercent": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                          },
-                          "baseline": {
-                            "type": "string",
-                            "enum": [
-                              "runtime_start",
-                              "config_update"
-                            ]
-                          },
-                          "action": {
-                            "type": "string",
-                            "enum": [
-                              "stop_runtime",
-                              "cancel_orders_and_stop",
-                              "close_all_positions_and_stop"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "drawdownPercent",
-                          "baseline",
-                          "action"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "additionalProperties": false
-                  },
-                  "position": {
-                    "default": {},
-                    "type": "object",
-                    "properties": {
-                      "stopLoss": {
-                        "type": "object",
-                        "properties": {
-                          "type": {
-                            "type": "string",
-                            "enum": [
-                              "price_percent",
-                              "unrealized_pnl"
-                            ]
-                          },
-                          "value": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                          },
-                          "reducePercent": {
-                            "type": "number",
-                            "exclusiveMinimum": 0,
-                            "maximum": 100
-                          },
-                          "orderType": {
-                            "type": "string",
-                            "enum": [
-                              "market",
-                              "limit"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "type",
-                          "value",
-                          "reducePercent",
-                          "orderType"
-                        ],
-                        "additionalProperties": false
-                      },
-                      "takeProfit": {
-                        "type": "object",
-                        "properties": {
-                          "type": {
-                            "type": "string",
-                            "enum": [
-                              "price_percent",
-                              "unrealized_pnl"
-                            ]
-                          },
-                          "value": {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                          },
-                          "reducePercent": {
-                            "type": "number",
-                            "exclusiveMinimum": 0,
-                            "maximum": 100
-                          },
-                          "orderType": {
-                            "type": "string",
-                            "enum": [
-                              "market",
-                              "limit"
-                            ]
-                          }
-                        },
-                        "required": [
-                          "type",
-                          "value",
-                          "reducePercent",
-                          "orderType"
-                        ],
-                        "additionalProperties": false
-                      },
-                      "trailingStopLoss": {
-                        "oneOf": [
-                          {
-                            "type": "object",
-                            "properties": {
-                              "mode": {
-                                "type": "string",
-                                "const": "price"
-                              },
-                              "activationPercent": {
-                                "type": "number",
-                                "minimum": 0
-                              },
-                              "callbackPercent": {
-                                "type": "number",
-                                "exclusiveMinimum": 0
-                              },
-                              "reducePercent": {
-                                "type": "number",
-                                "exclusiveMinimum": 0,
-                                "maximum": 100
-                              },
-                              "orderType": {
-                                "type": "string",
-                                "enum": [
-                                  "market",
-                                  "limit"
-                                ]
-                              }
-                            },
-                            "required": [
-                              "mode",
-                              "activationPercent",
-                              "callbackPercent",
-                              "reducePercent",
-                              "orderType"
-                            ],
-                            "additionalProperties": false
-                          },
-                          {
-                            "type": "object",
-                            "properties": {
-                              "mode": {
-                                "type": "string",
-                                "const": "unrealized_pnl"
-                              },
-                              "activationValue": {
-                                "type": "number",
-                                "exclusiveMinimum": 0
-                              },
-                              "callbackValue": {
-                                "type": "number",
-                                "exclusiveMinimum": 0
-                              },
-                              "reducePercent": {
-                                "type": "number",
-                                "exclusiveMinimum": 0,
-                                "maximum": 100
-                              },
-                              "orderType": {
-                                "type": "string",
-                                "enum": [
-                                  "market",
-                                  "limit"
-                                ]
-                              }
-                            },
-                            "required": [
-                              "mode",
-                              "activationValue",
-                              "callbackValue",
-                              "reducePercent",
-                              "orderType"
-                            ],
-                            "additionalProperties": false
-                          }
-                        ]
-                      }
-                    },
-                    "additionalProperties": false
-                  }
-                },
-                "required": [
-                  "enabled",
-                  "checkCadenceMs",
-                  "account",
-                  "position"
-                ],
-                "additionalProperties": false
-              },
-              "strategy": {
-                "type": "object",
-                "properties": {
-                  "chatId": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "id": {
-                    "type": "integer",
-                    "exclusiveMinimum": 0,
-                    "maximum": 9007199254740991
-                  },
-                  "name": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "description": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "code": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "derivedManifest": {
-                    "type": "object",
-                    "properties": {
-                      "schemaVersion": {
-                        "type": "string",
-                        "const": "alphafox.strategy-manifest.v1"
-                      },
-                      "name": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "description": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "series": {
-                        "type": "array",
-                        "items": {
-                          "type": "string",
-                          "enum": [
-                            "ohlcv",
-                            "open_interest",
-                            "oi_delta",
-                            "mark_price",
-                            "index_price",
-                            "funding_rate",
-                            "funding_rate_8h_norm",
-                            "basis",
-                            "basis_rate",
-                            "annualized_basis_rate",
-                            "circulating_supply",
-                            "total_supply",
-                            "max_supply",
-                            "liquidation_stats",
-                            "open_interest_sum",
-                            "open_interest_sum_value",
-                            "cmc_circulating_supply",
-                            "top_trader_position_long_short_ratio",
-                            "top_trader_account_long_short_ratio",
-                            "global_long_short_ratio",
-                            "taker_buy_sell_ratio",
-                            "taker_buy_volume",
-                            "taker_sell_volume"
-                          ]
-                        }
-                      },
-                      "params": {
-                        "default": {},
-                        "type": "object",
-                        "propertyNames": {
-                          "type": "string",
-                          "minLength": 1
-                        },
-                        "additionalProperties": {
-                          "type": "object",
-                          "properties": {
-                            "valueType": {
-                              "type": "string",
-                              "enum": [
-                                "string",
-                                "number",
-                                "boolean",
-                                "string[]",
-                                "number[]",
-                                "boolean[]"
-                              ]
-                            },
-                            "defaultValue": {
-                              "anyOf": [
-                                {
-                                  "anyOf": [
-                                    {
-                                      "type": "string"
-                                    },
-                                    {
-                                      "type": "number"
-                                    },
-                                    {
-                                      "type": "boolean"
-                                    }
-                                  ]
-                                },
-                                {
-                                  "minItems": 1,
-                                  "type": "array",
-                                  "items": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      }
-                                    ]
-                                  }
-                                }
-                              ]
-                            },
-                            "description": {
-                              "type": "string",
-                              "minLength": 1
-                            },
-                            "constraints": {
-                              "type": "object",
-                              "properties": {
-                                "min": {
-                                  "type": "number"
-                                },
-                                "max": {
-                                  "type": "number"
-                                },
-                                "options": {
-                                  "minItems": 1,
-                                  "type": "array",
-                                  "items": {
-                                    "anyOf": [
-                                      {
-                                        "type": "string"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "boolean"
-                                      }
-                                    ]
-                                  }
-                                }
-                              },
-                              "additionalProperties": false
-                            }
-                          },
-                          "required": [
-                            "valueType",
-                            "defaultValue",
-                            "description"
-                          ],
-                          "additionalProperties": false
-                        }
-                      },
-                      "indicators": {
-                        "default": [],
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "key": {
-                              "type": "string",
-                              "minLength": 1
-                            },
-                            "type": {
-                              "type": "string",
-                              "enum": [
-                                "AC",
-                                "AD",
-                                "ADX",
-                                "AO",
-                                "ATR",
-                                "AccelerationBands",
-                                "BollingerBands",
-                                "BollingerBandsWidth",
-                                "BreakoutBarLow",
-                                "CCI",
-                                "CG",
-                                "CMF",
-                                "DEMA",
-                                "DMA",
-                                "DX",
-                                "EMA",
-                                "EMV",
-                                "ER",
-                                "HigherLowTrail",
-                                "IQR",
-                                "LinearRegression",
-                                "MACD",
-                                "MAD",
-                                "MOM",
-                                "OBV",
-                                "PSAR",
-                                "PVT",
-                                "REI",
-                                "RMA",
-                                "ROC",
-                                "RSI",
-                                "SMA",
-                                "SMA15",
-                                "StochasticOscillator",
-                                "StochasticRSI",
-                                "SuperTrend",
-                                "SwingHigh",
-                                "SwingLow",
-                                "TDS",
-                                "TR",
-                                "VROC",
-                                "VWAP",
-                                "VWMA",
-                                "WMA",
-                                "WSMA",
-                                "WaveTrend",
-                                "WilliamsR",
-                                "ZigZag"
-                              ]
-                            },
-                            "inputSeries": {
-                              "minItems": 1,
-                              "type": "array",
-                              "items": {
-                                "anyOf": [
-                                  {
-                                    "type": "string",
-                                    "enum": [
-                                      "ohlcv",
-                                      "open_interest",
-                                      "oi_delta",
-                                      "mark_price",
-                                      "index_price",
-                                      "funding_rate",
-                                      "funding_rate_8h_norm",
-                                      "basis",
-                                      "basis_rate",
-                                      "annualized_basis_rate",
-                                      "circulating_supply",
-                                      "total_supply",
-                                      "max_supply",
-                                      "liquidation_stats",
-                                      "open_interest_sum",
-                                      "open_interest_sum_value",
-                                      "cmc_circulating_supply",
-                                      "top_trader_position_long_short_ratio",
-                                      "top_trader_account_long_short_ratio",
-                                      "global_long_short_ratio",
-                                      "taker_buy_sell_ratio",
-                                      "taker_buy_volume",
-                                      "taker_sell_volume"
-                                    ]
-                                  },
-                                  {
-                                    "type": "string",
-                                    "enum": [
-                                      "open",
-                                      "high",
-                                      "low",
-                                      "close",
-                                      "volume"
-                                    ]
-                                  }
-                                ]
-                              }
-                            },
-                            "params": {
-                              "default": {},
-                              "type": "object",
-                              "propertyNames": {
-                                "type": "string",
-                                "minLength": 1
-                              },
-                              "additionalProperties": {
-                                "$ref": "#/$defs/__schema0"
-                              }
-                            }
-                          },
-                          "required": [
-                            "key",
-                            "type",
-                            "inputSeries",
-                            "params"
-                          ],
-                          "additionalProperties": false
-                        }
-                      }
-                    },
-                    "required": [
-                      "schemaVersion",
-                      "name",
-                      "description",
-                      "series",
-                      "params",
-                      "indicators"
-                    ],
-                    "additionalProperties": false
-                  },
-                  "paramValues": {
-                    "type": "object",
-                    "propertyNames": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "additionalProperties": {
-                      "anyOf": [
-                        {
-                          "anyOf": [
-                            {
-                              "type": "string"
-                            },
-                            {
-                              "type": "number"
-                            },
-                            {
-                              "type": "boolean"
-                            }
-                          ]
-                        },
-                        {
-                          "minItems": 1,
-                          "type": "array",
-                          "items": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "boolean"
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    }
-                  }
-                },
-                "required": [
-                  "chatId",
-                  "id",
-                  "name",
-                  "description",
-                  "code",
-                  "derivedManifest",
-                  "paramValues"
-                ],
-                "additionalProperties": false
-              },
-              "connection": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "name": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "mode": {
-                    "type": "string",
-                    "enum": [
-                      "paper",
-                      "live"
-                    ]
-                  },
-                  "executionVenue": {
-                    "type": "string",
-                    "enum": [
-                      "internal_paper",
-                      "exchange_live",
-                      "exchange_demo"
-                    ]
-                  },
-                  "exchangePlatform": {
-                    "type": "string",
-                    "enum": [
-                      "Binance",
-                      "Okx",
-                      "GateIo",
-                      "Bybit",
-                      "Bitget",
-                      "HyperLiquid",
-                      "Aster",
-                      "Htx",
-                      "Polymarket"
-                    ]
-                  },
-                  "status": {
-                    "type": "string",
-                    "enum": [
-                      "active",
-                      "disabled",
-                      "dead",
-                      "permission_error",
-                      "sync_error"
-                    ]
-                  },
-                  "keyFingerprint": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "exchangeUid": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "permissionSummary": {
-                    "type": "object",
-                    "properties": {
-                      "read": {
-                        "type": "boolean"
-                      },
-                      "trade": {
-                        "type": "boolean"
-                      },
-                      "withdraw": {
-                        "type": "boolean"
-                      }
-                    },
-                    "required": [
-                      "read",
-                      "trade",
-                      "withdraw"
-                    ],
-                    "additionalProperties": false
-                  },
-                  "paperMargin": {
-                    "type": "number",
-                    "minimum": 0
-                  },
-                  "occupancy": {
-                    "type": "object",
-                    "properties": {
-                      "traderId": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "traderName": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "status": {
-                        "type": "string",
-                        "enum": [
-                          "created",
-                          "starting",
-                          "running",
-                          "stopping",
-                          "stopped",
-                          "failed"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "traderId",
-                      "traderName",
-                      "status"
-                    ],
-                    "additionalProperties": false
-                  },
-                  "deadReason": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "lastValidatedAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  },
-                  "createdAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  },
-                  "updatedAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                  }
-                },
-                "required": [
-                  "id",
-                  "name",
-                  "mode",
-                  "executionVenue",
-                  "exchangePlatform",
-                  "status",
-                  "createdAt",
-                  "updatedAt"
-                ],
-                "additionalProperties": false
-              },
-              "account": {
-                "type": "object",
-                "properties": {
-                  "margin": {
-                    "type": "number"
-                  },
-                  "unPnl": {
-                    "type": "number"
-                  },
-                  "equity": {
-                    "type": "number"
-                  }
-                },
-                "required": [
-                  "margin",
-                  "unPnl",
-                  "equity"
-                ],
-                "additionalProperties": false
-              },
-              "metrics": {
-                "type": "object",
-                "properties": {
-                  "pnl": {
-                    "type": "number"
-                  },
-                  "equity": {
-                    "type": "number"
-                  },
-                  "winRatePct": {
-                    "type": "number"
-                  },
-                  "maxDrawdownPct": {
-                    "type": "number"
-                  },
-                  "runningDays": {
-                    "anyOf": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "annualizedReturnPct": {
-                    "anyOf": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "trades24h": {
-                    "anyOf": [
-                      {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 9007199254740991
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "totalTrades": {
-                    "anyOf": [
-                      {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 9007199254740991
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "totalFees": {
-                    "anyOf": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "averageHoldingMinutes": {
-                    "anyOf": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "winningTrades": {
-                    "anyOf": [
-                      {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 9007199254740991
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "losingTrades": {
-                    "anyOf": [
-                      {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 9007199254740991
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "longTrades": {
-                    "anyOf": [
-                      {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 9007199254740991
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "shortTrades": {
-                    "anyOf": [
-                      {
-                        "type": "integer",
-                        "minimum": 0,
-                        "maximum": 9007199254740991
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "longShortRatio": {
-                    "anyOf": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "profitFactor": {
-                    "anyOf": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  }
-                },
-                "required": [
-                  "pnl",
-                  "equity",
-                  "winRatePct",
-                  "maxDrawdownPct",
-                  "runningDays",
-                  "annualizedReturnPct",
-                  "trades24h",
-                  "totalTrades",
-                  "totalFees",
-                  "averageHoldingMinutes",
-                  "winningTrades",
-                  "losingTrades",
-                  "longTrades",
-                  "shortTrades",
-                  "longShortRatio",
-                  "profitFactor"
-                ],
-                "additionalProperties": false
-              },
-              "equityCurve": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "timestamp": {
-                      "type": "number"
-                    },
-                    "equity": {
-                      "type": "number"
-                    }
-                  },
-                  "required": [
-                    "timestamp",
-                    "equity"
-                  ],
-                  "additionalProperties": false
-                }
-              },
-              "positions": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "propertyNames": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "additionalProperties": {}
-                }
-              },
-              "accountSnapshots": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "propertyNames": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "additionalProperties": {}
-                }
-              },
-              "orders": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "propertyNames": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "additionalProperties": {}
-                }
-              },
-              "runtimeEvents": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "type": {
-                      "type": "string",
-                      "enum": [
-                        "live.started",
-                        "live.bar_evaluated",
-                        "live.subscription_status",
-                        "live.order_submitted",
-                        "live.order_updated",
-                        "live.fill_received",
-                        "live.position_snapshot",
-                        "live.account_snapshot",
-                        "live.strategy_signal",
-                        "live.strategy_indicator",
-                        "live.warning",
-                        "live.failed",
-                        "live.stopped"
-                      ]
-                    },
-                    "traderId": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "userId": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "strategyId": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "timestamp": {
-                      "type": "string",
-                      "format": "date-time",
-                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                    },
-                    "workerOwnerId": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "runtimeImageVersion": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "processId": {
-                      "type": "integer",
-                      "exclusiveMinimum": 0,
-                      "maximum": 9007199254740991
-                    },
-                    "payload": {
-                      "default": {},
-                      "type": "object",
-                      "propertyNames": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "additionalProperties": {}
-                    }
-                  },
-                  "required": [
-                    "type",
-                    "traderId",
-                    "userId",
-                    "strategyId",
-                    "timestamp",
-                    "workerOwnerId",
-                    "runtimeImageVersion",
-                    "processId",
-                    "payload"
-                  ],
-                  "additionalProperties": false
-                }
-              },
-              "artifacts": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "artifactType": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "uri": {
-                      "type": "string",
-                      "minLength": 1
-                    },
-                    "createdAt": {
-                      "type": "string",
-                      "format": "date-time",
-                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
-                    },
-                    "metadata": {
-                      "type": "object",
-                      "propertyNames": {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      "additionalProperties": {}
-                    }
-                  },
-                  "required": [
-                    "id",
-                    "artifactType",
-                    "uri",
-                    "createdAt"
-                  ],
-                  "additionalProperties": false
-                }
-              },
-              "marketSnapshotId": {
+              "id": {
                 "type": "string",
                 "minLength": 1
-              }
-            },
-            "required": [
-              "trader",
-              "runtimeSettings",
-              "riskSettings",
-              "strategy",
-              "connection",
-              "metrics",
-              "equityCurve",
-              "positions",
-              "accountSnapshots",
-              "orders",
-              "runtimeEvents",
-              "artifacts"
-            ],
-            "additionalProperties": false
-          }
-        },
-        "required": [
-          "detail"
-        ],
-        "additionalProperties": false,
-        "$defs": {
-          "__schema0": {
-            "anyOf": [
-              {
-                "type": "object",
-                "properties": {
-                  "ref": {
-                    "type": "string",
-                    "pattern": "^strategyParams\\.[A-Za-z_][A-Za-z0-9_]*$"
-                  }
-                },
-                "required": [
-                  "ref"
-                ],
-                "additionalProperties": false
               },
-              {
-                "type": "string"
+              "userId": {
+                "type": "string",
+                "minLength": 1
               },
-              {
-                "type": "number"
+              "name": {
+                "type": "string",
+                "minLength": 1
               },
-              {
+              "strategyDefinitionId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "exchangeConnectorId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "enabled": {
                 "type": "boolean"
               },
-              {
-                "type": "null"
+              "configSchemaVersion": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               },
-              {
-                "type": "array",
-                "items": {
-                  "$ref": "#/$defs/__schema0"
-                }
+              "configRevision": {
+                "type": "number"
               },
-              {
+              "shareParameters": {
+                "type": "boolean"
+              },
+              "hiddenFromLeaderboard": {
+                "type": "boolean"
+              },
+              "config": {
                 "type": "object",
                 "propertyNames": {
                   "type": "string",
                   "minLength": 1
                 },
-                "additionalProperties": {
-                  "$ref": "#/$defs/__schema0"
-                }
+                "additionalProperties": {}
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "updatedAt": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "userId",
+              "name",
+              "strategyDefinitionId",
+              "exchangeConnectorId",
+              "enabled",
+              "configSchemaVersion",
+              "configRevision",
+              "shareParameters",
+              "config",
+              "createdAt",
+              "updatedAt"
+            ],
+            "additionalProperties": {}
+          },
+          "runtimeStatus": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "traderId": {
+                    "type": "string"
+                  },
+                  "state": {
+                    "type": "string"
+                  },
+                  "strategyDefinitionId": {
+                    "type": "string"
+                  },
+                  "traderName": {
+                    "type": "string"
+                  },
+                  "errorMessage": {
+                    "type": "string"
+                  },
+                  "configRevision": {
+                    "type": "number"
+                  },
+                  "updatedAt": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "traderId",
+                  "state",
+                  "strategyDefinitionId",
+                  "traderName",
+                  "configRevision",
+                  "updatedAt"
+                ],
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
               }
             ]
           }
-        }
+        },
+        "required": [
+          "trader"
+        ],
+        "additionalProperties": {}
       }
     },
     "error": {

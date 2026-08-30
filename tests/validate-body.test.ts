@@ -16,7 +16,7 @@ describe("catalog write-body validation", () => {
     const result = validateCatalogWriteBody({
       method: "POST",
       operationId: "trading.traders.byId.start",
-      body: { reason: "resume" },
+      body: { startType: "manual_start" },
     });
     assert.equal(result.ok, true);
   });
@@ -36,7 +36,7 @@ describe("catalog write-body validation", () => {
     const extra = validateCatalogWriteBody({
       method: "POST",
       operationId: "trading.traders.byId.start",
-      body: { reason: "resume", inventedField: true },
+      body: { startType: "manual_start", inventedField: true },
     });
     assert.equal(extra.ok, false);
     if (!extra.ok) {
@@ -87,25 +87,43 @@ describe("catalog write-body validation", () => {
     assert.equal(result.ok, false);
   });
 
-  it("allows optional startTrader body {} and documented reason", () => {
-    const empty = validateCatalogWriteBody({
+  it("allows optional Engine start body {} and requires stop closePositions", () => {
+    const emptyStart = validateCatalogWriteBody({
       method: "POST",
       operationId: "trading.traders.byId.start",
       body: {},
     });
-    assert.equal(empty.ok, true);
-    const reason = validateCatalogWriteBody({
+    assert.equal(emptyStart.ok, true);
+    const retiredReason = validateCatalogWriteBody({
       method: "POST",
       operationId: "trading.traders.byId.start",
       body: { reason: "resume" },
     });
-    assert.equal(reason.ok, true);
+    assert.equal(retiredReason.ok, false);
     const bad = validateCatalogWriteBody({
       method: "POST",
       operationId: "trading.traders.byId.start",
       body: { force: true },
     });
     assert.equal(bad.ok, false);
+    const emptyStop = validateCatalogWriteBody({
+      method: "POST",
+      operationId: "trading.traders.byId.stop",
+      body: {},
+    });
+    assert.equal(emptyStop.ok, false);
+    const keepPositions = validateCatalogWriteBody({
+      method: "POST",
+      operationId: "trading.traders.byId.stop",
+      body: { closePositions: false },
+    });
+    assert.equal(keepPositions.ok, true);
+    const closePositions = validateCatalogWriteBody({
+      method: "POST",
+      operationId: "trading.traders.byId.stop",
+      body: { closePositions: true },
+    });
+    assert.equal(closePositions.ok, true);
   });
 
   it("skips GET and allows empty uncataloged write bodies only", () => {
@@ -134,13 +152,13 @@ describe("request body flags", () => {
   it("loads --config @file and --body @file", () => {
     const dir = mkdtempSync(join(tmpdir(), "alphafox-body-"));
     const file = join(dir, "start.json");
-    writeFileSync(file, JSON.stringify({ reason: "resume" }));
+    writeFileSync(file, JSON.stringify({ closePositions: false }));
     const fromConfig = parseRequestBodyFlags(["--config", `@${file}`]);
     assert.equal(fromConfig.source, "config");
-    assert.deepEqual(fromConfig.body, { reason: "resume" });
+    assert.deepEqual(fromConfig.body, { closePositions: false });
     const fromBody = parseRequestBodyFlags(["--body", `@${file}`]);
     assert.equal(fromBody.source, "body");
-    assert.deepEqual(fromBody.body, { reason: "resume" });
+    assert.deepEqual(fromBody.body, { closePositions: false });
   });
 
   it("rejects --body and --config together", () => {

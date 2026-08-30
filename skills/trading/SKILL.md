@@ -1,7 +1,7 @@
 ---
 name: alphafox-trading
 description: Running strategies (traders) — create, list, start, and stop. A trader is a live or paper strategy instance (grid, dca, copy, …), not a person. Default Engine create uses autoStart true (创建即开始). Use autoStart false only when the user asks to create without starting. After create or start, include https://www.alphafox.app/zh/dashboard/traders/{traderId}.
-version: 0.3.15
+version: 0.3.16
 ---
 
 # Running strategies (traders)
@@ -50,7 +50,7 @@ If a required field is missing, re-read the schema and ask the operator. Do not 
 
 ## High-risk start / stop
 
-Read `alphafox schema trading.traders.byId.start` first. Body may only include documented fields (`reason` is optional).
+Read `alphafox schema trading.traders.byId.start` first. Start body is optional Engine fields (`startType`, `enableSLTPMonitoring`, `expectedCoverageType`). `{}` is valid. Do not send `reason`.
 
 ```bash
 alphafox schema trading.traders.byId.start --format json --no-input
@@ -60,7 +60,13 @@ alphafox trading traders byId start --traderId <id> --body '{}' --yes --format j
 
 Without `--yes`, CLI exits `10` with `confirmation_required`. Server still checks role/ownership.
 
-Stop: `POST /api/v1/trading/traders/{traderId}/stop` with the same `--dry-run` then `--yes` sequence.
+Stop requires `closePositions` (boolean). Ask the operator whether to flatten positions. Do not default. Do not send `reason`.
+
+```bash
+alphafox schema trading.traders.byId.stop --format json --no-input
+alphafox trading traders byId stop --traderId <id> --body '{"closePositions":false}' --dry-run --format json --no-input
+alphafox trading traders byId stop --traderId <id> --body '{"closePositions":false}' --yes --format json --no-input
+```
 
 ## Recovery
 

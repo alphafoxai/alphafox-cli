@@ -209,6 +209,31 @@ describe("generated operation catalog", () => {
     );
     const start = getOperationSchemaDocument("trading.traders.byId.start");
     assert.deepEqual(start?.request.pathParamNames, ["traderId"]);
+    const startBody = start?.request.body as {
+      properties?: Record<string, unknown>;
+    };
+    assert.equal(startBody.properties?.reason, undefined);
+    const stop = getOperationSchemaDocument("trading.traders.byId.stop");
+    const stopBody = stop?.request.body as {
+      properties?: Record<string, unknown>;
+      required?: string[];
+    };
+    assert.equal(stopBody.properties?.reason, undefined);
+    assert.ok(stopBody.properties?.closePositions);
+    assert.ok(
+      Array.isArray(stopBody.required) &&
+        stopBody.required.includes("closePositions")
+    );
+    const list = getOperationSchemaDocument("trading.traders.list");
+    assert.equal(JSON.stringify(list?.response.success).includes("chatId"), false);
+    const get = getOperationSchemaDocument("trading.traders.byId.get");
+    assert.equal(JSON.stringify(get?.response.success).includes("chatId"), false);
+    const update = getOperationSchemaDocument("trading.traders.byId.update");
+    const updateBody = update?.request.body as {
+      properties?: Record<string, unknown>;
+    };
+    assert.equal(updateBody.properties?.strategyParamValues, undefined);
+    assert.equal(updateBody.properties?.chatId, undefined);
   });
 
   it("fails closed on CLI/contract incompatibility", () => {

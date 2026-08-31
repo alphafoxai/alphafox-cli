@@ -21,8 +21,8 @@ import registryJson from "../src/catalog/generated/registry.json";
 describe("generated operation catalog", () => {
   it("is generated from the public-api registry, not a handwritten 24-op list", () => {
     assert.equal(CATALOG_SOURCE.package, "@alphafoxai/contracts");
-    assert.equal(CATALOG_SOURCE.registryVersion, "2.1.0");
-    assert.equal(CATALOG_VERSION, "2026-08-30");
+    assert.equal(CATALOG_SOURCE.registryVersion, "3.0.0");
+    assert.equal(CATALOG_VERSION, "2026-08-31");
     assert.ok(
       CATALOG_OPERATIONS.length >= 200,
       `expected >= 200 operations, got ${CATALOG_OPERATIONS.length}`
@@ -36,13 +36,27 @@ describe("generated operation catalog", () => {
     assert.equal(CATALOG_OPERATIONS.length, CATALOG_SOURCE.cliOperations);
     const ids = CATALOG_OPERATIONS.map((op) => op.operationId);
     assert.equal(new Set(ids).size, ids.length);
-    assert.ok(findCatalogOperation("me.whoami"));
-    assert.ok(findCatalogOperation("trading.traders.create"));
-    assert.ok(findCatalogOperation("trading.traders.byId.start"));
-    assert.ok(
-      findCatalogOperation(
-        "trading.passivbot_paper_acceptance_traders.create"
-      )
+    assert.equal(
+      findCatalogOperation("admin.passivbot_paper_acceptance_traders.create"),
+      undefined
+    );
+    assert.equal(
+      findCatalogOperation("trading.passivbot_paper_acceptance_traders.create"),
+      undefined
+    );
+    assert.equal(
+      findCatalogOperationByRoute(
+        "POST",
+        "/api/v1/admin/passivbot-paper-acceptance-traders"
+      ),
+      undefined
+    );
+    assert.equal(
+      findCatalogOperationByRoute(
+        "POST",
+        "/api/v1/trading/passivbot-paper-acceptance-traders"
+      ),
+      undefined
     );
     assert.equal(findCatalogOperation("backtests.byId.get.get"), undefined);
     const sweepCreate = findCatalogOperation(
@@ -239,20 +253,18 @@ describe("generated operation catalog", () => {
     };
     assert.equal(updateBody.properties?.strategyParamValues, undefined);
     assert.equal(updateBody.properties?.chatId, undefined);
-    const passivbot = getOperationSchemaDocument(
-      "trading.passivbot_paper_acceptance_traders.create"
+    assert.equal(
+      getOperationSchemaDocument(
+        "admin.passivbot_paper_acceptance_traders.create"
+      ),
+      undefined
     );
-    assert.equal(passivbot?.path, "/api/v1/trading/passivbot-paper-acceptance-traders");
-    const passivbotBody = passivbot?.request.body as {
-      required?: string[];
-      properties?: Record<string, unknown>;
-    };
-    assert.ok(passivbotBody.properties?.name);
-    assert.ok(passivbotBody.properties?.exchangeConnectorId);
-    assert.ok(passivbotBody.properties?.config);
-    assert.equal(passivbotBody.properties?.strategyDefinitionId, undefined);
-    assert.equal(passivbotBody.properties?.userId, undefined);
-    assert.equal(passivbotBody.properties?.mode, undefined);
+    assert.equal(
+      getOperationSchemaDocument(
+        "trading.passivbot_paper_acceptance_traders.create"
+      ),
+      undefined
+    );
   });
 
   it("fails closed on CLI/contract incompatibility", () => {
@@ -289,17 +301,17 @@ describe("generated operation catalog", () => {
       assert.equal(suffix.operation.operationId, "trading.traders.byId.start");
     }
     const passivbot = resolveTypedCommand([
+      "admin",
+      "passivbot_paper_acceptance_traders",
+      "create",
+    ]);
+    assert.equal(passivbot.kind, "missing");
+    const retiredPassivbot = resolveTypedCommand([
       "trading",
       "passivbot_paper_acceptance_traders",
       "create",
     ]);
-    assert.equal(passivbot.kind, "operation");
-    if (passivbot.kind === "operation") {
-      assert.equal(
-        passivbot.operation.operationId,
-        "trading.passivbot_paper_acceptance_traders.create"
-      );
-    }
+    assert.equal(retiredPassivbot.kind, "missing");
     const domainHelp = resolveTypedCommand(["trading"]);
     assert.equal(domainHelp.kind, "help");
     if (domainHelp.kind === "help") {

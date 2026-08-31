@@ -132,7 +132,7 @@ describe("cli launch", () => {
       false
     );
     assert.ok(json.data.operations.length > 24);
-    assert.equal(json.data.contractVersion, "2026-08-30");
+    assert.equal(json.data.contractVersion, "2026-08-31");
   });
 
   it("schema rejects omitted chat operations", () => {
@@ -240,6 +240,43 @@ describe("cli launch", () => {
     const err = JSON.parse(r.stderr);
     assert.equal(err.ok, false);
     assert.equal(err.error.type, "confirmation");
+  });
+
+  it("direct Passivbot admin write stays uncataloged and high-risk", () => {
+    const path = "/api/admin/passivbot-paper-acceptance-traders";
+    const body = JSON.stringify({
+      name: "Passivbot paper acceptance",
+      exchangeConnectorId: "connector-1",
+      configSchemaVersion: 1,
+      config: {},
+      autoStart: true,
+    });
+    const blocked = run(["api", "POST", path, "--body", body]);
+    assert.equal(blocked.status, 10, blocked.stderr + blocked.stdout);
+    assert.equal(JSON.parse(blocked.stderr).error.type, "confirmation");
+
+    const preview = run([
+      "api",
+      "POST",
+      path,
+      "--body",
+      body,
+      "--dry-run",
+    ]);
+    assert.equal(preview.status, 0, preview.stderr + preview.stdout);
+    const result = JSON.parse(preview.stdout);
+    assert.equal(result.data.path, path);
+    assert.deepEqual(result.data.body, JSON.parse(body));
+
+    const facade = run([
+      "api",
+      "POST",
+      "/api/v1/admin/passivbot-paper-acceptance-traders",
+      "--body",
+      body,
+      "--dry-run",
+    ]);
+    assert.equal(facade.status, 77, facade.stderr + facade.stdout);
   });
 
   it("auth login --browser fails closed without leaking a verifier", () => {

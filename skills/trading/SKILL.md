@@ -1,7 +1,7 @@
 ---
 name: alphafox-trading
 description: Running strategies (traders) — create, list, start, and stop. A trader is a live or paper strategy instance (grid, dca, copy, …), not a person. Default Engine create uses autoStart true (创建即开始). Use autoStart false only when the user asks to create without starting. After create or start, include https://www.alphafox.app/zh/dashboard/traders/{traderId}.
-version: 0.3.17
+version: 0.3.18
 ---
 
 # Running strategies (traders)
@@ -19,7 +19,6 @@ Pick the create operation from the definition the operator asked for:
 | Engine definitions (grid, dca, …) | `trading.traders.create` |
 | Hyperliquid copy | `trading.hl_copy_traders.create` |
 | Rebate copy | `trading.rebate_copy_traders.create` |
-| Passivbot v8 paper acceptance | `trading.passivbot_paper_acceptance_traders.create` |
 
 Copy leads come from `trading.signal_sources.list` when the operator named one. Same trader lifecycle (list / start / stop) after create.
 
@@ -40,14 +39,6 @@ alphafox trading traders create --config @./create-trader.json --yes --format js
 ```
 
 `trading.traders.create` is `high-risk-write` and needs `--yes`. Copy creates follow whatever `risk` the schema reports — `--dry-run` first, then `--yes` when required.
-
-Passivbot v8 acceptance uses the dedicated operation below. It fixes the hidden definition server-side, accepts only an internal paper connector, and requires the authenticated user to hold an admin role.
-
-```bash
-alphafox schema trading.passivbot_paper_acceptance_traders.create --format json --no-input
-alphafox trading passivbot_paper_acceptance_traders create --config @./create-passivbot-paper.json --dry-run --format json --no-input
-alphafox trading passivbot_paper_acceptance_traders create --config @./create-passivbot-paper.json --format json --no-input
-```
 
 Default Engine create is **创建即开始**: set `autoStart` to `true` in the body. Omitting `autoStart` is not the same — the server treats a missing flag as do-not-start. Use `autoStart: false` only when the operator explicitly asks to create without starting (创建但不启动 / 暂时不开始 / 先创建不要跑). Do not create-then-`byId.start` as the default path.
 
@@ -89,7 +80,6 @@ alphafox trading traders byId stop --traderId <id> --body '{"closePositions":fal
 - `trading.traders.create`
 - `trading.hl_copy_traders.create`
 - `trading.rebate_copy_traders.create`
-- `trading.passivbot_paper_acceptance_traders.create`
 - `trading.signal_sources.list`
 - `trading.traders.byId.start`
 - `trading.traders.byId.stop`

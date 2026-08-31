@@ -1,7 +1,7 @@
 /**
- * Raw API allowlist from the generated Operation Registry.
- * Finite set: infra catalog paths + CLI-included operation facade paths.
- * Unknown `/api/v1/*` paths are denied — raw API cannot bypass the catalog.
+ * Finite set: infrastructure catalog paths, CLI-included operation facade paths,
+ * and explicitly documented direct admin paths.
+ * Unknown paths are denied — raw API cannot bypass the catalog or admin allowlist.
  */
 
 import { CATALOG_OPERATIONS } from "./operations";
@@ -25,6 +25,10 @@ export const FACILITY_ALWAYS_ALLOW = [
   "/api/v1/openapi",
   "/api/v1/operations",
 ] as const;
+
+const DIRECT_ADMIN_ALLOW: Record<string, true> = {
+  "/api/admin/passivbot-paper-acceptance-traders": true,
+};
 
 /**
  * Decode percent-encoded path segments (up to twice for double-encoding)
@@ -129,6 +133,10 @@ function isInfraAllowlisted(n: string): boolean {
   return false;
 }
 
+export function isDirectAdminAllowlistedPath(path: string): boolean {
+  return DIRECT_ADMIN_ALLOW[normalizeApiPath(path)] === true;
+}
+
 function isCatalogPathMatch(n: string): boolean {
   for (const op of CATALOG_OPERATIONS) {
     if (pathTemplateMatches(op.path, n, Boolean(op.catchAll))) {
@@ -148,9 +156,8 @@ function isExtraAllowMatch(n: string, extraAllow: readonly string[]): boolean {
 }
 
 /**
- * Finite allow set: infra catalog paths + generated operation facade paths.
- * Unknown `/api/v1/*` paths are denied.
- * Matching always uses the segment-resolved path (no `..` prefix smuggling).
+ * Finite allow set: infrastructure paths, generated facade paths, and exact
+ * direct admin paths. Matching always uses the segment-resolved path.
  */
 export function isFacadeAllowlistedPath(
   path: string,
@@ -159,6 +166,9 @@ export function isFacadeAllowlistedPath(
   const n = normalizeApiPath(path);
   if (isInternalDisallowedPath(n)) {
     return false;
+  }
+  if (isDirectAdminAllowlistedPath(n)) {
+    return true;
   }
   if (n !== "/api/v1" && !n.startsWith("/api/v1/")) {
     return false;

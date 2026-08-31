@@ -1,7 +1,7 @@
 ---
 name: alphafox-market
 description: Market data and ticker resolution for US equity perps, RWAs, and crypto on the same perp catalog. Use when the user names 美股, NVDA, AAPL, BTC, or any 标的. Keep the operator's asset class via symbolMetadata — do not rewrite NVDA into a crypto coin.
-version: 0.3.16
+version: 0.3.17
 ---
 
 # Market

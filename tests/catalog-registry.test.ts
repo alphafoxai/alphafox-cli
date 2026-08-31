@@ -21,8 +21,8 @@ import registryJson from "../src/catalog/generated/registry.json";
 describe("generated operation catalog", () => {
   it("is generated from the public-api registry, not a handwritten 24-op list", () => {
     assert.equal(CATALOG_SOURCE.package, "@alphafoxai/contracts");
-    assert.equal(CATALOG_SOURCE.registryVersion, "2.0.1");
-    assert.equal(CATALOG_VERSION, "2026-08-29");
+    assert.equal(CATALOG_SOURCE.registryVersion, "2.1.0");
+    assert.equal(CATALOG_VERSION, "2026-08-30");
     assert.ok(
       CATALOG_OPERATIONS.length >= 200,
       `expected >= 200 operations, got ${CATALOG_OPERATIONS.length}`
@@ -39,6 +39,11 @@ describe("generated operation catalog", () => {
     assert.ok(findCatalogOperation("me.whoami"));
     assert.ok(findCatalogOperation("trading.traders.create"));
     assert.ok(findCatalogOperation("trading.traders.byId.start"));
+    assert.ok(
+      findCatalogOperation(
+        "trading.passivbot_paper_acceptance_traders.create"
+      )
+    );
     assert.equal(findCatalogOperation("backtests.byId.get.get"), undefined);
     const sweepCreate = findCatalogOperation(
       "engine_backtest.experiments.byId.sweeps.create"
@@ -234,6 +239,20 @@ describe("generated operation catalog", () => {
     };
     assert.equal(updateBody.properties?.strategyParamValues, undefined);
     assert.equal(updateBody.properties?.chatId, undefined);
+    const passivbot = getOperationSchemaDocument(
+      "trading.passivbot_paper_acceptance_traders.create"
+    );
+    assert.equal(passivbot?.path, "/api/v1/trading/passivbot-paper-acceptance-traders");
+    const passivbotBody = passivbot?.request.body as {
+      required?: string[];
+      properties?: Record<string, unknown>;
+    };
+    assert.ok(passivbotBody.properties?.name);
+    assert.ok(passivbotBody.properties?.exchangeConnectorId);
+    assert.ok(passivbotBody.properties?.config);
+    assert.equal(passivbotBody.properties?.strategyDefinitionId, undefined);
+    assert.equal(passivbotBody.properties?.userId, undefined);
+    assert.equal(passivbotBody.properties?.mode, undefined);
   });
 
   it("fails closed on CLI/contract incompatibility", () => {
@@ -268,6 +287,18 @@ describe("generated operation catalog", () => {
     assert.equal(suffix.kind, "operation");
     if (suffix.kind === "operation") {
       assert.equal(suffix.operation.operationId, "trading.traders.byId.start");
+    }
+    const passivbot = resolveTypedCommand([
+      "trading",
+      "passivbot_paper_acceptance_traders",
+      "create",
+    ]);
+    assert.equal(passivbot.kind, "operation");
+    if (passivbot.kind === "operation") {
+      assert.equal(
+        passivbot.operation.operationId,
+        "trading.passivbot_paper_acceptance_traders.create"
+      );
     }
     const domainHelp = resolveTypedCommand(["trading"]);
     assert.equal(domainHelp.kind, "help");

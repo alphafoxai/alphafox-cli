@@ -132,7 +132,7 @@ describe("cli launch", () => {
       false
     );
     assert.ok(json.data.operations.length > 24);
-    assert.equal(json.data.contractVersion, "2026-08-29");
+    assert.equal(json.data.contractVersion, "2026-08-30");
   });
 
   it("schema rejects omitted chat operations", () => {

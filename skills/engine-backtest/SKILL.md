@@ -1,7 +1,7 @@
 ---
 name: alphafox-engine-backtest
 description: Local Engine WASM backtest (alphafox engine-backtest run|sweep) vs catalog experiment CRUD. After a persisted run, include https://www.alphafox.app/zh/dashboard/traders/backtest/{experimentId}.
-version: 0.3.16
+version: 0.3.17
 ---
 
 # Engine Backtest

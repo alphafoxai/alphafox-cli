@@ -2,16 +2,16 @@
   "source": {
     "package": "@alphafoxai/contracts",
     "export": "public-api",
-    "contractsSha": "3833cb49c0406ee7c9ee59caa2f266b2f6cd99f2",
-    "registryVersion": "2.0.1",
-    "contractVersion": "2026-08-29",
-    "scannedAt": "2026-08-29",
-    "totalOperations": 276,
-    "cliOperations": 257
+    "contractsSha": "3325449547f129a185a854ee6b81ba3efb447e5e",
+    "registryVersion": "2.1.0",
+    "contractVersion": "2026-08-30",
+    "scannedAt": "2026-08-30",
+    "totalOperations": 278,
+    "cliOperations": 259
   },
   "compatibility": {
-    "contractVersion": "2026-08-29",
-    "registryVersion": "2.0.1",
+    "contractVersion": "2026-08-30",
+    "registryVersion": "2.1.0",
     "minCliVersion": "0.0.0",
     "maxCliVersion": "0.99.99",
     "openapi": "3.1.0"
@@ -4470,6 +4470,30 @@
       "errorSchema": "ProblemDetails"
     },
     {
+      "operationId": "signal_sources.byId.trade_events.list",
+      "method": "GET",
+      "path": "/api/v1/signal-sources/{id}/trade-events",
+      "role": "user",
+      "risk": "read",
+      "auth": "bearer",
+      "scopes": [
+        "openid",
+        "profile",
+        "signal-sources:read"
+      ],
+      "stream": false,
+      "file": false,
+      "pagination": true,
+      "idempotent": true,
+      "mvp": false,
+      "catchAll": false,
+      "contractStatus": "envelope",
+      "requestBodySchema": null,
+      "querySchema": "JsonObject",
+      "responseSchema": "JsonValue",
+      "errorSchema": "ProblemDetails"
+    },
+    {
       "operationId": "spread_radar.episodes.list",
       "method": "GET",
       "path": "/api/v1/spread-radar/episodes",
@@ -5236,6 +5260,30 @@
       "requestBodySchema": "JsonObject",
       "querySchema": null,
       "responseSchema": "JsonValue",
+      "errorSchema": "ProblemDetails"
+    },
+    {
+      "operationId": "trading.passivbot_paper_acceptance_traders.create",
+      "method": "POST",
+      "path": "/api/v1/trading/passivbot-paper-acceptance-traders",
+      "role": "user",
+      "risk": "write",
+      "auth": "bearer",
+      "scopes": [
+        "openid",
+        "profile",
+        "trading:write"
+      ],
+      "stream": false,
+      "file": false,
+      "pagination": false,
+      "idempotent": false,
+      "mvp": false,
+      "catchAll": false,
+      "contractStatus": "shared",
+      "requestBodySchema": "createPassivbotPaperAcceptanceTraderRequestSchema",
+      "querySchema": null,
+      "responseSchema": "createTraderResponseSchema",
       "errorSchema": "ProblemDetails"
     },
     {

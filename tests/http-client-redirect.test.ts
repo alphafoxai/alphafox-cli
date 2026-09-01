@@ -97,6 +97,32 @@ test("apiRequest preserves query string on the request URL", async () => {
   );
 });
 
+test("apiRequest sends the direct admin allowlist route to the web origin", async () => {
+  const seen: string[] = [];
+  const res = await apiRequest(
+    {
+      method: "POST",
+      path: "/api/admin/passivbot-paper-acceptance-traders",
+      body: {},
+      profile,
+      skipAuth: true,
+    },
+    {},
+    async (input) => {
+      seen.push(String(input));
+      return new Response(JSON.stringify({ trader: { id: "trader-1" } }), {
+        status: 201,
+        headers: { "content-type": "application/json" },
+      });
+    }
+  );
+
+  assert.equal(res.status, 201);
+  assert.deepEqual(seen, [
+    "https://alphafox.app/api/admin/passivbot-paper-acceptance-traders",
+  ]);
+});
+
 test("apiRequest refuses true cross-site token use", async () => {
   const env = {
     ALPHAFOX_TEST_ACCESS_TOKEN: "test-access-token",

@@ -1,7 +1,7 @@
 ---
 name: alphafox
 description: AlphaFox CLI entry router. Use for any AlphaFox request — install, update, login, whoami, 回测, engine backtest, 清理回测缓存 / 历史数据, strategy definitions, create/list/start/stop a running strategy (trader), ticker/标的 resolve (美股 or crypto), market data, exchange connectors, wallet, subscriptions, notifications, or admin. After 回测 or 运行策略, include the dashboard URL from the domain skill. When the user asks 排行榜, include https://www.alphafox.app/zh/dashboard/leaderboard. After a successful install and login, present the 新人引导 in this file (Lite square 带单员 + classic strategies). If a CLI command prints `[alphafox] update available`, ask the user「检测到新的版本，是否需要我帮你升级？」and only then run `alphafox update --format json --no-input`. After a large backtest, if tape cache is large, ask「回测下载的历史数据比较大，要不要我帮你清理本地缓存？」then open `alphafox-cache`. Start here, then open the routed domain skill. Do not guess alphafox-engine-backtest vs alphafox-strategy vs alphafox-trading from memory.
-version: 0.3.18
+version: 0.3.19
 ---
 
 # AlphaFox

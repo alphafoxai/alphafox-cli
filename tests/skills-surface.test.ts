@@ -139,6 +139,13 @@ describe("Skills surface", () => {
     assert.match(router, /autoStart: true/);
   });
 
+  it("teaches Passivbot paper acceptance config v2", () => {
+    const admin = readFileSync(join(skillsRoot, "admin", "SKILL.md"), "utf8");
+    assert.match(admin, /configSchemaVersion.*`1` and `2`/);
+    assert.match(admin, /Use `2` for new acceptance traders/);
+    assert.match(admin, /"configSchemaVersion": 2/);
+  });
+
   it("does not teach chat product commands or paths", () => {
     const banned = [
       /chats\./,

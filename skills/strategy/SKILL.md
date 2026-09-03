@@ -31,18 +31,38 @@ Match the name the operator used against list `id` / `name` / `display`. If they
 1. `id`, `category` (`COPY` / `DCA` / `GRID` / `TREND` / `OTHERS`), `status`
 2. English `description` (mechanism). Prefer it over marketing `display.description`
 3. `capabilities` and `commonModules` (event-driven vs polling, signal sources, manual sync)
-4. `strategyConfigSchema` required fields and each field's `display` — including decision-logic enums inside this definition
+4. The effective `configSchema`, including composed common modules, strategy parameters, defaults, constraints, conditional branches, and each field's `display`
 5. `capabilities.actionDefinitions` (what a manual action changes)
 
 Explain the type from those fields. Missing a layer → say unknown; do not fill from memory. Decision logic (`simple-long`, grid `mode` `neutral`/`long`/`short`) is an internal parameter, not a new definition id.
 
 ## Configure with the human
 
-The human answers knobs. You write JSON.
+The human confirms the complete parameter set. You write JSON only after that review.
 
 1. Confirm the definition from `byId.get` in the operator's language (what it is, what drives it, how positions change).
-2. From `strategyConfigSchema` plus common required fields, ask **only** values the human must choose: symbols (resolve first), direction / mode, size, signal source, leverage. Do not walk every optional key. If the operator does not pick leverage, write `common.execution.leverage: 10` (website form default). Omitting the field is not the same — Engine treats a missing leverage as **1x**.
-3. Write `strategy-config.json` as the trader object:
+2. Use the effective `configSchema` returned by `byId.get` as the sole parameter contract. It already composes the definition's `commonModules` with `strategyConfigSchema` and may contain definition-specific customization. Walk every applicable parameter, not only required fields or familiar knobs.
+3. Resolve conditional schemas in dependency order. Ask for a discriminator or enable/disable choice first, then enumerate every parameter in the selected branch. Do not present inactive branch fields as active settings. For arrays or maps, explain the collection and confirm every field of each configured item.
+4. Build a grouped or numbered review table in the operator's language. Every applicable parameter must have:
+
+   - full JSON path;
+   - short explanation from localized `display.description`, falling back to the schema's description; if neither exists, say the definition provides no explanation — do not guess;
+   - type plus enum, range, or other relevant constraints;
+   - default status and source;
+   - proposed value and value source.
+
+5. Determine the proposed value in this precedence order:
+
+   1. **user override** — any value the operator explicitly supplied, including values already present in a provided config;
+   2. **schema default** — the field's JSON Schema `default`;
+   3. **product default** — only a default explicitly documented by this skill or the live product contract. Currently `common.execution.leverage` is `10`, matching the website form; raw Engine omission means 1x;
+   4. **no default** — required fields remain unresolved and must be answered; optional fields are proposed as “不设置 / omit”. Do not guess a value or describe omission as a default.
+
+   A user override always wins, even when it equals neither default. Preserve explicit `false`, `0`, empty arrays, and empty strings when the schema allows them; they are not missing values.
+
+6. When there are many parameters, present them in logical groups or numbered chunks so the review remains readable. After all groups are visible, ask the operator to reply **confirm all** / “全部确认”, or override paths/numbers. One overall confirmation is sufficient, but it must cover every displayed parameter. Apply overrides, show the affected rows again, and repeat until no required value is unresolved and the operator explicitly confirms the final proposal.
+7. An earlier request such as “创建策略”, “运行回测”, or a pasted command/config is input to the proposal, not confirmation of the review. Do not validate, create, or backtest until the complete parameter review is explicitly confirmed.
+8. Write `strategy-config.json` as the trader object:
 
 ```json
 {
@@ -53,7 +73,7 @@ The human answers knobs. You write JSON.
 
 `common` is shared risk / SLTP / execution / market. `strategy` is this type's parameters and decision logic. Do not use top-level `settings`, `policyId`, or `policyParams`. `configSchemaVersion` comes from the definition (`byId.get` / list); keep it off this file.
 
-4. Keys and enums come from the definition schema, not from this skill. Do not ship a default `grid.json` / `dca.json`. Reuse this source file for `engine-backtest --config` and as `trading.traders.create` `config`.
+9. Keys and enums come from the definition schema, not from this skill. Do not ship a default `grid.json` / `dca.json`. Reuse this source file for `engine-backtest --config` and as `trading.traders.create` `config`.
 
 ## Validate config
 

@@ -33,6 +33,8 @@ alphafox schema engine_backtest.experiments.byId.sweeps.create --format json --n
 
 The tape runner ships inside the CLI (plus `ccxt` for public-market pulls). The wasm / Node host is downloaded from the public Vercel Blob manifest (`engine-backtest/latest.json`) into `~/.cache/alphafox/engine-backtest/<hash>/` on first run.
 
+Before planning or running, follow the complete parameter review in `alphafox-strategy`, including when the operator already supplied `--config` or pasted a full command. Do not run the backtest until every applicable parameter, default status, short explanation, proposed value, and value source has been shown and the operator explicitly confirms the final proposal. User overrides win; unresolved required values stop the flow.
+
 Local overrides, in order:
 
 1. `ALPHAFOX_BACKTEST_WASM_DIR` / `ALPHAFOX_BACKTEST_RUNNER_DIR`

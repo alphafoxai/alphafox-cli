@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { EventEmitter, once } from "node:events";
 import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { describe, it } from "node:test";
 
 import { EngineBacktestError } from "../src/engine-backtest/errors";
@@ -875,17 +876,10 @@ describe("engine-backtest fetch-runtime", () => {
     );
   });
 
-  it("does not let a late concurrent download replace valid cache entries", async () => {
+  it("publishes concurrent downloads from independent staging directories", async () => {
     const cacheDir = mkdtempSync(join(tmpdir(), "alphafox-runtime-race-"));
+    const barrier = new EventEmitter();
     let wasmRequests = 0;
-    let releaseFirstWasm!: () => void;
-    let releaseLateWasm!: () => void;
-    const bothRequested = new Promise<void>((resolve) => {
-      releaseFirstWasm = resolve;
-    });
-    const lateDownload = new Promise<void>((resolve) => {
-      releaseLateWasm = resolve;
-    });
     const fetchImpl = async (input: RequestInfo | URL): Promise<Response> => {
       const url = String(input);
       if (url.endsWith("latest.json")) {
@@ -894,11 +888,9 @@ describe("engine-backtest fetch-runtime", () => {
       if (url === validManifest.wasm) {
         wasmRequests += 1;
         if (wasmRequests === 1) {
-          await bothRequested;
+          await once(barrier, "peer");
         } else {
-          releaseFirstWasm();
-          await lateDownload;
-          return new Response("corrupt");
+          barrier.emit("peer");
         }
       }
       return new Response(url);
@@ -906,14 +898,12 @@ describe("engine-backtest fetch-runtime", () => {
     const env = {
       ALPHAFOX_BACKTEST_WASM_MANIFEST_URL: "https://example.test/latest.json",
     };
-    const runs = [
-      ensureBlobRuntime(env, { fetch: fetchImpl as typeof fetch, cacheDir }),
-      ensureBlobRuntime(env, { fetch: fetchImpl as typeof fetch, cacheDir }),
-    ];
 
-    await Promise.race(runs);
-    releaseLateWasm();
-    await Promise.all(runs);
+    await Promise.all([
+      ensureBlobRuntime(env, { fetch: fetchImpl as typeof fetch, cacheDir }),
+      ensureBlobRuntime(env, { fetch: fetchImpl as typeof fetch, cacheDir }),
+    ]);
+    assert.equal(wasmRequests, 2);
 
     for (const [key, fileName] of Object.entries(BLOB_RUNTIME_FILES)) {
       assert.equal(
@@ -922,41 +912,49 @@ describe("engine-backtest fetch-runtime", () => {
       );
     }
     assert.deepEqual(
-      readdirSync(cacheDir).filter((file) => file.endsWith(".tmp")),
+      readdirSync(dirname(cacheDir)).filter(
+        (file) =>
+          file.startsWith(`${basename(cacheDir)}.`) && file.endsWith(".tmp")
+      ),
       []
     );
   });
 
-  it("rejects a corrupt cached runtime without mutating shared files", async () => {
+  it("repairs corrupt cache and download content before returning", async () => {
     const cacheDir = mkdtempSync(join(tmpdir(), "alphafox-runtime-corrupt-"));
     writeFileSync(
       join(cacheDir, BLOB_RUNTIME_FILES.passivbotKernel),
-      "corrupt"
+      "corrupt-cache"
     );
+    let wasmDownloads = 0;
     const fetchImpl = (async (input: RequestInfo | URL) => {
       const url = String(input);
-      return url.endsWith("latest.json")
-        ? Response.json(validManifest)
-        : new Response(url);
+      if (url.endsWith("latest.json")) {
+        return Response.json(validManifest);
+      }
+      if (url === validManifest.wasm && ++wasmDownloads === 1) {
+        return new Response("corrupt-download");
+      }
+      return new Response(url);
     }) as typeof fetch;
 
-    await assert.rejects(
-      ensureBlobRuntime(
-        {
-          ALPHAFOX_BACKTEST_WASM_MANIFEST_URL:
-            "https://example.test/latest.json",
-        },
-        { fetch: fetchImpl, cacheDir }
-      ),
-      (error: unknown) => {
-        assert.ok(error instanceof EngineBacktestError);
-        assert.equal(error.subtype, "runtime_integrity_failed");
-        return true;
-      }
+    const loaded = await ensureBlobRuntime(
+      {
+        ALPHAFOX_BACKTEST_WASM_MANIFEST_URL:
+          "https://example.test/latest.json",
+      },
+      { fetch: fetchImpl, cacheDir }
     );
+
+    assert.equal(loaded.directory, cacheDir);
+    assert.equal(wasmDownloads, 2);
     assert.equal(
       readFileSync(join(cacheDir, BLOB_RUNTIME_FILES.passivbotKernel), "utf8"),
-      "corrupt"
+      validManifest.passivbotKernel
+    );
+    assert.equal(
+      readFileSync(join(cacheDir, BLOB_RUNTIME_FILES.wasm), "utf8"),
+      validManifest.wasm
     );
   });
 });

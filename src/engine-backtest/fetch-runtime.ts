@@ -1,10 +1,10 @@
 import { createHash, randomUUID } from "node:crypto";
 import { createReadStream, createWriteStream } from "node:fs";
-import { link, mkdir, rm, stat } from "node:fs/promises";
+import { mkdir, rename, rm, stat } from "node:fs/promises";
 import { homedir } from "node:os";
-import { join } from "node:path";
-import { pipeline } from "node:stream/promises";
+import { dirname, join } from "node:path";
 import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import type { ReadableStream as NodeReadableStream } from "node:stream/web";
 
 import { EngineBacktestError } from "./errors";
@@ -163,34 +163,81 @@ export async function ensureBlobRuntime(
   }
   const manifest = parseEngineBacktestBlobManifest(await response.json());
   const directory = hooks?.cacheDir ?? resolveRuntimeCacheDir(manifest.hash, env);
-  await mkdir(directory, { recursive: true });
-  for (const key of Object.keys(BLOB_RUNTIME_FILES) as BlobRuntimeFileKey[]) {
-    const fileName = BLOB_RUNTIME_FILES[key];
-    const url = manifest[key];
-    const target = join(directory, fileName);
-    if (await fileExists(target)) {
-      continue;
+  if (await runtimeMatchesHash(directory, manifest.hash)) {
+    return {
+      manifest,
+      directory,
+      nodeEntry: join(directory, BLOB_RUNTIME_FILES.node),
+    };
+  }
+
+  await mkdir(dirname(directory), { recursive: true });
+  let actualHash = "";
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const staging = `${directory}.${process.pid}.${randomUUID()}.tmp`;
+    await mkdir(staging, { recursive: true });
+    try {
+      for (const key of Object.keys(BLOB_RUNTIME_FILES) as BlobRuntimeFileKey[]) {
+        await downloadFile(
+          fetchImpl,
+          manifest[key],
+          join(staging, BLOB_RUNTIME_FILES[key])
+        );
+      }
+      if (!(await allRuntimeFilesExist(staging))) {
+        continue;
+      }
+      actualHash = await hashBlobRuntime(staging);
+      if (actualHash !== manifest.hash) {
+        continue;
+      }
+
+      await mkdir(directory, { recursive: true });
+      for (const fileName of Object.values(BLOB_RUNTIME_FILES)) {
+        await rename(join(staging, fileName), join(directory, fileName));
+      }
+      if (await runtimeMatchesHash(directory, manifest.hash)) {
+        return {
+          manifest,
+          directory,
+          nodeEntry: join(directory, BLOB_RUNTIME_FILES.node),
+        };
+      }
+    } finally {
+      await rm(staging, { force: true, recursive: true });
     }
-    await downloadFile(fetchImpl, url, target);
   }
-  const actualHash = await hashBlobRuntime(directory);
-  if (actualHash !== manifest.hash) {
-    // Never delete a shared cache entry here: another process may already be
-    // executing the same immutable runtime. Fail closed until the operator
-    // removes the corrupt hash directory.
-    throw new EngineBacktestError({
-      type: "runtime",
-      subtype: "runtime_integrity_failed",
-      message: `Backtest runtime hash mismatch: expected ${manifest.hash}, received ${actualHash}.`,
-      hint: "Remove the corrupt runtime cache directory, then retry.",
-      details: { expectedHash: manifest.hash, actualHash, directory },
-    });
+  throw new EngineBacktestError({
+    type: "runtime",
+    subtype: "runtime_integrity_failed",
+    message: `Backtest runtime hash mismatch: expected ${manifest.hash}, received ${actualHash}.`,
+    hint: "Retry the download; no unverified runtime was cached.",
+    details: { expectedHash: manifest.hash, actualHash, directory },
+  });
+}
+
+async function runtimeMatchesHash(
+  directory: string,
+  expectedHash: string
+): Promise<boolean> {
+  if (!(await allRuntimeFilesExist(directory))) {
+    return false;
   }
-  return {
-    manifest,
-    directory,
-    nodeEntry: join(directory, BLOB_RUNTIME_FILES.node),
-  };
+  try {
+    return (await hashBlobRuntime(directory)) === expectedHash;
+  } catch {
+    return false;
+  }
+}
+
+async function allRuntimeFilesExist(directory: string): Promise<boolean> {
+  return (
+    await Promise.all(
+      Object.values(BLOB_RUNTIME_FILES).map((fileName) =>
+        fileExists(join(directory, fileName))
+      )
+    )
+  ).every(Boolean);
 }
 
 async function downloadFile(
@@ -221,13 +268,7 @@ async function downloadFile(
       Readable.fromWeb(response.body as NodeReadableStream),
       createWriteStream(tmp)
     );
-    try {
-      await link(tmp, target);
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
-        throw error;
-      }
-    }
+    await rename(tmp, target);
   } finally {
     await rm(tmp, { force: true });
   }

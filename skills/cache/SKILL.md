@@ -1,7 +1,7 @@
 ---
 name: alphafox-cache
 description: Inspect and clean local Engine backtest caches (downloaded OHLCV tape and wasm runtime). Use when the user asks to 清理缓存, free disk, or after a large historical backtest.
-version: 0.3.20
+version: 0.3.21
 ---
 
 # Cache

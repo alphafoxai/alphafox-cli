@@ -1,7 +1,7 @@
 ---
 name: alphafox-strategy
 description: Strategy definitions — list types, read a definition's contract, and validate config. Creating a running strategy is creating a trader; use alphafox-trading for that. Local Engine backtest is alphafox-engine-backtest.
-version: 0.3.20
+version: 0.3.21
 ---
 
 # Strategy definitions

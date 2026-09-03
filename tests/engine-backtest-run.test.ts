@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
@@ -719,7 +719,7 @@ describe("engine-backtest resolve-packages", () => {
     assert.ok(runner.module.DEFAULT_EXECUTION_MODEL);
   });
 
-  it("downloads the Node runtime from the Blob manifest", async () => {
+  it("downloads the Node runtime and Passivbot assets from the Blob manifest", async () => {
     const cacheDir = mkdtempSync(join(tmpdir(), "alphafox-blob-runtime-"));
     const manifest = {
       version: "0.1.1148",
@@ -732,6 +732,8 @@ describe("engine-backtest resolve-packages", () => {
       node: "https://example.test/node.mjs",
       nodeWorker: "https://example.test/worker-node.mjs",
       nodeWorkerPath: "https://example.test/worker-node-path.mjs",
+      passivbotKernel: "https://example.test/passivbot_kernel.wasm",
+      passivbotKernelModule: "https://example.test/passivbot-kernel.mjs",
     };
     const bodies: Record<string, string> = {
       "https://example.test/latest.json": JSON.stringify(manifest),
@@ -743,6 +745,8 @@ describe("engine-backtest resolve-packages", () => {
         "export function createNodeBacktestClient() { return { from: 'blob' }; }\n",
       "https://example.test/worker-node.mjs": "node-worker",
       "https://example.test/worker-node-path.mjs": "node-worker-path",
+      "https://example.test/passivbot_kernel.wasm": "passivbot-kernel-wasm",
+      "https://example.test/passivbot-kernel.mjs": "passivbot-kernel-module",
     };
     const fetchImpl = (async (url: string | URL) => {
       const href = String(url);
@@ -759,6 +763,25 @@ describe("engine-backtest resolve-packages", () => {
     const wasm = await builtResolver.loadBacktestWasm(
       { ALPHAFOX_BACKTEST_WASM_MANIFEST_URL: "https://example.test/latest.json" },
       { fetch: fetchImpl, cacheDir }
+    );
+    assert.deepEqual(readdirSync(cacheDir).sort(), [
+      "index.mjs",
+      "node.mjs",
+      "passivbot-kernel.mjs",
+      "passivbot_kernel.wasm",
+      "tradingfox-backtest.wasm",
+      "wasm_exec.js",
+      "worker-node-path.mjs",
+      "worker-node.mjs",
+      "worker.mjs",
+    ].sort());
+    assert.equal(
+      readFileSync(join(cacheDir, "passivbot_kernel.wasm"), "utf8"),
+      "passivbot-kernel-wasm"
+    );
+    assert.equal(
+      readFileSync(join(cacheDir, "passivbot-kernel.mjs"), "utf8"),
+      "passivbot-kernel-module"
     );
     assert.equal(wasm.resolved.source, "blob");
     assert.equal(
@@ -787,6 +810,28 @@ describe("engine-backtest fetch-runtime", () => {
     assert.equal(parsed.protocol, 1);
     assert.equal(parsed.hash, "323e65c3d57eb8c0");
     assert.equal(parsed.node, validManifest.node);
+  });
+
+  it("requires Passivbot runtime URLs as a pair", () => {
+    for (const manifest of [
+      {
+        ...validManifest,
+        passivbotKernel: "https://example.test/passivbot_kernel.wasm",
+      },
+      {
+        ...validManifest,
+        passivbotKernelModule: "https://example.test/passivbot-kernel.mjs",
+      },
+    ]) {
+      assert.throws(
+        () => parseEngineBacktestBlobManifest(manifest),
+        (err: unknown) => {
+          assert.ok(err instanceof EngineBacktestError);
+          assert.equal(err.subtype, "runtime_manifest_invalid");
+          return true;
+        }
+      );
+    }
   });
 
   it("refuses a protocol mismatch or missing Node host URL", () => {

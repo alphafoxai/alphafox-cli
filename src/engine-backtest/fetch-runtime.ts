@@ -19,6 +19,8 @@ export const BLOB_RUNTIME_FILES = {
   node: "node.mjs",
   nodeWorker: "worker-node.mjs",
   nodeWorkerPath: "worker-node-path.mjs",
+  passivbotKernel: "passivbot_kernel.wasm",
+  passivbotKernelModule: "passivbot-kernel.mjs",
 } as const;
 
 export type BlobRuntimeFileKey = keyof typeof BLOB_RUNTIME_FILES;
@@ -36,6 +38,8 @@ export interface EngineBacktestBlobManifest {
   readonly node: string;
   readonly nodeWorker: string;
   readonly nodeWorkerPath: string;
+  readonly passivbotKernel?: string;
+  readonly passivbotKernelModule?: string;
 }
 
 export interface FetchRuntimeHooks {
@@ -82,6 +86,25 @@ export function parseEngineBacktestBlobManifest(
       message: `Backtest runtime protocol is incompatible (got ${String(record.protocol)}, expected ${BACKTEST_RUNTIME_PROTOCOL}).`,
     });
   }
+  const passivbotKernel =
+    record.passivbotKernel === undefined
+      ? undefined
+      : readRequiredHttps(record.passivbotKernel, "passivbotKernel");
+  const passivbotKernelModule =
+    record.passivbotKernelModule === undefined
+      ? undefined
+      : readRequiredHttps(
+          record.passivbotKernelModule,
+          "passivbotKernelModule"
+        );
+  if ((passivbotKernel === undefined) !== (passivbotKernelModule === undefined)) {
+    throw new EngineBacktestError({
+      type: "runtime",
+      subtype: "runtime_manifest_invalid",
+      message:
+        "Backtest runtime manifest must include both passivbotKernel and passivbotKernelModule.",
+    });
+  }
   return {
     version: readRequiredString(record.version, "version"),
     hash: readRequiredString(record.hash, "hash"),
@@ -95,6 +118,8 @@ export function parseEngineBacktestBlobManifest(
     node: readRequiredHttps(record.node, "node"),
     nodeWorker: readRequiredHttps(record.nodeWorker, "nodeWorker"),
     nodeWorkerPath: readRequiredHttps(record.nodeWorkerPath, "nodeWorkerPath"),
+    passivbotKernel,
+    passivbotKernelModule,
   };
 }
 
@@ -134,11 +159,15 @@ export async function ensureBlobRuntime(
   await mkdir(directory, { recursive: true });
   for (const key of Object.keys(BLOB_RUNTIME_FILES) as BlobRuntimeFileKey[]) {
     const fileName = BLOB_RUNTIME_FILES[key];
+    const url = manifest[key];
+    if (url === undefined) {
+      continue;
+    }
     const target = join(directory, fileName);
     if (await fileExists(target)) {
       continue;
     }
-    await downloadFile(fetchImpl, manifest[key], target);
+    await downloadFile(fetchImpl, url, target);
   }
   return {
     manifest,
@@ -185,6 +214,7 @@ async function fileExists(path: string): Promise<boolean> {
     return false;
   }
 }
+
 
 function readRequiredHttps(value: unknown, field: string): string {
   const text = readRequiredString(value, field);

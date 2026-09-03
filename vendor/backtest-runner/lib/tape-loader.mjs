@@ -19,9 +19,15 @@ import {
   buildCcxtConstructorOptions,
   ccxtExchangeClientCacheKey,
 } from "./proxy.mjs";
-import { loadSeriesWithCache, TIMEFRAME_MS } from "./series.mjs";
+import { loadSeriesWithCache } from "./series.mjs";
+import {
+  limitTapeOhlcvConcurrency,
+  mapWithConcurrency,
+  resolveTapeSeriesConcurrency,
+} from "./tape-loader-concurrency.mjs";
 import {
   ENGINE_BACKTEST_BASE_TIMEFRAME,
+  TIMEFRAME_MS,
   baseTimeframeStepMs,
   resolvePlanBaseTimeframe,
 } from "./timeframes.mjs";
@@ -40,46 +46,7 @@ const FUNDING_INTERVALS = [
   { interval: "8h", spacingMs: 28_800_000 },
 ];
 
-/** Independent symbol×timeframe (and funding) fetches. Pagination stays serial. */
-export const DEFAULT_TAPE_SERIES_CONCURRENCY = 4;
-export const MAX_TAPE_SERIES_CONCURRENCY = 8;
-
 const exchangePromises = new Map();
-
-export function resolveTapeSeriesConcurrency(value) {
-  if (typeof value === "number" && Number.isFinite(value) && value >= 1) {
-    return Math.min(
-      MAX_TAPE_SERIES_CONCURRENCY,
-      Math.max(1, Math.floor(value))
-    );
-  }
-  return DEFAULT_TAPE_SERIES_CONCURRENCY;
-}
-
-export async function mapWithConcurrency(items, concurrency, worker) {
-  const list = [...items];
-  if (list.length === 0) {
-    return [];
-  }
-  const limit = Math.min(
-    list.length,
-    Math.max(1, Math.floor(Number(concurrency)) || 1)
-  );
-  const results = new Array(list.length);
-  let nextIndex = 0;
-  async function runWorker() {
-    while (true) {
-      const index = nextIndex;
-      nextIndex += 1;
-      if (index >= list.length) {
-        return;
-      }
-      results[index] = await worker(list[index], index);
-    }
-  }
-  await Promise.all(Array.from({ length: limit }, () => runWorker()));
-  return results;
-}
 
 export function effectiveTapeEndMs(
   requestedToMs,
@@ -287,6 +254,11 @@ export async function loadTape(request, options = {}) {
   const dataIssues = [];
   const coverageWarnings = [];
   const coverageIssues = [];
+  const ohlcvExchange = limitTapeOhlcvConcurrency(
+    exchange,
+    seriesConcurrency,
+    request.signal
+  );
   const seriesFractions = new Array(totalSeries).fill(0);
   let lastOhlcvDetail = "";
   const reportOhlcv = (index, fraction, detail) => {
@@ -311,7 +283,7 @@ export async function loadTape(request, options = {}) {
       const detail = `${symbol} ${timeframe}`;
       try {
         const loaded = await loadSeriesWithCache(
-          exchange,
+          ohlcvExchange,
           exchangeDefinition,
           runtimeConfig,
           symbol,

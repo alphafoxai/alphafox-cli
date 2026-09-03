@@ -316,7 +316,7 @@ export interface TapeProxyOptions {
 export interface TapeLoadOptions extends TapeProxyOptions {
   readonly cache?: FileTapeCache | false | "disable";
   readonly cacheDir?: string;
-  /** Independent series fetches; default 4, hard cap 8. Pagination stays serial. */
+  /** Shared series and time-window request budget; default and hard cap are 8. */
   readonly seriesConcurrency?: number;
   readonly nowMs?: number;
   readonly onProgress?: (progress: TapeLoadProgress) => void;
@@ -353,7 +353,7 @@ export interface TapeLoadResult {
   };
 }
 
-export const DEFAULT_TAPE_SERIES_CONCURRENCY: 4;
+export const DEFAULT_TAPE_SERIES_CONCURRENCY: 8;
 export const MAX_TAPE_SERIES_CONCURRENCY: 8;
 
 export function resolveTapeSeriesConcurrency(value?: number): number;
@@ -363,6 +363,12 @@ export function mapWithConcurrency<T, R>(
   concurrency: number,
   worker: (item: T, index: number) => Promise<R>
 ): Promise<R[]>;
+
+export function limitTapeOhlcvConcurrency(
+  exchange: Pick<TapeRuntimeExchange, "fetchOHLCV">,
+  concurrency: number,
+  signal?: AbortSignal
+): Pick<TapeRuntimeExchange, "fetchOHLCV">;
 
 export function loadTape(
   request: TapeLoadRequest,

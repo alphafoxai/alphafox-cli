@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { createReadStream, createWriteStream } from "node:fs";
-import { mkdir, rename, rm, stat } from "node:fs/promises";
+import { link, mkdir, rm, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { pipeline } from "node:stream/promises";
@@ -175,17 +175,15 @@ export async function ensureBlobRuntime(
   }
   const actualHash = await hashBlobRuntime(directory);
   if (actualHash !== manifest.hash) {
-    await Promise.all(
-      Object.values(BLOB_RUNTIME_FILES).map((fileName) =>
-        rm(join(directory, fileName), { force: true })
-      )
-    );
+    // Never delete a shared cache entry here: another process may already be
+    // executing the same immutable runtime. Fail closed until the operator
+    // removes the corrupt hash directory.
     throw new EngineBacktestError({
       type: "runtime",
       subtype: "runtime_integrity_failed",
       message: `Backtest runtime hash mismatch: expected ${manifest.hash}, received ${actualHash}.`,
-      hint: "Retry the download; the invalid cached runtime was removed.",
-      details: { expectedHash: manifest.hash, actualHash },
+      hint: "Remove the corrupt runtime cache directory, then retry.",
+      details: { expectedHash: manifest.hash, actualHash, directory },
     });
   }
   return {
@@ -223,7 +221,13 @@ async function downloadFile(
       Readable.fromWeb(response.body as NodeReadableStream),
       createWriteStream(tmp)
     );
-    await rename(tmp, target);
+    try {
+      await link(tmp, target);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
+        throw error;
+      }
+    }
   } finally {
     await rm(tmp, { force: true });
   }
@@ -247,7 +251,6 @@ async function fileExists(path: string): Promise<boolean> {
     return false;
   }
 }
-
 
 function readRequiredHttps(value: unknown, field: string): string {
   const text = readRequiredString(value, field);

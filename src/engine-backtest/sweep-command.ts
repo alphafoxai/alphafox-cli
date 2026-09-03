@@ -32,6 +32,7 @@ import {
   releaseWorkerTape,
   throwIfPreparedTapeErrors,
 } from "./prepared-tape";
+import { createProgressEmitter } from "./progress";
 import { mergeReplayTimeframeWithPlan } from "./replay-timeframe";
 import {
   loadBacktestRunner,
@@ -147,6 +148,7 @@ export async function executeEngineBacktestSweep(
     ((value: unknown) => {
       process.stdout.write(`${JSON.stringify(value)}\n`);
     });
+  const emitProgress = createProgressEmitter(flags.format, writeLine);
   if (persist) {
     requireAuth(profile, env, tokensFn);
   }
@@ -224,7 +226,7 @@ export async function executeEngineBacktestSweep(
       });
     }
 
-    emitProgress(flags, writeLine, "planning", 0);
+    emitProgress("planning", 0);
     const plannedByKey = new Map<string, PlannedSweepCoordinate | SweepPoint>();
     const tapePlans: EngineSupportedBacktestPlan[] = [];
     for (const [index, coordinate] of standardPlan.coordinates.entries()) {
@@ -240,12 +242,7 @@ export async function executeEngineBacktestSweep(
       if ("plan" in planned) {
         tapePlans.push(planned.plan);
       }
-      emitProgress(
-        flags,
-        writeLine,
-        "planning",
-        (index + 1) / standardPlan.coordinates.length
-      );
+      emitProgress("planning", (index + 1) / standardPlan.coordinates.length);
     }
 
     let exchange;
@@ -268,7 +265,7 @@ export async function executeEngineBacktestSweep(
       symbols: coverage.symbols,
     });
 
-    emitProgress(flags, writeLine, "tape", 0);
+    emitProgress("tape", 0);
     let tapeResult: TapeLoadResult = {
       tape: {
         from: "",
@@ -299,8 +296,6 @@ export async function executeEngineBacktestSweep(
           seriesConcurrency: ENGINE_BACKTEST_TAPE_SERIES_CONCURRENCY,
           onProgress: (progress: TapeLoadProgress) => {
             emitProgress(
-              flags,
-              writeLine,
               progress.stage || "tape",
               progress.fraction,
               progress.detail
@@ -325,7 +320,7 @@ export async function executeEngineBacktestSweep(
         coverageIssues: requireTapeCoverageIssues(tapeResult.coverageIssues),
       };
     }
-    emitProgress(flags, writeLine, "tape", 1);
+    emitProgress("tape", 1);
 
     while (clients.length < concurrency) {
       const extra = wasm.createNodeBacktestClient();
@@ -393,17 +388,12 @@ export async function executeEngineBacktestSweep(
         ? standardPlan.coordinates.length
         : coarsePlan.coordinates.length;
     let sweepPoints: readonly SweepPoint[] = [];
-    emitProgress(flags, writeLine, "sweep", 0);
+    emitProgress("sweep", 0);
     const coarsePoints = await runPrepared(
       coarsePlan.coordinates,
       (done, points) => {
         sweepPoints = points;
-        emitProgress(
-          flags,
-          writeLine,
-          "sweep",
-          done / Math.max(exactTotalEstimate, 1)
-        );
+        emitProgress("sweep", done / Math.max(exactTotalEstimate, 1));
       }
     );
     sweepPoints = coarsePoints;
@@ -425,8 +415,6 @@ export async function executeEngineBacktestSweep(
         (done, points) => {
           sweepPoints = [...coarsePoints, ...points];
           emitProgress(
-            flags,
-            writeLine,
             "sweep",
             (coarsePlan.coordinates.length + done) /
               (coarsePlan.coordinates.length + refinement.length)
@@ -435,7 +423,7 @@ export async function executeEngineBacktestSweep(
       );
       sweepPoints = [...coarsePoints, ...refinementPoints];
     }
-    emitProgress(flags, writeLine, "sweep", 1);
+    emitProgress("sweep", 1);
 
     const engineVersion =
       (typeof client.version === "function"
@@ -457,7 +445,7 @@ export async function executeEngineBacktestSweep(
     let persisted = false;
 
     if (persist && completed) {
-      emitProgress(flags, writeLine, "persist", 0);
+      emitProgress("persist", 0);
       if (createExperiment) {
         const created = await postJson(
           api,
@@ -554,7 +542,7 @@ export async function executeEngineBacktestSweep(
         });
       }
       persisted = true;
-      emitProgress(flags, writeLine, "persist", 1);
+      emitProgress("persist", 1);
     }
 
     return {
@@ -1065,20 +1053,4 @@ function asConfigRecord(value: unknown): SweepConfigRecord {
 
 function coordinateKey(coordinate: SweepCoordinate): string {
   return coordinate.values.join("\u0000");
-}
-
-function emitProgress(
-  flags: EngineBacktestCliFlags,
-  writeLine: (value: unknown) => void,
-  stage: string,
-  fraction: number,
-  detail?: string
-): void {
-  if (flags.format !== "jsonl") return;
-  writeLine({
-    event: "progress",
-    stage,
-    fraction,
-    ...(detail ? { detail } : {}),
-  });
 }

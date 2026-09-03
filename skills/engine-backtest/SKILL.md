@@ -56,7 +56,7 @@ alphafox engine-backtest run \
 
 Also valid: `--from` / `--to` instead of `--range`. `--create-experiment --name "..."` when there is no `--experiment` (needs `strategyDefinitionId` + `strategyDefinitionDisplay` `{zh,en}`; pass `--definition-label-zh` / `--definition-label-en` or the CLI falls back to the definition id). Persisted runs use the account tier from `subscriptions.me.get`; if `--tier` is supplied, it must match. With `--no-persist`, `runs.create` is skipped and `--tier` may simulate `free|pro|pro_max` (default `pro`). `--data-quality` defaults to `basic` (soft gaps finish the run and appear as `coverageNotice`; `prefix_gap` is less severe than `internal_gap`). `--data-quality strict` still fails on any gap. `--replay-timeframe` defaults to `1m` (allowed `1m|3m|5m|15m|30m|1h|4h`); this is the replay/download bar and is merged with plan indicator timeframes so a 4h RSI grid still replays on 1m. `runs.create` is `write`, not `high-risk-write` — do not add `--yes`. Do not update or delete experiments through this command.
 
-`--format jsonl` writes one JSON object per progress line (`{event:"progress",stage,fraction}`), then a final `{ok:true,data:{...}}` envelope.
+`--format jsonl` writes compact progress milestones (`{event:"progress",stage,fraction}`; first update, each 10%, and completion per stage), then a final `{ok:true,data:{...}}` envelope. Use `--format json` when only the final envelope is needed.
 
 ## Local sweep
 
@@ -78,7 +78,7 @@ alphafox engine-backtest sweep \
 
 `--mode` is `neighborhood|range`. `--search-mode` is `standard|fast`. `--concurrency` is 1–8; Free is always serial. After every local coordinate finishes, the command POSTs **one** `engine_backtest.experiments.byId.sweeps.create` summary (4 MiB / point-error caps). It never calls `runs.create` per coordinate and never writes Tape, curves, or full configs. `--no-persist` stays zero-write. A cancelled or incomplete search is not persisted. The same `clientSweepId` is reused if you rebuild the create body for retry; unknown write results (no Sweep id) fail instead of reporting `persisted: true`.
 
-`--format jsonl` includes `planning`, `tape`, `sweep`, and `persist` stages. The final envelope includes counts, `elapsedMs`, best coordinate/config, `sweepId`, `persisted`, and an Experiment URL with `?tab=sweep`. After persist, include that dashboard URL in the reply (`https://www.alphafox.app/zh/dashboard/traders/backtest/{experimentId}?tab=sweep`).
+`--format jsonl` includes compact 10% milestones for `planning`, `tape`, `sweep`, and `persist` stages. The final envelope includes counts, `elapsedMs`, best coordinate/config, `sweepId`, `persisted`, and an Experiment URL with `?tab=sweep`. After persist, include that dashboard URL in the reply (`https://www.alphafox.app/zh/dashboard/traders/backtest/{experimentId}?tab=sweep`).
 
 Read / delete history through typed catalog commands. Delete is high-risk-write:
 

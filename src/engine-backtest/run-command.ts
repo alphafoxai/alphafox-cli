@@ -33,6 +33,7 @@ import {
   releaseWorkerTape,
   requireCompletedPreparedRun,
 } from "./prepared-tape";
+import { createProgressEmitter } from "./progress";
 import { mergeReplayTimeframeWithPlan } from "./replay-timeframe";
 import {
   loadBacktestRunner,
@@ -243,22 +244,6 @@ async function loadAccountSubscriptionTier(
   return tier;
 }
 
-function emitProgress(
-  flags: EngineBacktestCliFlags,
-  writeLine: (value: unknown) => void,
-  stage: string,
-  fraction: number,
-  detail?: string
-): void {
-  if (flags.format !== "jsonl") return;
-  writeLine({
-    event: "progress",
-    stage,
-    fraction,
-    ...(detail ? { detail } : {}),
-  });
-}
-
 export async function executeEngineBacktestRun(
   args: EngineBacktestRunArgs,
   flags: EngineBacktestCliFlags,
@@ -291,6 +276,7 @@ export async function executeEngineBacktestRun(
     ((value: unknown) => {
       process.stdout.write(`${JSON.stringify(value)}\n`);
     });
+  const emitProgress = createProgressEmitter(flags.format, writeLine);
   const persist = args.persist && !flags.dryRun;
   const createExperiment = args.createExperiment && !flags.dryRun;
   const needsApi = persist || createExperiment;
@@ -444,8 +430,6 @@ export async function executeEngineBacktestRun(
         seriesConcurrency: ENGINE_BACKTEST_TAPE_SERIES_CONCURRENCY,
         onProgress: (progress: TapeLoadProgress) => {
           emitProgress(
-            flags,
-            writeLine,
             progress.stage || "tape",
             progress.fraction,
             progress.detail
@@ -498,7 +482,7 @@ export async function executeEngineBacktestRun(
           prepared.handle,
           scenario,
           (fraction) => {
-            emitProgress(flags, writeLine, "wasm", fraction);
+            emitProgress("wasm", fraction);
           }
         )
       );

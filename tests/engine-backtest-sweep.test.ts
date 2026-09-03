@@ -221,7 +221,9 @@ function isolatedEnv(): NodeJS.ProcessEnv {
 
 function runnerDeps(overrides: {
   readonly client?: BacktestClientLike;
-  readonly createClient?: () => BacktestClientLike;
+  readonly createClient?: (options?: {
+    readonly verbose?: boolean;
+  }) => BacktestClientLike;
   readonly loadTape?: (req: {
     readonly seriesRequirements?: readonly {
       readonly symbol: string;
@@ -387,6 +389,7 @@ describe("engine-backtest sweep parse", () => {
     assert.equal(parsed.initialEquity, 10_000);
     assert.equal(parsed.dataQualityMode, "basic");
     assert.equal(parsed.replayTimeframe, "1m");
+    assert.equal(parsed.verbose, false);
     assert.equal(parsed.mode, "neighborhood");
     assert.equal(parsed.searchMode, "standard");
     assert.equal(parsed.concurrency, 2);
@@ -409,6 +412,7 @@ describe("engine-backtest sweep parse", () => {
         "5m",
         "--data-quality",
         "basic",
+        "--verbose",
       ])
     );
     assert.equal(parsed.mode, "range");
@@ -417,6 +421,7 @@ describe("engine-backtest sweep parse", () => {
     assert.equal(parsed.tier, "pro");
     assert.equal(parsed.replayTimeframe, "5m");
     assert.equal(parsed.dataQualityMode, "basic");
+    assert.equal(parsed.verbose, true);
   });
 
   it("does not let run parse --axes", () => {
@@ -764,15 +769,20 @@ describe("engine-backtest sweep execute", () => {
   it("persists once after every coordinate finishes and never creates a Run", async () => {
     const apiCalls: string[] = [];
     const bodies: unknown[] = [];
+    const clientOptions: unknown[] = [];
     const progress: Array<{ stage: string; fraction: number }> = [];
     const result = await executeEngineBacktestSweep(
       parseEngineBacktestSweepArgs(
-        sweepArgv(["--mode", "range", "--concurrency", "1"])
+        sweepArgv(["--mode", "range", "--concurrency", "1", "--verbose"])
       ),
       { ...FLAGS, format: "jsonl" },
       isolatedEnv(),
       {
         ...runnerDeps({
+          createClient: (options) => {
+            clientOptions.push(options);
+            return fakeClient();
+          },
           loadTokens: authedTokens,
           apiRequest: async (options) => {
             apiCalls.push(`${options.method} ${options.path}`);
@@ -805,6 +815,8 @@ describe("engine-backtest sweep execute", () => {
         },
       }
     );
+
+    assert.deepEqual(clientOptions, [{ verbose: true }]);
 
     assert.deepEqual(
       apiCalls.filter((call) => call.startsWith("POST")),

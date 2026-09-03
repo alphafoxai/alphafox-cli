@@ -255,6 +255,7 @@ describe("engine-backtest parse", () => {
     assert.equal(parsed.dataQualityMode, "basic");
     assert.equal(parsed.persist, true);
     assert.equal(parsed.replayTimeframe, "1m");
+    assert.equal(parsed.verbose, false);
   });
 
   it("rejects calendar dates that Date.parse would normalize", () => {
@@ -332,11 +333,13 @@ describe("engine-backtest parse", () => {
       "--no-persist",
       "--tier",
       "free",
+      "--verbose",
     ]);
     assert.equal(parsed.createExperiment, true);
     assert.equal(parsed.name, "grid-aug");
     assert.equal(parsed.persist, false);
     assert.equal(parsed.tier, "free");
+    assert.equal(parsed.verbose, true);
   });
 });
 
@@ -815,6 +818,7 @@ describe("engine-backtest orchestration", () => {
   it("plans, loads tape, runs wasm, and POSTs persist body in order", async () => {
     const calls: string[] = [];
     const apiBodies: unknown[] = [];
+    const clientOptions: unknown[] = [];
     const client = fakeClient({
       planBacktest: async (req) => {
         calls.push(`plan:${req.definitionId}:${req.configSchemaVersion}`);
@@ -899,6 +903,7 @@ describe("engine-backtest orchestration", () => {
         "10000",
         "--tier",
         "pro_max",
+        "--verbose",
       ]),
       FLAGS,
       {
@@ -906,7 +911,10 @@ describe("engine-backtest orchestration", () => {
         ALPHAFOX_CONFIG_DIR: mkdtempSync(join(tmpdir(), "alphafox-cfg-")),
       },
       {
-        createNodeBacktestClient: () => client,
+        createNodeBacktestClient: (options) => {
+          clientOptions.push(options);
+          return client;
+        },
         loadTape: async (req) => {
           calls.push(
             `tape:${req.symbols.join(",")}:${req.fromMs}:${req.toMs}:${req.dataQualityMode}:${req.seriesConcurrency}`
@@ -978,6 +986,8 @@ describe("engine-backtest orchestration", () => {
         })(),
       }
     );
+
+    assert.deepEqual(clientOptions, [{ verbose: true }]);
 
     assert.deepEqual(calls, [
       "plan:grid:4",

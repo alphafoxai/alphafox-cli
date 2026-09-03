@@ -173,7 +173,7 @@ export async function executeEngineBacktestSweep(
   const { wasm, runner } = await loadRuntime(deps, env);
   const clients: BacktestClientLike[] = [];
   try {
-    const client = wasm.createNodeBacktestClient();
+    const client = wasm.createNodeBacktestClient({ verbose: args.verbose });
     clients.push(client);
     if (typeof client.init === "function") {
       await client.init();
@@ -323,7 +323,7 @@ export async function executeEngineBacktestSweep(
     emitProgress("tape", 1);
 
     while (clients.length < concurrency) {
-      const extra = wasm.createNodeBacktestClient();
+      const extra = wasm.createNodeBacktestClient({ verbose: args.verbose });
       clients.push(extra);
       if (typeof extra.init === "function") {
         await extra.init();

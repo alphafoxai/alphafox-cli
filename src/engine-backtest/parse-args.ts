@@ -25,12 +25,12 @@ const DATA_QUALITY = new Set<DataQualityMode>(["strict", "basic"]);
 const PRICE_PATHS = new Set(["ohlc_path_4", "close_only"]);
 
 export const ENGINE_BACKTEST_RUN_USAGE = [
-  "alphafox engine-backtest run --experiment <uuid> --definition <id> --config @file.json --exchange <id> --range YYYY-MM-DD..YYYY-MM-DD --initial-equity N [--replay-timeframe 1m]",
+  "alphafox engine-backtest run --experiment <uuid> --definition <id> --config @file.json --exchange <id> --range YYYY-MM-DD..YYYY-MM-DD --initial-equity N [--replay-timeframe 1m] [--verbose]",
   "alphafox engine-backtest run --create-experiment --name <name> --definition <id> --config @file.json --exchange <id> --from YYYY-MM-DD --to YYYY-MM-DD --initial-equity N",
 ];
 
 export const ENGINE_BACKTEST_SWEEP_USAGE = [
-  "alphafox engine-backtest sweep --experiment <uuid> --definition <id> --config @file.json --axes @axes.json --exchange <id> --range YYYY-MM-DD..YYYY-MM-DD --initial-equity N [--no-persist] [--mode neighborhood|range] [--search-mode standard|fast] [--concurrency N]",
+  "alphafox engine-backtest sweep --experiment <uuid> --definition <id> --config @file.json --axes @axes.json --exchange <id> --range YYYY-MM-DD..YYYY-MM-DD --initial-equity N [--no-persist] [--mode neighborhood|range] [--search-mode standard|fast] [--concurrency N] [--verbose]",
 ];
 
 const SWEEP_MODES = new Set<SweepMode>(["neighborhood", "range"]);
@@ -159,6 +159,7 @@ export function parseEngineBacktestRunArgs(
   let configSchemaVersion: number | undefined;
   let executionModelOverride: Partial<ExecutionModel> | undefined;
   let persist = true;
+  let verbose = false;
   let help = false;
   let replayTimeframe: EngineBacktestReplayTimeframe =
     ENGINE_BACKTEST_DEFAULT_REPLAY_TIMEFRAME;
@@ -175,6 +176,10 @@ export function parseEngineBacktestRunArgs(
     }
     if (a === "--no-persist") {
       persist = false;
+      continue;
+    }
+    if (a === "--verbose") {
+      verbose = true;
       continue;
     }
     if (!a.startsWith("--")) {
@@ -284,6 +289,7 @@ export function parseEngineBacktestRunArgs(
       tier,
       dataQualityMode,
       persist,
+      verbose,
       replayTimeframe,
     };
   }
@@ -349,6 +355,7 @@ export function parseEngineBacktestRunArgs(
     configSchemaVersion,
     executionModelOverride,
     persist,
+    verbose,
     replayTimeframe,
   };
 }
@@ -427,6 +434,7 @@ export function parseEngineBacktestSweepArgs(
       createExperiment: false,
       dataQualityMode: DEFAULT_DATA_QUALITY_MODE,
       persist: true,
+      verbose: false,
       replayTimeframe: ENGINE_BACKTEST_DEFAULT_REPLAY_TIMEFRAME,
       axesRaw,
       mode,

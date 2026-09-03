@@ -327,7 +327,9 @@ export async function executeEngineBacktestRun(
     runner = runnerLoaded.module;
   }
 
-  const client: BacktestClientLike = wasm.createNodeBacktestClient();
+  const client: BacktestClientLike = wasm.createNodeBacktestClient({
+    verbose: args.verbose,
+  });
   try {
     if (typeof client.init === "function") {
       await client.init();
@@ -592,6 +594,7 @@ export function engineBacktestHelpData(): {
       "runs.create is write (not high-risk-write); --yes is not required",
       "Do not pass --token; use alphafox auth login",
       "--replay-timeframe defaults to 1m (min 1m). Indicator series still download their native plan timeframes.",
+      "Raw Engine worker logs, including per-trade output, are hidden by default. Use --verbose to forward them.",
       "--data-quality defaults to basic: hard tape failures still stop, soft gaps finish the run and appear as coverageNotice (prefix_gap less severe, internal_gap more severe). Use --data-quality strict to fail on any gap.",
     ],
   };

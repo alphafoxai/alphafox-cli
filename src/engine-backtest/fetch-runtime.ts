@@ -96,6 +96,14 @@ export function parseEngineBacktestBlobManifest(
       message: `Backtest runtime protocol is incompatible (got ${String(record.protocol)}, expected ${BACKTEST_RUNTIME_PROTOCOL}).`,
     });
   }
+  const hash = readRequiredString(record.hash, "hash");
+  if (!/^[0-9a-f]{16}$/.test(hash)) {
+    throw new EngineBacktestError({
+      type: "runtime",
+      subtype: "runtime_manifest_invalid",
+      message: "Backtest runtime manifest hash must be 16 lowercase hex characters.",
+    });
+  }
   const passivbotKernel = readRequiredHttps(
     record.passivbotKernel,
     "passivbotKernel"
@@ -106,7 +114,7 @@ export function parseEngineBacktestBlobManifest(
   );
   return {
     version: readRequiredString(record.version, "version"),
-    hash: readRequiredString(record.hash, "hash"),
+    hash,
     protocol: BACKTEST_RUNTIME_PROTOCOL,
     engineSha: readOptionalString(record.engineSha),
     packageVersion: readOptionalString(record.packageVersion),

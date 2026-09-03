@@ -844,12 +844,24 @@ describe("engine-backtest fetch-runtime", () => {
     }
   });
 
-  it("refuses a protocol mismatch or missing Node host URL", () => {
+  it("refuses an invalid protocol, hash, or Node host URL", () => {
     assert.throws(
       () => parseEngineBacktestBlobManifest({ ...validManifest, protocol: 2 }),
       (err: unknown) => {
         assert.ok(err instanceof EngineBacktestError);
         assert.equal(err.subtype, "runtime_protocol_mismatch");
+        return true;
+      }
+    );
+    assert.throws(
+      () =>
+        parseEngineBacktestBlobManifest({
+          ...validManifest,
+          hash: "../../outside",
+        }),
+      (err: unknown) => {
+        assert.ok(err instanceof EngineBacktestError);
+        assert.equal(err.subtype, "runtime_manifest_invalid");
         return true;
       }
     );

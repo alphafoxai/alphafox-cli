@@ -69,6 +69,7 @@ const METRICS: EngineBacktestMetrics = {
   winRatePct: 66.6,
   feesPaid: 1,
   slippagePaid: 0,
+  maxLeverage: 2.75,
   liquidated: false,
 };
 
@@ -380,6 +381,7 @@ describe("engine-backtest persist", () => {
     assert.equal(body.engineVersion, "test-engine");
     assert.equal(body.configSchemaVersion, 4);
     assert.deepEqual(body.metrics, METRICS);
+    assert.equal(body.metrics.maxLeverage, 2.75);
     assert.equal(body.returnCurve, undefined);
     assert.equal(body.activity?.schemaVersion, 1);
     assert.equal(body.activity?.filledOrderTotal, 0);

@@ -130,6 +130,7 @@ export interface EngineBacktestMetrics {
   readonly winRatePct: number;
   readonly feesPaid: number;
   readonly slippagePaid: number;
+  readonly maxLeverage?: number;
   readonly liquidated: boolean;
 }
 

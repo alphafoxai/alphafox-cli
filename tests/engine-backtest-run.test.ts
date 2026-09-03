@@ -24,6 +24,8 @@ import {
   SNAPSHOT_SCHEMA_VERSION,
 } from "../src/engine-backtest/persist";
 import {
+  BLOB_RUNTIME_FILES,
+  ensureBlobRuntime,
   parseEngineBacktestBlobManifest,
 } from "../src/engine-backtest/fetch-runtime";
 import {
@@ -723,7 +725,7 @@ describe("engine-backtest resolve-packages", () => {
     const cacheDir = mkdtempSync(join(tmpdir(), "alphafox-blob-runtime-"));
     const manifest = {
       version: "0.1.1148",
-      hash: "testhash",
+      hash: "0f0ea2e0078e38f2",
       protocol: 1,
       wasm: "https://example.test/tradingfox-backtest.wasm",
       wasmExec: "https://example.test/wasm_exec.js",
@@ -794,7 +796,7 @@ describe("engine-backtest resolve-packages", () => {
 describe("engine-backtest fetch-runtime", () => {
   const validManifest = {
     version: "0.1.1148",
-    hash: "323e65c3d57eb8c0",
+    hash: "d30a0202ebaee172",
     protocol: 1,
     wasm: "https://example.test/tradingfox-backtest.wasm",
     wasmExec: "https://example.test/wasm_exec.js",
@@ -810,7 +812,7 @@ describe("engine-backtest fetch-runtime", () => {
   it("accepts a protocol-1 Node runtime manifest", () => {
     const parsed = parseEngineBacktestBlobManifest(validManifest);
     assert.equal(parsed.protocol, 1);
-    assert.equal(parsed.hash, "323e65c3d57eb8c0");
+    assert.equal(parsed.hash, "d30a0202ebaee172");
     assert.equal(parsed.node, validManifest.node);
   });
 
@@ -859,6 +861,73 @@ describe("engine-backtest fetch-runtime", () => {
         return true;
       }
     );
+  });
+
+  it("uses independent temporary files for concurrent runtime downloads", async () => {
+    const cacheDir = mkdtempSync(join(tmpdir(), "alphafox-runtime-race-"));
+    const waiting = new Map<string, () => void>();
+    const fetchImpl = async (input: RequestInfo | URL): Promise<Response> => {
+      const url = String(input);
+      if (url.endsWith("latest.json")) {
+        return Response.json(validManifest);
+      }
+      const release = waiting.get(url);
+      if (release) {
+        release();
+      } else {
+        await new Promise<void>((resolve) => waiting.set(url, resolve));
+      }
+      return new Response(url);
+    };
+    const env = {
+      ALPHAFOX_BACKTEST_WASM_MANIFEST_URL: "https://example.test/latest.json",
+    };
+
+    await Promise.all([
+      ensureBlobRuntime(env, { fetch: fetchImpl as typeof fetch, cacheDir }),
+      ensureBlobRuntime(env, { fetch: fetchImpl as typeof fetch, cacheDir }),
+    ]);
+
+    for (const [key, fileName] of Object.entries(BLOB_RUNTIME_FILES)) {
+      assert.equal(
+        readFileSync(join(cacheDir, fileName), "utf8"),
+        validManifest[key as keyof typeof validManifest]
+      );
+    }
+    assert.deepEqual(
+      readdirSync(cacheDir).filter((file) => file.endsWith(".tmp")),
+      []
+    );
+  });
+
+  it("rejects and removes a corrupt cached runtime", async () => {
+    const cacheDir = mkdtempSync(join(tmpdir(), "alphafox-runtime-corrupt-"));
+    writeFileSync(
+      join(cacheDir, BLOB_RUNTIME_FILES.passivbotKernel),
+      "corrupt"
+    );
+    const fetchImpl = (async (input: RequestInfo | URL) => {
+      const url = String(input);
+      return url.endsWith("latest.json")
+        ? Response.json(validManifest)
+        : new Response(url);
+    }) as typeof fetch;
+
+    await assert.rejects(
+      ensureBlobRuntime(
+        {
+          ALPHAFOX_BACKTEST_WASM_MANIFEST_URL:
+            "https://example.test/latest.json",
+        },
+        { fetch: fetchImpl, cacheDir }
+      ),
+      (error: unknown) => {
+        assert.ok(error instanceof EngineBacktestError);
+        assert.equal(error.subtype, "runtime_integrity_failed");
+        return true;
+      }
+    );
+    assert.deepEqual(readdirSync(cacheDir), []);
   });
 });
 

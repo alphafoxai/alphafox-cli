@@ -1,9 +1,11 @@
-import { createWriteStream } from "node:fs";
-import { mkdir, rename, stat } from "node:fs/promises";
+import { createHash, randomUUID } from "node:crypto";
+import { createReadStream, createWriteStream } from "node:fs";
+import { mkdir, rename, rm, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
+import type { ReadableStream as NodeReadableStream } from "node:stream/web";
 
 import { EngineBacktestError } from "./errors";
 
@@ -22,6 +24,14 @@ export const BLOB_RUNTIME_FILES = {
   passivbotKernel: "passivbot_kernel.wasm",
   passivbotKernelModule: "passivbot-kernel.mjs",
 } as const;
+
+const HASHED_BLOB_RUNTIME_FILES = [
+  BLOB_RUNTIME_FILES.wasm,
+  BLOB_RUNTIME_FILES.passivbotKernel,
+  BLOB_RUNTIME_FILES.wasmExec,
+  BLOB_RUNTIME_FILES.worker,
+  BLOB_RUNTIME_FILES.passivbotKernelModule,
+] as const;
 
 export type BlobRuntimeFileKey = keyof typeof BLOB_RUNTIME_FILES;
 
@@ -155,6 +165,21 @@ export async function ensureBlobRuntime(
     }
     await downloadFile(fetchImpl, url, target);
   }
+  const actualHash = await hashBlobRuntime(directory);
+  if (actualHash !== manifest.hash) {
+    await Promise.all(
+      Object.values(BLOB_RUNTIME_FILES).map((fileName) =>
+        rm(join(directory, fileName), { force: true })
+      )
+    );
+    throw new EngineBacktestError({
+      type: "runtime",
+      subtype: "runtime_integrity_failed",
+      message: `Backtest runtime hash mismatch: expected ${manifest.hash}, received ${actualHash}.`,
+      hint: "Retry the download; the invalid cached runtime was removed.",
+      details: { expectedHash: manifest.hash, actualHash },
+    });
+  }
   return {
     manifest,
     directory,
@@ -184,12 +209,26 @@ async function downloadFile(
       message: `Backtest runtime file unavailable (${url} HTTP ${response.status}).`,
     });
   }
-  const tmp = `${target}.tmp`;
-  await pipeline(
-    Readable.fromWeb(response.body as import("node:stream/web").ReadableStream),
-    createWriteStream(tmp)
-  );
-  await rename(tmp, target);
+  const tmp = `${target}.${process.pid}.${randomUUID()}.tmp`;
+  try {
+    await pipeline(
+      Readable.fromWeb(response.body as NodeReadableStream),
+      createWriteStream(tmp)
+    );
+    await rename(tmp, target);
+  } finally {
+    await rm(tmp, { force: true });
+  }
+}
+
+async function hashBlobRuntime(directory: string): Promise<string> {
+  const digest = createHash("sha256");
+  for (const fileName of HASHED_BLOB_RUNTIME_FILES) {
+    for await (const chunk of createReadStream(join(directory, fileName))) {
+      digest.update(chunk);
+    }
+  }
+  return digest.digest("hex").slice(0, 16);
 }
 
 async function fileExists(path: string): Promise<boolean> {

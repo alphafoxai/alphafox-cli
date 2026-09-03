@@ -803,6 +803,8 @@ describe("engine-backtest fetch-runtime", () => {
     node: "https://example.test/node.mjs",
     nodeWorker: "https://example.test/worker-node.mjs",
     nodeWorkerPath: "https://example.test/worker-node-path.mjs",
+    passivbotKernel: "https://example.test/passivbot_kernel.wasm",
+    passivbotKernelModule: "https://example.test/passivbot-kernel.mjs",
   };
 
   it("accepts a protocol-1 Node runtime manifest", () => {
@@ -812,14 +814,20 @@ describe("engine-backtest fetch-runtime", () => {
     assert.equal(parsed.node, validManifest.node);
   });
 
-  it("requires Passivbot runtime URLs as a pair", () => {
+  it("requires both Passivbot runtime URLs", () => {
+    const {
+      passivbotKernel: _passivbotKernel,
+      passivbotKernelModule: _passivbotKernelModule,
+      ...manifestWithoutPassivbot
+    } = validManifest;
     for (const manifest of [
+      manifestWithoutPassivbot,
       {
-        ...validManifest,
+        ...manifestWithoutPassivbot,
         passivbotKernel: "https://example.test/passivbot_kernel.wasm",
       },
       {
-        ...validManifest,
+        ...manifestWithoutPassivbot,
         passivbotKernelModule: "https://example.test/passivbot-kernel.mjs",
       },
     ]) {

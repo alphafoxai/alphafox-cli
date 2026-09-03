@@ -38,8 +38,8 @@ export interface EngineBacktestBlobManifest {
   readonly node: string;
   readonly nodeWorker: string;
   readonly nodeWorkerPath: string;
-  readonly passivbotKernel?: string;
-  readonly passivbotKernelModule?: string;
+  readonly passivbotKernel: string;
+  readonly passivbotKernelModule: string;
 }
 
 export interface FetchRuntimeHooks {
@@ -86,25 +86,14 @@ export function parseEngineBacktestBlobManifest(
       message: `Backtest runtime protocol is incompatible (got ${String(record.protocol)}, expected ${BACKTEST_RUNTIME_PROTOCOL}).`,
     });
   }
-  const passivbotKernel =
-    record.passivbotKernel === undefined
-      ? undefined
-      : readRequiredHttps(record.passivbotKernel, "passivbotKernel");
-  const passivbotKernelModule =
-    record.passivbotKernelModule === undefined
-      ? undefined
-      : readRequiredHttps(
-          record.passivbotKernelModule,
-          "passivbotKernelModule"
-        );
-  if ((passivbotKernel === undefined) !== (passivbotKernelModule === undefined)) {
-    throw new EngineBacktestError({
-      type: "runtime",
-      subtype: "runtime_manifest_invalid",
-      message:
-        "Backtest runtime manifest must include both passivbotKernel and passivbotKernelModule.",
-    });
-  }
+  const passivbotKernel = readRequiredHttps(
+    record.passivbotKernel,
+    "passivbotKernel"
+  );
+  const passivbotKernelModule = readRequiredHttps(
+    record.passivbotKernelModule,
+    "passivbotKernelModule"
+  );
   return {
     version: readRequiredString(record.version, "version"),
     hash: readRequiredString(record.hash, "hash"),
@@ -160,9 +149,6 @@ export async function ensureBlobRuntime(
   for (const key of Object.keys(BLOB_RUNTIME_FILES) as BlobRuntimeFileKey[]) {
     const fileName = BLOB_RUNTIME_FILES[key];
     const url = manifest[key];
-    if (url === undefined) {
-      continue;
-    }
     const target = join(directory, fileName);
     if (await fileExists(target)) {
       continue;

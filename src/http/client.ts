@@ -7,6 +7,7 @@ import {
 } from "../auth/refresh";
 import { loadTokens } from "../keychain/store";
 import {
+  isDirectAdminAllowlistedPath,
   isFacadeAllowlistedPath,
   isInternalDisallowedPath,
   normalizeApiPath,
@@ -70,7 +71,10 @@ export async function apiRequest(
   if (path.startsWith("/api/v1")) {
     const origin = base.replace(/\/api\/v1$/, "");
     url = `${origin}${path}${query}`;
-  } else if (path.startsWith("/api/auth")) {
+  } else if (
+    path.startsWith("/api/auth") ||
+    isDirectAdminAllowlistedPath(path)
+  ) {
     const origin = base.replace(/\/api\/v1$/, "");
     url = `${origin}${path}${query}`;
   } else {

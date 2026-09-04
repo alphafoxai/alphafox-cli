@@ -55,10 +55,13 @@ export {
 export {
   DEFAULT_TAPE_SERIES_CONCURRENCY,
   MAX_TAPE_SERIES_CONCURRENCY,
-  loadTape,
+  limitTapeOhlcvConcurrency,
   mapWithConcurrency,
-  resolveTapeCache,
   resolveTapeSeriesConcurrency,
+} from "./lib/tape-loader-concurrency.mjs";
+export {
+  loadTape,
+  resolveTapeCache,
   effectiveTapeEndMs,
   inferFundingIntervals,
   classifyTapeSymbolsForPreflight,

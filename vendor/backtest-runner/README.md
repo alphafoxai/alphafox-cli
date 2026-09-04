@@ -80,6 +80,8 @@ const scenario = assembleScenario({
 
 与 web `tape-loader.series.ts` 对齐：Binance 1500、OKX 100、Bybit / Bitget 1000、Hyperliquid 5000。Bitget 另受约 89 天请求跨度限制；Hyperliquid 分页带 `until` 窗口。
 
+长区间会拆成最多 8 个可独立下载的时间窗口；不同 `symbol × timeframe` 与同一序列的时间窗口共用一个全局 8 请求池，避免嵌套并发放大。相邻窗口保留一根重叠 K 线，合并时按时间去重；同时间戳内容不一致会抛出 `invalid_ohlcv`，不会静默选取其中一份。
+
 ## 数据质量
 
 - `basic`（默认）：硬失败（缺市场、空序列、非法 K 线、拉数失败）仍抛错；软缺口进入 `coverageIssues` 与 `coverageWarnings`。起始缺口（`prefix_gap`）较轻，中间缺口（`internal_gap`）较重。

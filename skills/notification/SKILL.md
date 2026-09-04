@@ -1,7 +1,7 @@
 ---
 name: alphafox-notification
 description: Notification channels and subscriptions.
-version: 0.3.18
+version: 0.3.22
 ---
 
 # Notification

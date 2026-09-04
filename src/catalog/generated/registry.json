@@ -2,7 +2,7 @@
   "source": {
     "package": "@alphafoxai/contracts",
     "export": "public-api",
-    "contractsSha": "c2b17780baea3236ab1b7c0ec982f3f93f1ae08d",
+    "contractsSha": "daa775fc1e61d8416a32bd12c5301233d5ba518b",
     "registryVersion": "3.0.0",
     "contractVersion": "2026-08-31",
     "scannedAt": "2026-08-31",

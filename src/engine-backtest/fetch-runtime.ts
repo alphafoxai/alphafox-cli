@@ -1,9 +1,11 @@
-import { createWriteStream } from "node:fs";
-import { mkdir, rename, stat } from "node:fs/promises";
+import { createHash, randomUUID } from "node:crypto";
+import { createReadStream, createWriteStream } from "node:fs";
+import { mkdir, rename, rm, stat } from "node:fs/promises";
 import { homedir } from "node:os";
-import { join } from "node:path";
-import { pipeline } from "node:stream/promises";
+import { dirname, join } from "node:path";
 import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
+import type { ReadableStream as NodeReadableStream } from "node:stream/web";
 
 import { EngineBacktestError } from "./errors";
 
@@ -19,7 +21,21 @@ export const BLOB_RUNTIME_FILES = {
   node: "node.mjs",
   nodeWorker: "worker-node.mjs",
   nodeWorkerPath: "worker-node-path.mjs",
+  passivbotKernel: "passivbot_kernel.wasm",
+  passivbotKernelModule: "passivbot-kernel.mjs",
 } as const;
+
+const HASHED_BLOB_RUNTIME_FILES = [
+  BLOB_RUNTIME_FILES.wasm,
+  BLOB_RUNTIME_FILES.passivbotKernel,
+  BLOB_RUNTIME_FILES.wasmExec,
+  BLOB_RUNTIME_FILES.worker,
+  BLOB_RUNTIME_FILES.passivbotKernelModule,
+  BLOB_RUNTIME_FILES.client,
+  BLOB_RUNTIME_FILES.node,
+  BLOB_RUNTIME_FILES.nodeWorker,
+  BLOB_RUNTIME_FILES.nodeWorkerPath,
+] as const;
 
 export type BlobRuntimeFileKey = keyof typeof BLOB_RUNTIME_FILES;
 
@@ -36,6 +52,8 @@ export interface EngineBacktestBlobManifest {
   readonly node: string;
   readonly nodeWorker: string;
   readonly nodeWorkerPath: string;
+  readonly passivbotKernel: string;
+  readonly passivbotKernelModule: string;
 }
 
 export interface FetchRuntimeHooks {
@@ -82,9 +100,25 @@ export function parseEngineBacktestBlobManifest(
       message: `Backtest runtime protocol is incompatible (got ${String(record.protocol)}, expected ${BACKTEST_RUNTIME_PROTOCOL}).`,
     });
   }
+  const hash = readRequiredString(record.hash, "hash");
+  if (!/^[0-9a-f]{16}$/.test(hash)) {
+    throw new EngineBacktestError({
+      type: "runtime",
+      subtype: "runtime_manifest_invalid",
+      message: "Backtest runtime manifest hash must be 16 lowercase hex characters.",
+    });
+  }
+  const passivbotKernel = readRequiredHttps(
+    record.passivbotKernel,
+    "passivbotKernel"
+  );
+  const passivbotKernelModule = readRequiredHttps(
+    record.passivbotKernelModule,
+    "passivbotKernelModule"
+  );
   return {
     version: readRequiredString(record.version, "version"),
-    hash: readRequiredString(record.hash, "hash"),
+    hash,
     protocol: BACKTEST_RUNTIME_PROTOCOL,
     engineSha: readOptionalString(record.engineSha),
     packageVersion: readOptionalString(record.packageVersion),
@@ -95,6 +129,8 @@ export function parseEngineBacktestBlobManifest(
     node: readRequiredHttps(record.node, "node"),
     nodeWorker: readRequiredHttps(record.nodeWorker, "nodeWorker"),
     nodeWorkerPath: readRequiredHttps(record.nodeWorkerPath, "nodeWorkerPath"),
+    passivbotKernel,
+    passivbotKernelModule,
   };
 }
 
@@ -131,20 +167,81 @@ export async function ensureBlobRuntime(
   }
   const manifest = parseEngineBacktestBlobManifest(await response.json());
   const directory = hooks?.cacheDir ?? resolveRuntimeCacheDir(manifest.hash, env);
-  await mkdir(directory, { recursive: true });
-  for (const key of Object.keys(BLOB_RUNTIME_FILES) as BlobRuntimeFileKey[]) {
-    const fileName = BLOB_RUNTIME_FILES[key];
-    const target = join(directory, fileName);
-    if (await fileExists(target)) {
-      continue;
-    }
-    await downloadFile(fetchImpl, manifest[key], target);
+  if (await runtimeMatchesHash(directory, manifest.hash)) {
+    return {
+      manifest,
+      directory,
+      nodeEntry: join(directory, BLOB_RUNTIME_FILES.node),
+    };
   }
-  return {
-    manifest,
-    directory,
-    nodeEntry: join(directory, BLOB_RUNTIME_FILES.node),
-  };
+
+  await mkdir(dirname(directory), { recursive: true });
+  let actualHash = "";
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const staging = `${directory}.${process.pid}.${randomUUID()}.tmp`;
+    await mkdir(staging, { recursive: true });
+    try {
+      for (const key of Object.keys(BLOB_RUNTIME_FILES) as BlobRuntimeFileKey[]) {
+        await downloadFile(
+          fetchImpl,
+          manifest[key],
+          join(staging, BLOB_RUNTIME_FILES[key])
+        );
+      }
+      if (!(await allRuntimeFilesExist(staging))) {
+        continue;
+      }
+      actualHash = await hashBlobRuntime(staging);
+      if (actualHash !== manifest.hash) {
+        continue;
+      }
+
+      await mkdir(directory, { recursive: true });
+      for (const fileName of Object.values(BLOB_RUNTIME_FILES)) {
+        await rename(join(staging, fileName), join(directory, fileName));
+      }
+      if (await runtimeMatchesHash(directory, manifest.hash)) {
+        return {
+          manifest,
+          directory,
+          nodeEntry: join(directory, BLOB_RUNTIME_FILES.node),
+        };
+      }
+    } finally {
+      await rm(staging, { force: true, recursive: true });
+    }
+  }
+  throw new EngineBacktestError({
+    type: "runtime",
+    subtype: "runtime_integrity_failed",
+    message: `Backtest runtime hash mismatch: expected ${manifest.hash}, received ${actualHash}.`,
+    hint: "Retry the download; no unverified runtime was cached.",
+    details: { expectedHash: manifest.hash, actualHash, directory },
+  });
+}
+
+async function runtimeMatchesHash(
+  directory: string,
+  expectedHash: string
+): Promise<boolean> {
+  if (!(await allRuntimeFilesExist(directory))) {
+    return false;
+  }
+  try {
+    return (await hashBlobRuntime(directory)) === expectedHash;
+  } catch {
+    return false;
+  }
+}
+
+async function allRuntimeFilesExist(directory: string): Promise<boolean> {
+  return (
+    await Promise.all(
+      Object.values(BLOB_RUNTIME_FILES).map((fileName) =>
+        fileExists(join(directory, fileName))
+      )
+    )
+  ).every(Boolean);
 }
 
 async function downloadFile(
@@ -169,12 +266,26 @@ async function downloadFile(
       message: `Backtest runtime file unavailable (${url} HTTP ${response.status}).`,
     });
   }
-  const tmp = `${target}.tmp`;
-  await pipeline(
-    Readable.fromWeb(response.body as import("node:stream/web").ReadableStream),
-    createWriteStream(tmp)
-  );
-  await rename(tmp, target);
+  const tmp = `${target}.${process.pid}.${randomUUID()}.tmp`;
+  try {
+    await pipeline(
+      Readable.fromWeb(response.body as NodeReadableStream),
+      createWriteStream(tmp)
+    );
+    await rename(tmp, target);
+  } finally {
+    await rm(tmp, { force: true });
+  }
+}
+
+async function hashBlobRuntime(directory: string): Promise<string> {
+  const digest = createHash("sha256");
+  for (const fileName of HASHED_BLOB_RUNTIME_FILES) {
+    for await (const chunk of createReadStream(join(directory, fileName))) {
+      digest.update(chunk);
+    }
+  }
+  return digest.digest("hex").slice(0, 16);
 }
 
 async function fileExists(path: string): Promise<boolean> {

@@ -33,6 +33,7 @@ import {
   releaseWorkerTape,
   requireCompletedPreparedRun,
 } from "./prepared-tape";
+import { createProgressEmitter } from "./progress";
 import { mergeReplayTimeframeWithPlan } from "./replay-timeframe";
 import {
   loadBacktestRunner,
@@ -243,22 +244,6 @@ async function loadAccountSubscriptionTier(
   return tier;
 }
 
-function emitProgress(
-  flags: EngineBacktestCliFlags,
-  writeLine: (value: unknown) => void,
-  stage: string,
-  fraction: number,
-  detail?: string
-): void {
-  if (flags.format !== "jsonl") return;
-  writeLine({
-    event: "progress",
-    stage,
-    fraction,
-    ...(detail ? { detail } : {}),
-  });
-}
-
 export async function executeEngineBacktestRun(
   args: EngineBacktestRunArgs,
   flags: EngineBacktestCliFlags,
@@ -291,6 +276,7 @@ export async function executeEngineBacktestRun(
     ((value: unknown) => {
       process.stdout.write(`${JSON.stringify(value)}\n`);
     });
+  const emitProgress = createProgressEmitter(flags.format, writeLine);
   const persist = args.persist && !flags.dryRun;
   const createExperiment = args.createExperiment && !flags.dryRun;
   const needsApi = persist || createExperiment;
@@ -341,7 +327,9 @@ export async function executeEngineBacktestRun(
     runner = runnerLoaded.module;
   }
 
-  const client: BacktestClientLike = wasm.createNodeBacktestClient();
+  const client: BacktestClientLike = wasm.createNodeBacktestClient({
+    verbose: args.verbose,
+  });
   try {
     if (typeof client.init === "function") {
       await client.init();
@@ -444,8 +432,6 @@ export async function executeEngineBacktestRun(
         seriesConcurrency: ENGINE_BACKTEST_TAPE_SERIES_CONCURRENCY,
         onProgress: (progress: TapeLoadProgress) => {
           emitProgress(
-            flags,
-            writeLine,
             progress.stage || "tape",
             progress.fraction,
             progress.detail
@@ -498,7 +484,7 @@ export async function executeEngineBacktestRun(
           prepared.handle,
           scenario,
           (fraction) => {
-            emitProgress(flags, writeLine, "wasm", fraction);
+            emitProgress("wasm", fraction);
           }
         )
       );
@@ -608,6 +594,7 @@ export function engineBacktestHelpData(): {
       "runs.create is write (not high-risk-write); --yes is not required",
       "Do not pass --token; use alphafox auth login",
       "--replay-timeframe defaults to 1m (min 1m). Indicator series still download their native plan timeframes.",
+      "Raw Engine worker logs, including per-trade output, are hidden by default. Use --verbose to forward them.",
       "--data-quality defaults to basic: hard tape failures still stop, soft gaps finish the run and appear as coverageNotice (prefix_gap less severe, internal_gap more severe). Use --data-quality strict to fail on any gap.",
     ],
   };

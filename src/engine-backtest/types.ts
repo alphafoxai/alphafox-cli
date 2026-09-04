@@ -58,6 +58,8 @@ export interface EngineBacktestRunArgs {
   readonly configSchemaVersion?: number;
   readonly executionModelOverride?: Partial<ExecutionModel>;
   readonly persist: boolean;
+  /** Forward raw Engine WASM worker stdout/stderr. Disabled by default. */
+  readonly verbose: boolean;
   /** Replay/download bar. Defaults to 1m; never finer. */
   readonly replayTimeframe: string;
 }
@@ -130,6 +132,7 @@ export interface EngineBacktestMetrics {
   readonly winRatePct: number;
   readonly feesPaid: number;
   readonly slippagePaid: number;
+  readonly maxLeverage?: number;
   readonly liquidated: boolean;
 }
 
@@ -287,7 +290,9 @@ export interface BacktestClientLike {
 }
 
 export interface BacktestWasmModule {
-  createNodeBacktestClient(options?: unknown): BacktestClientLike;
+  createNodeBacktestClient(options?: {
+    readonly verbose?: boolean;
+  }): BacktestClientLike;
 }
 
 export interface BacktestRunnerModule {

@@ -101,12 +101,24 @@ cpSync(
 );
 
 // Prisma is only needed for non-memory OAuth path; stub so compile succeeds.
-// Typed as any so shipped persistence.ts typechecks without @alphafox/db.
+// Keep the surface typed so callback parameters receive contextual types.
 writeFileSync(
   join(compileRoot, "lib/prisma.ts"),
   `/** Stub: MVP bundle tests use ALPHAFOX_OAUTH_USE_MEMORY=1 (no DB). */
+type PrismaStub = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  readonly oauthDeviceCode: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  readonly oauthAccessToken: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  readonly oauthRefreshToken: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  readonly oauthAuthorizationCode: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  readonly $transaction: <T>(callback: (tx: any) => Promise<T>) => Promise<T>;
+};
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const prisma: any = new Proxy(
+export const prisma = new Proxy(
   {},
   {
     get() {
@@ -115,7 +127,7 @@ export const prisma: any = new Proxy(
       );
     },
   }
-);
+) as PrismaStub;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const Prisma: any = {};
 `

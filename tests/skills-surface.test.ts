@@ -85,6 +85,39 @@ describe("Skills surface", () => {
     assert.match(router, /Hidden copy variants/);
   });
 
+  it("requires a complete strategy-parameter review before create or backtest", () => {
+    const strategy = readFileSync(
+      join(skillsRoot, "strategy", "SKILL.md"),
+      "utf8"
+    );
+    const trading = readFileSync(
+      join(skillsRoot, "trading", "SKILL.md"),
+      "utf8"
+    );
+    const engine = readFileSync(
+      join(skillsRoot, "engine-backtest", "SKILL.md"),
+      "utf8"
+    );
+
+    assert.match(strategy, /effective `configSchema`/);
+    assert.match(strategy, /every applicable parameter/i);
+    assert.match(strategy, /short explanation/i);
+    assert.match(strategy, /schema default/i);
+    assert.match(strategy, /product default/i);
+    assert.match(strategy, /user override/i);
+    assert.match(strategy, /no default/i);
+    assert.match(strategy, /do not guess/i);
+    assert.match(strategy, /grouped or numbered/i);
+    assert.match(strategy, /confirm all/i);
+    assert.match(strategy, /Do not validate, create, or backtest/i);
+
+    for (const text of [trading, engine]) {
+      assert.match(text, /alphafox-strategy/);
+      assert.match(text, /parameter review/i);
+      assert.match(text, /Do not .*create|Do not .*run/i);
+    }
+  });
+
   it("teaches post-install welcome from the Lite square catalog", () => {
     const router = readFileSync(join(skillsRoot, "alphafox", "SKILL.md"), "utf8");
     const shared = readFileSync(

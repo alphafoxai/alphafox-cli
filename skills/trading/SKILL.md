@@ -1,7 +1,7 @@
 ---
 name: alphafox-trading
 description: Running strategies (traders) — create, list, start, and stop. A trader is a live or paper strategy instance (grid, dca, copy, …), not a person. Default Engine create uses autoStart true (创建即开始). Use autoStart false only when the user asks to create without starting. After create or start, include https://www.alphafox.app/zh/dashboard/traders/{traderId}.
-version: 0.3.19
+version: 0.3.22
 ---
 
 # Running strategies (traders)
@@ -31,6 +31,8 @@ alphafox api GET /api/v1/trading/traders --format json --no-input
 ## Create
 
 Read `alphafox schema <operationId>` first. Body may only include documented `request.body` fields. Large / nested bodies use `--config @file`.
+
+Before composing or dry-running any create request, follow the complete parameter review in `alphafox-strategy`, including when the operator already supplied a config. Do not create a trader until every applicable parameter, default status, short explanation, proposed value, and value source has been shown and the operator explicitly confirms the final proposal. User overrides win; unresolved required values stop the flow.
 
 ```bash
 alphafox schema trading.traders.create --format json --no-input

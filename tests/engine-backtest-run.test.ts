@@ -72,6 +72,7 @@ const METRICS: EngineBacktestMetrics = {
   winRatePct: 66.6,
   feesPaid: 1,
   slippagePaid: 0,
+  maxLeverage: 2.75,
   liquidated: false,
 };
 
@@ -257,6 +258,7 @@ describe("engine-backtest parse", () => {
     assert.equal(parsed.dataQualityMode, "basic");
     assert.equal(parsed.persist, true);
     assert.equal(parsed.replayTimeframe, "1m");
+    assert.equal(parsed.verbose, false);
   });
 
   it("rejects calendar dates that Date.parse would normalize", () => {
@@ -334,11 +336,13 @@ describe("engine-backtest parse", () => {
       "--no-persist",
       "--tier",
       "free",
+      "--verbose",
     ]);
     assert.equal(parsed.createExperiment, true);
     assert.equal(parsed.name, "grid-aug");
     assert.equal(parsed.persist, false);
     assert.equal(parsed.tier, "free");
+    assert.equal(parsed.verbose, true);
   });
 });
 
@@ -383,6 +387,7 @@ describe("engine-backtest persist", () => {
     assert.equal(body.engineVersion, "test-engine");
     assert.equal(body.configSchemaVersion, 4);
     assert.deepEqual(body.metrics, METRICS);
+    assert.equal(body.metrics.maxLeverage, 2.75);
     assert.equal(body.returnCurve, undefined);
     assert.equal(body.activity?.schemaVersion, 1);
     assert.equal(body.activity?.filledOrderTotal, 0);
@@ -722,6 +727,75 @@ describe("engine-backtest resolve-packages", () => {
     assert.ok(runner.module.DEFAULT_EXECUTION_MODEL);
   });
 
+  it("vendored runner downloads one OHLCV series in parallel windows", async () => {
+    const builtResolver = require(
+      join(__dirname, "..", "..", "dist", "engine-backtest", "resolve-packages.js")
+    ) as typeof import("../src/engine-backtest/resolve-packages");
+    const runner = await builtResolver.loadBacktestRunner({});
+    const minuteMs = 60_000;
+    const fromMs = Date.parse("2026-07-10T00:00:00Z");
+    const toMs = fromMs + 2 * 86_400_000;
+    let inFlight = 0;
+    let maxInFlight = 0;
+    const loadTape = runner.module.loadTape as unknown as (
+      request: Record<string, unknown>,
+      options: { readonly cache: false }
+    ) => Promise<TapeLoadResult>;
+
+    const result = await loadTape(
+      {
+        exchangeId: "binance",
+        symbols: ["BTC/USDT:USDT"],
+        timeframes: ["1m"],
+        fromMs,
+        toMs,
+        nowMs: toMs + minuteMs,
+        marketsLoader: async () => ({
+          markets: {
+            "BTC/USDT:USDT": {
+              id: "BTCUSDT",
+              symbol: "BTC/USDT:USDT",
+              base: "BTC",
+              quote: "USDT",
+              settle: "USDT",
+              contractSize: 1,
+              active: true,
+              type: "swap",
+              linear: true,
+              precision: { amount: 3, price: 1 },
+              limits: { amount: { min: 0.001 } },
+            },
+          },
+          precisionMode: 2,
+        }),
+        ohlcvFetcher: async (
+          _symbol: string,
+          _timeframe: string,
+          since = 0,
+          limit = 0
+        ) => {
+          inFlight += 1;
+          maxInFlight = Math.max(maxInFlight, inFlight);
+          await new Promise((resolve) => setTimeout(resolve, 5));
+          inFlight -= 1;
+          const rows: number[][] = [];
+          let timestamp = Math.ceil(since / minuteMs) * minuteMs;
+          while (rows.length < limit && timestamp + minuteMs <= toMs) {
+            rows.push([timestamp, 100, 101, 99, 100, 10]);
+            timestamp += minuteMs;
+          }
+          return rows;
+        },
+      },
+      { cache: false }
+    );
+
+    assert.equal(runner.resolved.source, "vendor");
+    assert.ok(maxInFlight > 1);
+    assert.ok(maxInFlight <= ENGINE_BACKTEST_TAPE_SERIES_CONCURRENCY);
+    assert.equal(result.tape.series.length, 1);
+  });
+
   it("downloads the Node runtime and Passivbot assets from the Blob manifest", async () => {
     const cacheDir = mkdtempSync(join(tmpdir(), "alphafox-blob-runtime-"));
     const manifest = {
@@ -963,6 +1037,7 @@ describe("engine-backtest orchestration", () => {
   it("plans, loads tape, runs wasm, and POSTs persist body in order", async () => {
     const calls: string[] = [];
     const apiBodies: unknown[] = [];
+    const clientOptions: unknown[] = [];
     const client = fakeClient({
       planBacktest: async (req) => {
         calls.push(`plan:${req.definitionId}:${req.configSchemaVersion}`);
@@ -1047,6 +1122,7 @@ describe("engine-backtest orchestration", () => {
         "10000",
         "--tier",
         "pro_max",
+        "--verbose",
       ]),
       FLAGS,
       {
@@ -1054,7 +1130,10 @@ describe("engine-backtest orchestration", () => {
         ALPHAFOX_CONFIG_DIR: mkdtempSync(join(tmpdir(), "alphafox-cfg-")),
       },
       {
-        createNodeBacktestClient: () => client,
+        createNodeBacktestClient: (options) => {
+          clientOptions.push(options);
+          return client;
+        },
         loadTape: async (req) => {
           calls.push(
             `tape:${req.symbols.join(",")}:${req.fromMs}:${req.toMs}:${req.dataQualityMode}:${req.seriesConcurrency}`
@@ -1126,6 +1205,8 @@ describe("engine-backtest orchestration", () => {
         })(),
       }
     );
+
+    assert.deepEqual(clientOptions, [{ verbose: true }]);
 
     assert.deepEqual(calls, [
       "plan:grid:4",

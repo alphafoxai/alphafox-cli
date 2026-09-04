@@ -31,6 +31,10 @@ const HASHED_BLOB_RUNTIME_FILES = [
   BLOB_RUNTIME_FILES.wasmExec,
   BLOB_RUNTIME_FILES.worker,
   BLOB_RUNTIME_FILES.passivbotKernelModule,
+  BLOB_RUNTIME_FILES.client,
+  BLOB_RUNTIME_FILES.node,
+  BLOB_RUNTIME_FILES.nodeWorker,
+  BLOB_RUNTIME_FILES.nodeWorkerPath,
 ] as const;
 
 export type BlobRuntimeFileKey = keyof typeof BLOB_RUNTIME_FILES;

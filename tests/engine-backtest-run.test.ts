@@ -800,7 +800,7 @@ describe("engine-backtest resolve-packages", () => {
     const cacheDir = mkdtempSync(join(tmpdir(), "alphafox-blob-runtime-"));
     const manifest = {
       version: "0.1.1148",
-      hash: "0f0ea2e0078e38f2",
+      hash: "2906c59af9fb9e02",
       protocol: 1,
       wasm: "https://example.test/tradingfox-backtest.wasm",
       wasmExec: "https://example.test/wasm_exec.js",
@@ -871,7 +871,7 @@ describe("engine-backtest resolve-packages", () => {
 describe("engine-backtest fetch-runtime", () => {
   const validManifest = {
     version: "0.1.1148",
-    hash: "d30a0202ebaee172",
+    hash: "9c1dc1c4b1fb724c",
     protocol: 1,
     wasm: "https://example.test/tradingfox-backtest.wasm",
     wasmExec: "https://example.test/wasm_exec.js",
@@ -887,7 +887,7 @@ describe("engine-backtest fetch-runtime", () => {
   it("accepts a protocol-1 Node runtime manifest", () => {
     const parsed = parseEngineBacktestBlobManifest(validManifest);
     assert.equal(parsed.protocol, 1);
-    assert.equal(parsed.hash, "d30a0202ebaee172");
+    assert.equal(parsed.hash, "9c1dc1c4b1fb724c");
     assert.equal(parsed.node, validManifest.node);
   });
 
@@ -996,17 +996,14 @@ describe("engine-backtest fetch-runtime", () => {
 
   it("repairs corrupt cache and download content before returning", async () => {
     const cacheDir = mkdtempSync(join(tmpdir(), "alphafox-runtime-corrupt-"));
-    writeFileSync(
-      join(cacheDir, BLOB_RUNTIME_FILES.passivbotKernel),
-      "corrupt-cache"
-    );
-    let wasmDownloads = 0;
+    writeFileSync(join(cacheDir, BLOB_RUNTIME_FILES.node), "corrupt-cache");
+    let nodeDownloads = 0;
     const fetchImpl = (async (input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("latest.json")) {
         return Response.json(validManifest);
       }
-      if (url === validManifest.wasm && ++wasmDownloads === 1) {
+      if (url === validManifest.node && ++nodeDownloads === 1) {
         return new Response("corrupt-download");
       }
       return new Response(url);
@@ -1021,14 +1018,10 @@ describe("engine-backtest fetch-runtime", () => {
     );
 
     assert.equal(loaded.directory, cacheDir);
-    assert.equal(wasmDownloads, 2);
+    assert.equal(nodeDownloads, 2);
     assert.equal(
-      readFileSync(join(cacheDir, BLOB_RUNTIME_FILES.passivbotKernel), "utf8"),
-      validManifest.passivbotKernel
-    );
-    assert.equal(
-      readFileSync(join(cacheDir, BLOB_RUNTIME_FILES.wasm), "utf8"),
-      validManifest.wasm
+      readFileSync(join(cacheDir, BLOB_RUNTIME_FILES.node), "utf8"),
+      validManifest.node
     );
   });
 });

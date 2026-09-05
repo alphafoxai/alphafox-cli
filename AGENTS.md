@@ -1,5 +1,9 @@
 # alphafox-cli
 
+## Shared workflow
+
+For AlphaFox development, load the workspace `AGENTS.md` once if it has not already been supplied. Resolve the workspace from `ALPHAFOX_WORKSPACE`, otherwise `~/Desktop/Projects/alphafox`; external task/Orca worktrees do not inherit that file by directory ancestry. Reuse it while unchanged. In another environment where it is absent, follow available repository instructions and the user's scope; obtain missing shared settings only when the operation needs them, without guessing tracker IDs or release permissions.
+
 Agent and human entry for the versioned Public Application API on alphafox-web.
 
 ## Engine Backtest runtime
@@ -14,16 +18,14 @@ Chat workbench, Chat Backtest (`backtests.*`), and Strategy Plaza (`strategy_pla
 
 `trading.traders.create` must match the website Engine create body: `strategyDefinitionId` + `config` + `exchangeConnectorId` (+ `name`, `configSchemaVersion`). Do not invent `chatId` or integer `strategyId` to make create work. Hyperliquid / rebate copy use `trading.hl_copy_traders.create` / `trading.rebate_copy_traders.create`.
 
-## Agent skills
+## Validation and delivery
 
-### Issue tracker
+Skill/说明文档变化：核对 frontmatter、版本、引用、命令入口和权限/完成边界，不运行真实交易。CLI 逻辑先跑相关测试和 typecheck；`pnpm test:release` 验证独立发布面。完整 `pnpm test` 还构建 Web bundle 并检查 catalog，涉及这些接缝时使用，记录依赖仓库的 ref。修改仓库 Skill 源文件，不覆盖已安装版本或顺手升级 CLI。
 
-Matt Skills engineering issues, specs, and tickets live in this repository's GitHub Issues; use the `gh` CLI for all operations. See `docs/agents/issue-tracker.md`.
+任务完成：请求范围已满足，相关检查和最终 diff 已复核，按授权交付提交/PR或本地产物，并说明剩余验收。复用同一候选的有效检查；缺少环境只阻塞依赖它的验证。移除本任务临时调试内容，不清理他人资源。部署/合并另需授权，不是默认的本地完成条件。
 
-### Triage labels
+## Task and domain references
 
-Use the default triage labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, and `wontfix`. See `docs/agents/triage-labels.md`.
-
-### Domain docs
-
-Read the repository's domain vocabulary and ADR layout as described in `docs/agents/domain.md`.
+- On engineering task operations: `docs/agents/issue-tracker.md` (shared Feishu tracker).
+- On triage: `docs/agents/triage-labels.md` (section/Type mapping).
+- On domain terminology or architecture changes: `docs/agents/domain.md` (relevant glossary/ADR pointers).

@@ -44,7 +44,7 @@ describe("Skills surface", () => {
     assert.match(router, /alphafox-cache/);
     assert.match(router, /data\.tape\.large/);
     assert.match(
-      router,
+      cache,
       /回测下载的历史数据比较大，要不要我帮你清理本地缓存？/
     );
     assert.match(cache, /alphafox cache status/);
@@ -85,7 +85,7 @@ describe("Skills surface", () => {
     assert.match(router, /Hidden copy variants/);
   });
 
-  it("requires a complete strategy-parameter review before create or backtest", () => {
+  it("keeps execution approval separate from validation and local backtests", () => {
     const strategy = readFileSync(
       join(skillsRoot, "strategy", "SKILL.md"),
       "utf8"
@@ -109,13 +109,18 @@ describe("Skills surface", () => {
     assert.match(strategy, /do not guess/i);
     assert.match(strategy, /grouped or numbered/i);
     assert.match(strategy, /confirm all/i);
-    assert.match(strategy, /Do not validate, create, or backtest/i);
+    assert.match(strategy, /before creating\/starting a trader/i);
+    assert.match(strategy, /config validation.*local backtests may proceed/i);
+    assert.match(strategy, /Validation-only work is complete/i);
 
     for (const text of [trading, engine]) {
       assert.match(text, /alphafox-strategy/);
-      assert.match(text, /parameter review/i);
-      assert.match(text, /Do not .*create|Do not .*run/i);
+      assert.match(text, /execution.*review/i);
     }
+    assert.match(trading, /Before executing create/i);
+    assert.match(trading, /Reuse the confirmed proposal/i);
+    assert.match(engine, /local-only request uses `--no-persist`/i);
+    assert.match(engine, /separate requested and approved action/i);
   });
 
   it("teaches post-install welcome from the Lite square catalog", () => {

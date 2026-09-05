@@ -38,7 +38,9 @@ Explain the type from those fields. Missing a layer → say unknown; do not fill
 
 ## Configure with the human
 
-The human confirms the complete parameter set. You write JSON only after that review.
+Use the complete review below when preparing an actual trader creation/start, or when the user asks for a guided parameter design. It protects execution decisions and is not a gate for inspecting a definition, validating a supplied config, or a requested local backtest. For those tasks, preserve supplied values, validate applicable fields, and ask only for unresolved required inputs or a material ambiguity. Report completion of the requested operation; do not implicitly create/start a trader.
+
+For the execution proposal, the human confirms the complete parameter set. Reuse that confirmation while the proposal and environment are unchanged. You may prepare and validate JSON to discover errors before the final execution approval.
 
 1. Confirm the definition from `byId.get` in the operator's language (what it is, what drives it, how positions change).
 2. Use the effective `configSchema` returned by `byId.get` as the sole parameter contract. It already composes the definition's `commonModules` with `strategyConfigSchema` and may contain definition-specific customization. Walk every applicable parameter, not only required fields or familiar knobs.
@@ -61,7 +63,7 @@ The human confirms the complete parameter set. You write JSON only after that re
    A user override always wins, even when it equals neither default. Preserve explicit `false`, `0`, empty arrays, and empty strings when the schema allows them; they are not missing values.
 
 6. When there are many parameters, present them in logical groups or numbered chunks so the review remains readable. After all groups are visible, ask the operator to reply **confirm all** / “全部确认”, or override paths/numbers. One overall confirmation is sufficient, but it must cover every displayed parameter. Apply overrides, show the affected rows again, and repeat until no required value is unresolved and the operator explicitly confirms the final proposal.
-7. An earlier request such as “创建策略”, “运行回测”, or a pasted command/config is input to the proposal, not confirmation of the review. Do not validate, create, or backtest until the complete parameter review is explicitly confirmed.
+7. A generic creation request is not approval of undisclosed execution settings. Obtain final approval before creating/starting a trader. Inspection, config validation and requested local backtests may proceed without this execution review; changing the approved execution parameters or environment requires renewed approval.
 8. Write `strategy-config.json` as the trader object:
 
 ```json
@@ -94,7 +96,7 @@ alphafox trading strategy_definitions byId validate_config --definitionId <id> -
 
 `body_schema` / `body_schema_missing` (exit `64`): re-read the operation schema. Server field-path errors: fix that path. Do not retry with a different envelope.
 
-After it validates: create with `alphafox-trading` (default `autoStart: true`), or backtest with `alphafox-engine-backtest`. Do not create or backtest from this skill. Dashboard URLs after those actions live in `alphafox-shared`.
+Validation-only work is complete with the result and any field errors. Continue to `alphafox-trading` or `alphafox-engine-backtest` only if the user requested that action; validation alone does not authorize creation/start or persisted work. Preserve the trading Skill’s execution approval. Dashboard URLs after requested actions live in `alphafox-shared`.
 
 ## operationIds
 

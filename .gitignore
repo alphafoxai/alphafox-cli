@@ -10,3 +10,6 @@ coverage/
 *.tgz
 sbom.json
 .npmrc
+
+# Local git worktrees (checkouts live outside this repo)
+.worktrees/

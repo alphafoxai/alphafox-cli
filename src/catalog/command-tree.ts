@@ -27,7 +27,7 @@ export function splitCommandTokens(tokens: readonly string[]): {
       help = true;
       continue;
     }
-    if (!inFlags && token.startsWith("--")) {
+    if (!inFlags && token.startsWith("-")) {
       inFlags = true;
     }
     if (inFlags) {

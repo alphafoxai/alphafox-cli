@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
@@ -25,8 +25,73 @@ describe("profiles + keychain boundary", () => {
     assert.notEqual(prod.audience, staging.audience);
   });
 
-  it("refuses config files that contain token fields", () => {
-    assert.throws(() => assertNoTokenFields({ accessToken: "secret" }), /Forbidden/);
+  it("refuses nested credential fields at load and save boundaries", () => {
+    assert.throws(
+      () =>
+        assertNoTokenFields({
+          profiles: { staging: { accessToken: "secret" } },
+        }),
+      /accessToken/
+    );
+    assert.throws(
+      () => assertNoTokenFields({ profiles: [{ private_key: "secret" }] }),
+      /private_key/
+    );
+    assert.throws(
+      () => assertNoTokenFields({ profiles: { staging: { passphrase: "secret" } } }),
+      /passphrase/
+    );
+    assert.throws(
+      () =>
+        assertNoTokenFields({
+          profiles: { staging: { code_verifier: "secret" } },
+        }),
+      /code_verifier/
+    );
+
+    const dir = mkdtempSync(join(tmpdir(), "alphafox-cli-config-secrets-"));
+    const env = { ALPHAFOX_CONFIG_DIR: dir };
+    try {
+      writeFileSync(
+        join(dir, "config.json"),
+        JSON.stringify({
+          activeProfile: "staging",
+          profiles: { staging: { refreshToken: "secret" } },
+        })
+      );
+      assert.throws(() => loadConfigFile(env), /tokens\/secrets/);
+      writeFileSync(
+        join(dir, "config.json"),
+        JSON.stringify({
+          activeProfile: "staging",
+          profiles: { staging: { deviceCode: "secret" } },
+        })
+      );
+      assert.throws(() => loadConfigFile(env), /invalid fields/);
+      writeFileSync(
+        join(dir, "config.json"),
+        JSON.stringify({
+          activeProfile: { authorizationCode: "secret" },
+          profiles: {},
+        })
+      );
+      assert.throws(() => loadConfigFile(env), /invalid fields/);
+      assert.throws(
+        () =>
+          saveConfigFile(
+            {
+              activeProfile: "staging",
+              profiles: {
+                staging: { accessToken: "secret" } as never,
+              },
+            },
+            env
+          ),
+        /accessToken/
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it("stores tokens outside config file path", () => {

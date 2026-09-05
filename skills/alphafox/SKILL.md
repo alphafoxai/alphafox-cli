@@ -1,6 +1,6 @@
 ---
 name: alphafox
-description: AlphaFox CLI entry router. Use for any AlphaFox request — install, update, login, whoami, 回测, engine backtest, 清理回测缓存 / 历史数据, strategy definitions, create/list/start/stop a running strategy (trader), ticker/标的 resolve (美股 or crypto), market data, exchange connectors, wallet, subscriptions, notifications, or admin. After 回测 or 运行策略, include the dashboard URL from the domain skill. When the user asks 排行榜, include https://www.alphafox.app/zh/dashboard/leaderboard. After a successful install and login, present the 新人引导 in this file (Lite square 带单员 + classic strategies). If a CLI command prints `[alphafox] update available`, ask the user「检测到新的版本，是否需要我帮你升级？」and only then run `alphafox update --format json --no-input`. After a large backtest, if tape cache is large, ask「回测下载的历史数据比较大，要不要我帮你清理本地缓存？」then open `alphafox-cache`. Start here, then open the routed domain skill. Do not guess alphafox-engine-backtest vs alphafox-strategy vs alphafox-trading from memory.
+description: "Route AlphaFox product CLI requests: installation/auth, market data, strategy configuration, backtests, traders, connectors, accounts and notifications. Repository development or AGENTS/Skills maintenance uses repository instructions, not product CLI operations."
 version: 0.3.22
 ---
 
@@ -8,7 +8,7 @@ version: 0.3.22
 
 This skill only routes. After choosing a row, **read that skill's `SKILL.md` and follow it**. Do not improvise domain procedures from this file.
 
-Also read `alphafox-shared` before any CLI invocation (envelope, auth, risk, schema-first writes). Always `--format json --no-input`. Never `--token`.
+Read `alphafox-shared` before the first CLI invocation in this task; reuse it while unchanged (envelope, auth, risk, schema-first writes). Always `--format json --no-input`. Never `--token`.
 
 Human-mentioned tickers go through `alphafox-market` (`alphafox resolve-symbols`) **before** they enter config, backtest, or writes. Keep the operator's asset class (美股 → `equity_perp` on `binance_perp_usdt`).
 
@@ -31,7 +31,7 @@ A **trader** is a running strategy instance (paper or live), not a person. Creat
 | Notification channels | `alphafox-notification` |
 | Admin-only operations | `alphafox-admin` |
 
-If several rows apply, load **all** of them (typical: `alphafox-shared` + `alphafox-market` + one domain skill).
+Load only rows needed for the requested operation, reusing Skills already read in this task (typical: shared + market when resolving a ticker + the operation Skill).
 
 - “帮我配/建一个网格/DCA/跟单策略” → `alphafox-strategy` (pick definition, ask knobs, validate `{common, strategy}`) **and** `alphafox-market` (resolve tickers) **and** `alphafox-trading` (create the trader, default `autoStart: true`). Hidden copy variants still create through `alphafox-trading`. After create, include the trader URL from `alphafox-shared`.
 - “帮我回测这个配置” → `alphafox-strategy` (definition + config) **and** `alphafox-engine-backtest`. After a persisted run, include the backtest URL from `alphafox-shared`.
@@ -39,25 +39,7 @@ If several rows apply, load **all** of them (typical: `alphafox-shared` + `alpha
 
 ## Upgrade reminder
 
-The CLI may print this on **stderr** at most once every 24 hours:
-
-```text
-[alphafox] update available: 0.3.15 -> 0.3.16. After the user confirms, run: alphafox update --format json --no-input,
-```
-
-If you see that notice (or `updateAvailable: true` from `alphafox update --check`):
-
-1. Ask the user: **检测到新的版本，是否需要我帮你升级？**
-2. Wait for an explicit yes. Do not upgrade on your own.
-3. After they confirm:
-
-```bash
-alphafox update --format json --no-input
-```
-
-4. Tell the user to **restart the AI tool** so the new Skills load.
-
-Do not install Skills from GitHub. Details and dry-run / check commands live in `alphafox-shared`.
+An update notice does not interrupt the current task. Finish its deliverable first, then offer an upgrade if relevant. Use `alphafox-shared` for the co-versioned update procedure; an explicit update request already supplies intent. Do not independently install Skills from GitHub.
 
 ## After install
 
@@ -121,8 +103,4 @@ Ambiguous “帮我回测” → `alphafox-engine-backtest`, after resolving sym
 
 `engine-backtest run|sweep` downloads closed OHLCV into the local tape cache. After a long-range or 1m backtest (or whenever the operator mentions disk / 缓存), read `alphafox-cache` and run `alphafox cache status --format json --no-input`.
 
-If `data.tape.large` is true (tape ≥ `data.remindAfterBytes`):
-
-1. Ask the user: **回测下载的历史数据比较大，要不要我帮你清理本地缓存？**
-2. Wait for an explicit yes. Do not clean on your own.
-3. Follow `alphafox-cache` (`alphafox cache clean --dry-run`, then `--yes`).
+If `data.tape.large` is true, finish the backtest report first, then follow `alphafox-cache` for the optional cleanup offer. Reuse an explicit cleanup request; do not ask twice or clean an unrequested cache class.

@@ -39,7 +39,7 @@ The CLI checks npm at most once every 24 hours and only prints a notice on
 
 **检测到新的版本，是否需要我帮你升级？**
 
-Wait for an explicit yes. Then keep CLI and Skills co-versioned:
+Finish the current task before offering an unrelated upgrade. An explicit upgrade request or approval in this task is sufficient; otherwise wait for it. Then keep CLI and Skills co-versioned:
 
 ```bash
 alphafox update --check --format json --no-input
@@ -82,7 +82,7 @@ Access tokens last ~10 minutes; the CLI refreshes them. After idle, run **one** 
 
 Local browser: `alphafox auth login --browser --format json --no-input` (loopback 127.0.0.1). If the browser cannot open, copy `authorizeUrl` from the error; do not invent a Device Flow retry unless the operator is headless.
 
-Wrong environment / missing permission / missing `--yes`: stop. Do not retry with a different profile.
+Wrong environment or missing permission blocks that operation; keep the requested profile and report the needed correction. Missing `--yes` is a confirmation gate: show the exact action and reuse an existing explicit approval only if it covers these parameters, otherwise ask once. Continue independent reads/local work where useful; do not switch profiles to evade a gate.
 
 ## Commands
 
@@ -99,13 +99,13 @@ Forbidden: `/backend`, `/control-plane`, `/signal-center`, internal secrets, non
 
 ## Writes — schema first, never invent fields
 
-Before every write (`POST` / `PUT` / `PATCH` / `DELETE` with a body):
+Before composing a write body (`POST` / `PUT` / `PATCH` / `DELETE`), obtain its operation schema. In this task, reuse a schema for the same CLI/contract/catalog version, profile and operationId. Refresh on version/profile changes or schema-validation errors. “Read schema first” in domain Skills uses this same rule:
 
-1. Run `alphafox schema <operationId> --format json --no-input`.
+1. On first use or invalidation, run `alphafox schema <operationId> --format json --no-input`.
 2. Build the body **only** from `request.body` (property names, types, enums, required). Do not guess fields from memory, from another operationId, or from training data.
 3. Small object: typed command + `--body '<json>'`.
 4. Nested / large object: write a JSON file, then `--config @./payload.json`. Do not paste 20+ fields onto argv.
-5. `--dry-run` first when the risk is `write` or `high-risk-write`.
+5. Preview high-risk writes and new/changed mutation payloads with `--dry-run`. A previously verified low-risk payload shape does not require repeating discovery and dry-run on every batch item; per-request CLI validation still applies. Verify that the command actually supports dry-run.
 
 CLI validates `--body` / `--config` against the catalog **before** HTTP. `body_schema` / `body_schema_missing` (exit `64`) means the payload is wrong — re-read `schema`, do not add extra keys to “make it work”. `--body` and `--config` cannot be combined. `--body @file` is also a file (same as `--config @file`).
 

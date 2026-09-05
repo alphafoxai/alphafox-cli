@@ -32,7 +32,7 @@ alphafox api GET /api/v1/trading/traders --format json --no-input
 
 Read `alphafox schema <operationId>` first. Body may only include documented `request.body` fields. Large / nested bodies use `--config @file`.
 
-Before composing or dry-running any create request, follow the complete parameter review in `alphafox-strategy`, including when the operator already supplied a config. Do not create a trader until every applicable parameter, default status, short explanation, proposed value, and value source has been shown and the operator explicitly confirms the final proposal. User overrides win; unresolved required values stop the flow.
+Before executing create, follow the complete execution-parameter review in `alphafox-strategy`, including supplied configs. JSON preparation, validation and dry-run may precede approval. Reuse the confirmed proposal while parameters and environment are unchanged; obtain approval for any changed execution settings. User overrides win; resolve required values before create. Do not create merely because validation succeeded.
 
 ```bash
 alphafox schema trading.traders.create --format json --no-input

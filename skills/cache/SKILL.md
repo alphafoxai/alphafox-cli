@@ -18,11 +18,11 @@ alphafox cache status --format json --no-input
 
 Read `data.tape.bytes`, `data.tape.files`, `data.tape.large`, `data.remindAfterBytes`. `large` is true when tape bytes ≥ `remindAfterBytes` (512 MiB).
 
-If `data.tape.large` is true, ask the user:
+When cleanup was not requested and `data.tape.large` is true, first deliver the backtest result, then offer:
 
 **回测下载的历史数据比较大，要不要我帮你清理本地缓存？**
 
-Wait for an explicit yes. Do not clean on your own.
+An explicit request to clean this cache or approval of this offer authorizes the displayed scope; do not ask twice. A size notice alone does not authorize deletion. Extra runtime/all-cache deletion needs its own scope.
 
 ## Clean
 

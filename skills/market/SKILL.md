@@ -28,7 +28,7 @@ Binance US stocks are **equity perps in the same** `binance_perp_usdt` catalog (
 
 ## Resolve tickers
 
-Whenever a human mentions a stock, coin, ticker, or contract — including typos — resolve it **before** putting a symbol into strategy config, backtest, trader settings, or any write.
+Resolve a human-mentioned ticker before using it in config, backtest or a write. Reuse an exact/confirmed result for the same exchange, asset class and catalog within this task; resolve again when any of those inputs changes or the result is rejected. Mere discussion of a ticker does not require a market API call.
 
 ```bash
 alphafox resolve-symbols BTC ETH --exchange binance --format json --no-input

@@ -33,7 +33,7 @@ alphafox schema engine_backtest.experiments.byId.sweeps.create --format json --n
 
 The tape runner ships inside the CLI (plus `ccxt` for public-market pulls). The wasm / Node host is downloaded from the public Vercel Blob manifest (`engine-backtest/latest.json`) into `~/.cache/alphafox/engine-backtest/<hash>/` on first run.
 
-Before planning or running, follow the complete parameter review in `alphafox-strategy`, including when the operator already supplied `--config` or pasted a full command. Do not run the backtest until every applicable parameter, default status, short explanation, proposed value, and value source has been shown and the operator explicitly confirms the final proposal. User overrides win; unresolved required values stop the flow.
+For a requested backtest with supplied config, preserve and validate it against the definition; do not require the live-trader execution review. Use `alphafox-strategy` to resolve unknown fields or a requested guided configuration. Ask for unresolved required values or materially ambiguous choices. Respect the requested range, data-quality mode and persistence scope; a local-only request uses `--no-persist`. Live trader creation remains a separate requested and approved action.
 
 Local overrides, in order:
 
@@ -98,7 +98,7 @@ Owner isolation and 7-day expiry are enforced by the server. Applying a coordina
 2. `engine-backtest run` (reuse `--experiment` after the first create).
 3. Read `data.metrics` / `data.engineVersion` / `data.runId` / `data.experimentId` / `data.experimentUrl`. After the run, also read `data.coverageNotice` (`warning` = mid-range candle gaps; `notice` = start / other soft gaps). When an Experiment id exists, include the backtest dashboard URL from `alphafox-shared` (`https://www.alphafox.app/zh/dashboard/traders/backtest/{experimentId}`) in the reply — do not stop at metrics or the raw CLI `experimentUrl`.
 4. Adjust parameters and run again. Do not invent a token flag if persist returns 401 — `alphafox auth login`.
-5. After a long-range or 1m run, follow `alphafox-cache`: `alphafox cache status`. If `data.tape.large` is true, ask **回测下载的历史数据比较大，要不要我帮你清理本地缓存？** and wait for yes.
+5. After a long-range or 1m run, follow `alphafox-cache`: `alphafox cache status`. If `data.tape.large` is true, finish the result first, then follow `alphafox-cache` for the optional cleanup offer; reuse any explicit cleanup approval.
 
 ## Safety
 

@@ -789,9 +789,20 @@ async function planCoordinate(input: {
     if (!isSupportedPlan(plan)) {
       const reason =
         plan && typeof plan === "object" && "support" in plan
-          ? (plan as { support?: { reason?: { message?: string } } }).support
-              ?.reason
+          ? (plan as { support?: { reason?: { code?: string; message?: string } } })
+              .support?.reason
           : undefined;
+      if (reason?.code === "dynamic_selection_not_supported") {
+        throw new EngineBacktestError({
+          type: "runtime",
+          subtype: "plan_unsupported",
+          message:
+            reason.message ??
+            `planBacktest does not support definition "${input.definitionId}"`,
+          code: reason.code,
+          details: { reason, plan, coordinate: input.coordinate },
+        });
+      }
       return {
         coordinate: input.coordinate,
         status: "failed",

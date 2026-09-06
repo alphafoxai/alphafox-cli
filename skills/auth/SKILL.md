@@ -1,7 +1,7 @@
 ---
 name: alphafox-auth
 description: Login, status, logout, whoami, and environment isolation for AlphaFox CLI.
-version: 0.3.23
+version: 0.3.24
 ---
 
 # Auth Skill

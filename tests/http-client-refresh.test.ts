@@ -7,6 +7,7 @@ import test from "node:test";
 import {
   accessTokenNeedsRefresh,
   clearRefreshInflightForTests,
+  refreshStoredTokens,
 } from "../src/auth/refresh";
 import type { ProfileConfig } from "../src/config/profiles";
 import { apiRequest } from "../src/http/client";
@@ -211,6 +212,80 @@ test("apiRequest retries once after 401 via refresh_token", async () => {
     assert.equal((res.json as { userId: string }).userId, "u2");
     assert.equal(meHits, 2);
     assert.equal(loadTokens(profile.name, env)?.accessToken, "fresh-access");
+  } finally {
+    rmSync(env.ALPHAFOX_KEYCHAIN_DIR!, { recursive: true, force: true });
+    clearRefreshInflightForTests();
+  }
+});
+
+test("refreshStoredTokens keeps POST body across apex→www 301", async () => {
+  clearRefreshInflightForTests();
+  const env = fileKeychainEnv();
+  try {
+    saveTokens(
+      profile.name,
+      {
+        accessToken: "old-access",
+        refreshToken: "old-refresh",
+        expiresAt: Date.now() - 1_000,
+        environment: "production",
+        issuer: profile.issuer,
+        audience: profile.audience,
+        clientId: profile.clientId,
+        scopes: ["openid", "profile", "offline_access"],
+      },
+      env
+    );
+
+    const seen: Array<{ url: string; method: string; body: string | undefined }> =
+      [];
+    const fetchImpl: typeof fetch = async (input, init) => {
+      const url = String(input);
+      seen.push({
+        url,
+        method: String(init?.method ?? "GET").toUpperCase(),
+        body: typeof init?.body === "string" ? init.body : undefined,
+      });
+      if (url === "https://alphafox.app/api/auth/oauth/token") {
+        return new Response(null, {
+          status: 301,
+          headers: {
+            location: "https://www.alphafox.app:443/api/auth/oauth/token",
+          },
+        });
+      }
+      if (url.includes("/api/auth/oauth/token")) {
+        if (String(init?.method ?? "GET").toUpperCase() !== "POST") {
+          return new Response("method not allowed", { status: 405 });
+        }
+        const body = JSON.parse(String(init?.body ?? "{}")) as {
+          grant_type?: string;
+          refresh_token?: string;
+        };
+        assert.equal(body.grant_type, "refresh_token");
+        assert.equal(body.refresh_token, "old-refresh");
+        return new Response(
+          JSON.stringify({
+            access_token: "new-access",
+            refresh_token: "new-refresh",
+            token_type: "Bearer",
+            expires_in: 600,
+            scope: "openid profile offline_access",
+          }),
+          { status: 200, headers: { "content-type": "application/json" } }
+        );
+      }
+      return new Response("nope", { status: 404 });
+    };
+
+    const outcome = await refreshStoredTokens(profile, env, fetchImpl, {
+      force: true,
+    });
+    assert.equal(outcome.status, "refreshed");
+    assert.equal(seen.length, 2);
+    assert.equal(seen[1]?.method, "POST");
+    assert.match(seen[1]?.url ?? "", /www\.alphafox\.app/);
+    assert.equal(loadTokens(profile.name, env)?.accessToken, "new-access");
   } finally {
     rmSync(env.ALPHAFOX_KEYCHAIN_DIR!, { recursive: true, force: true });
     clearRefreshInflightForTests();

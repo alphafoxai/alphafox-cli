@@ -340,12 +340,9 @@ async function fetchFollowingSameSiteRedirects(
     if (!location) break;
     const nextUrl = new URL(location, url).toString();
     if (!sameAuthSite(originOf(url), originOf(nextUrl))) break;
-    if (
-      response.status === 303 ||
-      ((response.status === 301 || response.status === 302) &&
-        method !== "GET" &&
-        method !== "HEAD")
-    ) {
+    // 303 is the only redirect that switches to GET. Apex→www is Cloudflare 301;
+    // converting POST to GET drops the OAuth body and the AS returns 405.
+    if (response.status === 303) {
       method = "GET";
       body = undefined;
     }

@@ -170,7 +170,7 @@ export async function executeEngineBacktestSweep(
     args.mode
   );
 
-  const { wasm, runner } = await loadRuntime(deps, env);
+  const { wasm, runner } = await loadRuntime(deps, { ...env, ALPHAFOX_PROFILE: profile.name });
   const clients: BacktestClientLike[] = [];
   try {
     const client = wasm.createNodeBacktestClient({ verbose: args.verbose });

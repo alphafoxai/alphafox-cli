@@ -320,7 +320,7 @@ export async function executeEngineBacktestRun(
     };
   } else {
     const [wasmLoaded, runnerLoaded] = await Promise.all([
-      loadBacktestWasm(env, deps.resolveHooks),
+      loadBacktestWasm({ ...env, ALPHAFOX_PROFILE: profile.name }, deps.resolveHooks),
       loadBacktestRunner(env, deps.resolveHooks),
     ]);
     wasm = wasmLoaded.module;

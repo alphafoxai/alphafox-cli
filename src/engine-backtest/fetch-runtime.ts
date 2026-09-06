@@ -11,7 +11,7 @@ import { EngineBacktestError } from "./errors";
 
 export const BACKTEST_RUNTIME_PROTOCOL = 1;
 export const DEFAULT_BACKTEST_WASM_MANIFEST_URL =
-  "https://zwggllrrna54e2d6.public.blob.vercel-storage.com/engine-backtest/latest.json";
+  "https://api.alphafox.app/control-plane/v1/backtest/runtime-manifest";
 
 export const BLOB_RUNTIME_FILES = {
   wasm: "tradingfox-backtest.wasm",
@@ -64,10 +64,15 @@ export interface FetchRuntimeHooks {
 export function resolveBacktestWasmManifestUrl(
   env: NodeJS.ProcessEnv = process.env
 ): string {
-  return (
-    env.ALPHAFOX_BACKTEST_WASM_MANIFEST_URL?.trim() ||
-    DEFAULT_BACKTEST_WASM_MANIFEST_URL
-  );
+  const override = env.ALPHAFOX_BACKTEST_WASM_MANIFEST_URL?.trim();
+  if (override) return override;
+  if (env.ALPHAFOX_PROFILE === "staging") {
+    return "https://staging-api.alphafox.app/control-plane/v1/backtest/runtime-manifest";
+  }
+  if (env.ALPHAFOX_PROFILE === "local") {
+    throw new EngineBacktestError({ type: "runtime", subtype: "runtime_manifest_unconfigured", message: "Local profile requires ALPHAFOX_BACKTEST_WASM_MANIFEST_URL or an explicit local Engine build." });
+  }
+  return DEFAULT_BACKTEST_WASM_MANIFEST_URL;
 }
 
 export function resolveRuntimeCacheDir(
@@ -152,7 +157,7 @@ export async function ensureBlobRuntime(
       type: "runtime",
       subtype: "runtime_manifest_unavailable",
       message: `Cannot load backtest runtime manifest: ${error instanceof Error ? error.message : String(error)}`,
-      hint: "Check network access to Vercel Blob, or set ALPHAFOX_USE_LOCAL_BACKTEST=1 with a local Engine build.",
+      hint: "Check network access to the Engine runtime discovery API, or set ALPHAFOX_USE_LOCAL_BACKTEST=1 with a local Engine build.",
       details: { manifestUrl },
     });
   }
@@ -161,7 +166,7 @@ export async function ensureBlobRuntime(
       type: "runtime",
       subtype: "runtime_manifest_unavailable",
       message: `Backtest runtime manifest unavailable (HTTP ${response.status}).`,
-      hint: "Check network access to Vercel Blob, or set ALPHAFOX_USE_LOCAL_BACKTEST=1 with a local Engine build.",
+      hint: "Check network access to the Engine runtime discovery API, or set ALPHAFOX_USE_LOCAL_BACKTEST=1 with a local Engine build.",
       details: { manifestUrl, status: response.status },
     });
   }

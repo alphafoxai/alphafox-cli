@@ -427,7 +427,8 @@ export function isClosedCandle(
 export function ohlcvSeriesStartMs(
   fromMs: number,
   timeframe: string,
-  market?: Pick<TapeSymbolMarket, "created">
+  market?: Pick<TapeSymbolMarket, "created">,
+  minWarmupCandles?: number
 ): number;
 
 export function effectiveTapeEndMs(

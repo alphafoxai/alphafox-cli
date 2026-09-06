@@ -21,12 +21,27 @@ const WARMUP_CANDLES = ENGINE_BACKTEST_WARMUP_CANDLES;
 
 export { fetchClosedOhlcvRange, isClosedCandle, TIMEFRAME_MS };
 
-export function ohlcvSeriesStartMs(fromMs, timeframe, market) {
+function warmupPrefixLength(minWarmupCandles) {
+  const required = Number.isFinite(minWarmupCandles)
+    ? Math.max(0, Math.ceil(minWarmupCandles))
+    : 0;
+  return Math.max(WARMUP_CANDLES, required);
+}
+
+export function ohlcvSeriesStartMs(
+  fromMs,
+  timeframe,
+  market,
+  minWarmupCandles = 0
+) {
   const stepMs = TIMEFRAME_MS[timeframe];
   if (!stepMs) {
     throw new Error(`不支持的 timeframe：${timeframe}`);
   }
-  const warmupStartMs = fromMs - WARMUP_CANDLES * stepMs;
+  // Prefix is max(default 500, planner minWarmup) bars before the selected
+  // replay `from`. Listing history shorter than that is clamped to created;
+  // the engine then delays replay into the user range until N candles close.
+  const warmupStartMs = fromMs - warmupPrefixLength(minWarmupCandles) * stepMs;
   const marketCreatedMs = market?.created;
   return typeof marketCreatedMs === "number" &&
     Number.isFinite(marketCreatedMs) &&
@@ -57,7 +72,12 @@ export async function loadSeriesWithCache(
   if (!stepMs) {
     throw new Error(`不支持的 timeframe：${timeframe}`);
   }
-  const sinceMs = ohlcvSeriesStartMs(fromMs, timeframe, market);
+  const sinceMs = ohlcvSeriesStartMs(
+    fromMs,
+    timeframe,
+    market,
+    minWarmupCandles
+  );
   const closedEndMs = Math.min(Math.max(cacheUntilMs, sinceMs), toMs);
   const cacheable = closedEndMs > sinceMs;
   const cacheKey = ohlcvSeriesCacheKey(

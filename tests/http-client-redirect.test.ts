@@ -97,6 +97,108 @@ test("apiRequest preserves query string on the request URL", async () => {
   );
 });
 
+test("apiRequest keeps POST body across apex→www 301", async () => {
+  const seen: Array<{ url: string; method: string; body: string | undefined }> =
+    [];
+  const fetchImpl: typeof fetch = async (input, init) => {
+    const url = String(input);
+    seen.push({
+      url,
+      method: String(init?.method ?? "GET").toUpperCase(),
+      body: typeof init?.body === "string" ? init.body : undefined,
+    });
+    if (url === "https://alphafox.app/api/auth/oauth/device/code") {
+      return new Response(null, {
+        status: 301,
+        headers: {
+          location:
+            "https://www.alphafox.app:443/api/auth/oauth/device/code",
+        },
+      });
+    }
+    if (url.includes("/api/auth/oauth/device/code")) {
+      if (String(init?.method ?? "GET").toUpperCase() !== "POST") {
+        return new Response("method not allowed", { status: 405 });
+      }
+      const body = JSON.parse(String(init?.body ?? "{}")) as {
+        client_id?: string;
+      };
+      assert.equal(body.client_id, profile.clientId);
+      return new Response(
+        JSON.stringify({
+          device_code: "dev",
+          user_code: "ABCD",
+          verification_uri: "https://alphafox.app/cli/device",
+          expires_in: 600,
+          interval: 5,
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      );
+    }
+    return new Response("not found", { status: 404 });
+  };
+
+  const res = await apiRequest(
+    {
+      method: "POST",
+      path: "/api/auth/oauth/device/code",
+      profile,
+      skipAuth: true,
+      body: {
+        client_id: profile.clientId,
+        scope: "openid profile offline_access",
+      },
+    },
+    {},
+    fetchImpl
+  );
+
+  assert.equal(res.status, 200);
+  assert.equal(seen.length, 2);
+  assert.equal(seen[1]?.method, "POST");
+  assert.match(seen[1]?.url ?? "", /www\.alphafox\.app/);
+  assert.match(seen[1]?.body ?? "", /alphafox-cli-prod/);
+});
+
+test("apiRequest switches POST to GET on 303 See Other", async () => {
+  const seen: Array<{ method: string; body: string | undefined }> = [];
+  const fetchImpl: typeof fetch = async (input, init) => {
+    const url = String(input);
+    seen.push({
+      method: String(init?.method ?? "GET").toUpperCase(),
+      body: typeof init?.body === "string" ? init.body : undefined,
+    });
+    if (url === "https://alphafox.app/api/auth/oauth/device/code") {
+      return new Response(null, {
+        status: 303,
+        headers: {
+          location: "https://www.alphafox.app/api/auth/oauth/device/code",
+        },
+      });
+    }
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+
+  const res = await apiRequest(
+    {
+      method: "POST",
+      path: "/api/auth/oauth/device/code",
+      profile,
+      skipAuth: true,
+      body: { client_id: profile.clientId },
+    },
+    {},
+    fetchImpl
+  );
+
+  assert.equal(res.status, 200);
+  assert.equal(seen[1]?.method, "GET");
+  assert.equal(seen[1]?.body, undefined);
+});
+
 test("apiRequest refuses true cross-site token use", async () => {
   const env = {
     ALPHAFOX_TEST_ACCESS_TOKEN: "test-access-token",

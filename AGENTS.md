@@ -29,3 +29,17 @@ Skill/说明文档变化：核对 frontmatter、版本、引用、命令入口�
 - On engineering task operations: `docs/agents/issue-tracker.md` (shared Feishu tracker).
 - On triage: `docs/agents/triage-labels.md` (section/Type mapping).
 - On domain terminology or architecture changes: `docs/agents/domain.md` (relevant glossary/ADR pointers).
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues via `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default five canonical labels (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout (`CONTEXT.md` + `docs/adr/`). See `docs/agents/domain.md`.

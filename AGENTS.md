@@ -26,6 +26,6 @@ Skill/说明文档变化：核对 frontmatter、版本、引用、命令入口�
 
 ## Task and domain references
 
-- On engineering task operations: `docs/agents/issue-tracker.md` (shared Feishu tracker).
+- On engineering issue operations: `docs/agents/issue-tracker.md` (GitHub Issues workflow).
 - On triage: `docs/agents/triage-labels.md` (section/Type mapping).
 - On domain terminology or architecture changes: `docs/agents/domain.md` (relevant glossary/ADR pointers).

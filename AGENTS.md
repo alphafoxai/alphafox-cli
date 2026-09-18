@@ -1,45 +1,25 @@
 # alphafox-cli
 
-## Shared workflow
+Versioned CLI entry for the Public Application API on alphafox-web.
 
-For AlphaFox development, load the workspace `AGENTS.md` once if it has not already been supplied. Resolve the workspace from `ALPHAFOX_WORKSPACE`, otherwise `~/Desktop/Projects/alphafox`; external task/Orca worktrees do not inherit that file by directory ancestry. Reuse it while unchanged. In another environment where it is absent, follow available repository instructions and the user's scope; obtain missing shared settings only when the operation needs them, without guessing tracker IDs or release permissions.
+## Workspace
 
-Agent and human entry for the versioned Public Application API on alphafox-web.
+Load `$ALPHAFOX_WORKSPACE/AGENTS.md`, or `~/Desktop/Projects/alphafox/AGENTS.md` when unset; external worktrees do not inherit it. Keep CLI changes on this task worktree and authorize deployment, merge, production access, and credentials separately.
 
-## Engine Backtest runtime
+## Catalog and create boundaries
 
-`alphafox engine-backtest run` vendors the tape runner (`vendor/backtest-runner`, plus `ccxt`) so public npm installs do not need GitHub Packages. The wasm / Node host is downloaded from the public Vercel Blob manifest (`engine-backtest/latest.json`) into `~/.cache/alphafox/engine-backtest/<hash>/`. Override with `ALPHAFOX_BACKTEST_WASM_DIR` / `ALPHAFOX_BACKTEST_RUNNER_DIR` / `ALPHAFOX_ENGINE_ROOT`, or `ALPHAFOX_USE_LOCAL_BACKTEST=1` for a sibling Engine build. Do not add `@alphafoxai/backtest-wasm` or `@alphafoxai/backtest-runner` as CLI dependencies.
+- Generate the catalog with `node scripts/generate-catalog.mjs`; treat `src/catalog/generated/*.json` as output. Resolve contracts from `ALPHAFOX_CONTRACTS_ROOT`, sibling `../alphafox-contracts`, then an installed copy.
+- Route Chat workbench, Chat Backtest (`backtests.*`), Strategy Plaza (`strategy_plaza.*`), and web `/api/v1/backtests` through alphafox-web. Keep those prefixes out of the CLI catalog; use `alphafox engine-backtest run|sweep` for local Engine WASM and `engine_backtest.*` for persisted experiments.
+- Build `trading.traders.create` from the website body: `strategyDefinitionId`, `config`, `exchangeConnectorId`, optional `name` and `configSchemaVersion`. Keep Chat fields such as `chatId` and integer `strategyId` in web contracts. Route Hyperliquid/rebate copy through `trading.hl_copy_traders.create` / `trading.rebate_copy_traders.create`.
 
-## Public API catalog
+## Safe command sequence
 
-CLI catalog is generated from `@alphafoxai/contracts/public-api`. Do not hand-edit `src/catalog/generated/*.json`. Run `node scripts/generate-catalog.mjs`. Prefer `ALPHAFOX_CONTRACTS_ROOT`, then sibling `../alphafox-contracts`, then other installed copies. A stale website `node_modules` registry must not win just because it has more rows.
+- Run `alphafox auth login` and keep tokens in the OS keychain. Use `--format json --no-input` (or `--format jsonl` for progress); for each cataloged write, read `alphafox schema <operationId>`, validate the body (`--config @file` for large input), preview with `--dry-run`, then use `--yes` after matching explicit approval.
+- Resolve symbols with `alphafox resolve-symbols` before strategy, backtest, or write input; carry the returned `assetClass` into the operation.
+- Run local backtests with `alphafox engine-backtest run|sweep`; use `--no-persist` for zero-write work, let a requested sweep persist one completed summary, surface `coverageNotice` (`basic` stops missing/corrupt tape; `strict` stops any gap), preserve the requested range/data-quality mode, include `https://www.alphafox.app/zh/dashboard/traders/backtest/{experimentId}` after persistence, and keep live trader creation separately approved. Read `skills/engine-backtest/SKILL.md` for runtime, cache, and dashboard gates.
 
-Chat workbench, Chat Backtest (`backtests.*`), and Strategy Plaza (`strategy_plaza.*`) were removed from contracts `2.0.0`. Omit those prefixes at generate time as a safety net. Do not call them via typed commands, `schema`, or `alphafox api`. Local Engine WASM (`engine-backtest run`) and `engine_backtest.*` stay.
+## Validation and tracker
 
-`trading.traders.create` must match the website Engine create body: `strategyDefinitionId` + `config` + `exchangeConnectorId` (+ `name`, `configSchemaVersion`). Do not invent `chatId` or integer `strategyId` to make create work. Hyperliquid / rebate copy use `trading.hl_copy_traders.create` / `trading.rebate_copy_traders.create`.
-
-## Validation and delivery
-
-Skill/说明文档变化：核对 frontmatter、版本、引用、命令入口和权限/完成边界，不运行真实交易。CLI 逻辑先跑相关测试和 typecheck；`pnpm test:release` 验证独立发布面。完整 `pnpm test` 还构建 Web bundle 并检查 catalog，涉及这些接缝时使用，记录依赖仓库的 ref。修改仓库 Skill 源文件，不覆盖已安装版本或顺手升级 CLI。
-
-任务完成：请求范围已满足，相关检查和最终 diff 已复核，按授权交付提交/PR或本地产物，并说明剩余验收。复用同一候选的有效检查；缺少环境只阻塞依赖它的验证。移除本任务临时调试内容，不清理他人资源。部署/合并另需授权，不是默认的本地完成条件。
-
-## Task and domain references
-
-- On engineering task operations: `docs/agents/issue-tracker.md` (shared Feishu tracker).
-- On triage: `docs/agents/triage-labels.md` (section/Type mapping).
-- On domain terminology or architecture changes: `docs/agents/domain.md` (relevant glossary/ADR pointers).
-
-## Agent skills
-
-### Issue tracker
-
-Issues live in GitHub Issues via `gh` CLI. See `docs/agents/issue-tracker.md`.
-
-### Triage labels
-
-Default five canonical labels (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
-
-### Domain docs
-
-Single-context layout (`CONTEXT.md` + `docs/adr/`). See `docs/agents/domain.md`.
+- Documentation/Skill changes: check frontmatter, references, command entry points, permission gates, and completion boundaries with fixtures or sandbox operations. CLI changes: run focused tests and typecheck, then `pnpm test:release`; use full `pnpm test` for catalog/Web-bundle seams.
+- Use `package.json` commands, review the diff, and report verification plus remaining acceptance. Engineering tasks use GitHub Issues as declared in this revision's `docs/agents/issue-tracker.md`; read it before issue operations.
+- Triage mapping: `docs/agents/triage-labels.md`. Domain vocabulary and ADR pointers: `docs/agents/domain.md`.

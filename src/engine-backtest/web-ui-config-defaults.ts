@@ -8,7 +8,24 @@ import { projectDcaFirstOrderAmountForLegacyRuntime } from "./dca-first-order-am
  */
 export const WEB_UI_DEFAULT_LEVERAGE = 10;
 
-export function applyWebUiConfigDefaults(config: unknown): unknown {
+/**
+ * The Web UI leaves `common.execution.leverage` unset for these definitions,
+ * so the wasm schema default (1x) applies. Injecting 10 here would run a
+ * different margin than the website for the same strategy.
+ */
+const LEVERAGE_DEFAULT_EXEMPT_DEFINITION_IDS = new Set([
+  "moving_average_breakout",
+]);
+
+export function applyWebUiConfigDefaults(
+  config: unknown,
+  definitionId?: string
+): unknown {
+  if (
+    LEVERAGE_DEFAULT_EXEMPT_DEFINITION_IDS.has(definitionId?.trim() ?? "")
+  ) {
+    return config;
+  }
   const record = asRecord(config);
   if (!record) {
     return config;
@@ -31,9 +48,12 @@ export function applyWebUiConfigDefaults(config: unknown): unknown {
 }
 
 /** Web UI defaults first, then DCA first-order aliases for older wasm. */
-export function prepareEngineBacktestConfig(config: unknown): unknown {
+export function prepareEngineBacktestConfig(
+  config: unknown,
+  definitionId?: string
+): unknown {
   return projectDcaFirstOrderAmountForLegacyRuntime(
-    applyWebUiConfigDefaults(config)
+    applyWebUiConfigDefaults(config, definitionId)
   );
 }
 

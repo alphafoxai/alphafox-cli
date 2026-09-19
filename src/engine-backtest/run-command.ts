@@ -289,7 +289,8 @@ export async function executeEngineBacktestRun(
     loadEngineBacktestConfig(args.configRaw, {
       cwd: deps.cwd,
       readFile: deps.readFile,
-    })
+    }),
+    args.definitionId
   );
 
   let experimentId = args.experimentId;
@@ -465,7 +466,10 @@ export async function executeEngineBacktestRun(
       runId,
       definitionId: args.definitionId,
       configSchemaVersion,
-      config: prepareEngineBacktestConfig(plan.effectiveConfig ?? config),
+      config: prepareEngineBacktestConfig(
+        plan.effectiveConfig ?? config,
+        args.definitionId
+      ),
       subscriptionTier,
       initialEquity: args.initialEquity!,
       tape: tapeResult.tape,

@@ -158,7 +158,8 @@ export async function executeEngineBacktestSweep(
       loadEngineBacktestConfig(args.configRaw, {
         cwd: deps.cwd,
         readFile: deps.readFile,
-      })
+      }),
+      args.definitionId
     )
   );
   const axisInputs = parseSweepAxesDocument(
@@ -777,7 +778,8 @@ async function planCoordinate(input: {
 }): Promise<PlannedSweepCoordinate | SweepPoint> {
   const nextConfig = asConfigRecord(
     prepareEngineBacktestConfig(
-      applySweepCoordinate(input.config, input.axes, input.coordinate)
+      applySweepCoordinate(input.config, input.axes, input.coordinate),
+      input.definitionId
     )
   );
   try {

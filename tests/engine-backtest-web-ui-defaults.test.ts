@@ -168,6 +168,34 @@ describe("web UI config defaults", () => {
     assert.equal(next.common.execution.leverage, 10);
   });
 
+  it("leaves leverage to the schema default for definitions the Web UI exempts", () => {
+    const config = {
+      common: { execution: { openMinPosition: true } },
+      strategy: { symbol: "BTC/USDT:USDT" },
+    };
+    assert.deepEqual(
+      applyWebUiConfigDefaults(config, "moving_average_breakout"),
+      config
+    );
+    assert.deepEqual(
+      applyWebUiConfigDefaults(config, " moving_average_breakout "),
+      config
+    );
+    assert.deepEqual(
+      prepareEngineBacktestConfig(config, "moving_average_breakout"),
+      config
+    );
+    assert.deepEqual(
+      applyWebUiConfigDefaults(config, "dca"),
+      {
+        common: {
+          execution: { openMinPosition: true, leverage: WEB_UI_DEFAULT_LEVERAGE },
+        },
+        strategy: { symbol: "BTC/USDT:USDT" },
+      }
+    );
+  });
+
   it("still mirrors DCA first-order aliases after filling leverage", () => {
     const prepared = prepareEngineBacktestConfig({
       strategy: {

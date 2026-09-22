@@ -60,19 +60,11 @@ describe("credential honesty", () => {
   it("unexpected keychain miss marks degraded file fallback", () => {
     const dir = mkdtempSync(join(tmpdir(), "alphafox-cli-cred-deg-"));
     const env = {
-      // No FORCE_FILE — on non-darwin this always falls back; on darwin we
-      // simulate unavailability by pointing security away is hard, so only
-      // assert when platform cannot use keychain.
+      // Explicit unavailable helper: never depend on or touch the host keychain.
+      ALPHAFOX_KEYCHAIN_PLATFORM: "linux",
+      ALPHAFOX_SECRET_TOOL: join(dir, "missing-secret-tool"),
       ALPHAFOX_KEYCHAIN_DIR: dir,
     } as NodeJS.ProcessEnv;
-    if (process.platform === "darwin") {
-      // Force fail by using an invalid security path via env that keychain
-      // code does not honor — instead call with FORCE and check intentional
-      // path already covered. Mark degraded via internal path: omit FORCE
-      // but we can still assert API shape when write falls back on linux.
-      rmSync(dir, { recursive: true, force: true });
-      return; // darwin has real keychain; intentional-file case covers API
-    }
     try {
       const result = saveTokens(profile.name, sampleTokens(), env);
       assert.equal(result.backend, "file");

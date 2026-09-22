@@ -96,7 +96,10 @@ alphafox api GET /api/v1/me
 
 ## Security
 
-- Tokens live in the OS keychain (or controlled test injection). **Never** in config files or `--token` argv.
+- By default, tokens use the OS keychain (macOS Keychain, Linux Secret Service, or Windows Credential Manager). If unavailable or a save fails, the CLI warns and uses a **plaintext file fallback**. `ALPHAFOX_FORCE_FILE_KEYCHAIN=1` explicitly selects file storage without that warning. Tokens are **never** written to the CLI config file or accepted via `--token` argv.
+- Fallback files default to `~/.config/alphafox/keychain/<profile>.tokens.json`; `ALPHAFOX_KEYCHAIN_DIR` overrides that directory. `ALPHAFOX_CONFIG_DIR` changes config location only, **not** the token directory. On POSIX, the fallback repairs file permissions to `0600` before writing; this is access control, not encryption. Windows permissions depend on filesystem ACLs.
+- Opt in to keychain-only storage by setting `ALPHAFOX_REQUIRE_OS_KEYCHAIN=1` for **every** CLI invocation (including login, refresh, status, and logout). OS save failure then stops with `credential_storage` / `os_keychain_required` before any plaintext write. Strict mode rejects force-file mode and test token injection (`keychain_policy_conflict`), and never reads plaintext fallback credentials.
+- Enabling strict mode does not migrate or delete old credentials. If no OS entry is readable but a legacy fallback exists, it fails with `plaintext_credentials_disallowed`, including on logout, rather than claiming remote revocation. Revoke the old session and remove its file explicitly before treating the transition as complete. `doctor` checks helper availability, not successful storage or remote authentication; verify login with `auth status --verify`.
 - Profiles: `production` (default), `staging`, `local` — isolated issuer/audience/client (ADR 0003).
 - High-risk writes require `--yes`. Automation tokens are **deferred** (ADR 0004).
 - Raw `api` only hits allowlisted `/api/v1/*` facade paths.

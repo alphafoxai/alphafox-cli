@@ -47,6 +47,14 @@ them; a backup is created before replacement.
 
 ## Step 2: Login
 
+### Choose the credential storage policy
+
+By default the CLI prefers the OS keychain, but falls back to a **plaintext** file with a warning if the backend is unavailable or saving fails. `ALPHAFOX_FORCE_FILE_KEYCHAIN=1` intentionally selects file storage without that warning. The default file is `~/.config/alphafox/keychain/<profile>.tokens.json`; use `ALPHAFOX_KEYCHAIN_DIR` to change it. `ALPHAFOX_CONFIG_DIR` changes config location only, not the token directory. POSIX file writes repair permissions to `0600` before writing; this does not encrypt the file or establish Windows ACLs.
+
+If the user requires keychain-only storage, set `ALPHAFOX_REQUIRE_OS_KEYCHAIN=1` in the environment of **every** CLI invocation, including both Device Flow steps and subsequent status/refresh/logout commands. Do not combine it with `ALPHAFOX_FORCE_FILE_KEYCHAIN=1` or test token injection. An unavailable/failing OS save returns `credential_storage` / `os_keychain_required` with nonzero exit status; conflicting overrides return `keychain_policy_conflict`. Stop and report the error rather than disabling the policy to finish login.
+
+Enabling strict mode does not migrate or delete old credentials. It never reads plaintext fallback tokens. If there is no readable OS entry but a legacy file exists, `plaintext_credentials_disallowed` is returned, including for logout; this is not a successful remote revocation. Revoke the old session and remove its file explicitly. Enabling the flag alone is not a migration or cleanup procedure.
+
 ### Device Flow (headless / Agent)
 
 1. Start login and extract `verification_uri` / `user_code` from the JSON
@@ -85,7 +93,10 @@ alphafox auth status --verify --format json --no-input
 alphafox whoami --format json --no-input
 ```
 
-Parse the JSON envelope: `ok === true` means success. Errors land on
+Check the exit status and the JSON envelope; `doctor` also requires `data.ok === true`.
+Its keychain probe only checks helper availability, not an actual save or authentication.
+Confirm `auth status --verify` reports an active, verified session rather than
+treating a successful envelope or `doctor` alone as login success. Errors land on
 **stderr**. A 401 / expired session means re-run Step 2 — do not pass
 `--token` and do not reuse a token from another profile.
 

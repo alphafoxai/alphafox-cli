@@ -146,7 +146,7 @@ describe("Skills surface", () => {
     assert.equal(/hl_copy_trading/.test(router), false);
   });
 
-  it("teaches dashboard links and create-and-start by default", () => {
+  it("teaches dashboard links and create-only unless immediate start is approved", () => {
     const shared = readFileSync(
       join(skillsRoot, "alphafox-shared", "SKILL.md"),
       "utf8"
@@ -169,12 +169,47 @@ describe("Skills surface", () => {
       shared,
       /https:\/\/www\.alphafox\.app\/zh\/dashboard\/leaderboard/
     );
-    assert.match(trading, /autoStart.*true/);
-    assert.match(trading, /autoStart: false/);
+    assert.match(trading, /default[^\n]*`autoStart: false`/i);
+    assert.match(trading, /`autoStart: true` only when[^\n]*explicitly approved[^\n]*immediate start/i);
+    assert.match(trading, /connector[^\n]*environment/);
+    assert.match(trading, /do not add `autoStart`[^\n]*schema/i);
+    assert.doesNotMatch(trading, /Default Engine create uses autoStart true|Default Engine create is \*\*创建即开始\*\*/);
     assert.match(trading, /dashboard\/traders\/\{traderId\}/);
     assert.match(engine, /dashboard\/traders\/backtest\/\{experimentId\}/);
     assert.match(router, /dashboard\/leaderboard/);
-    assert.match(router, /autoStart: true/);
+    assert.match(router, /default `autoStart: false`/);
+    assert.match(router, /explicit[^\n]*immediate start/);
+  });
+
+  it("reviews definition-specific leverage instead of a blanket trading default", () => {
+    const trading = readFileSync(join(skillsRoot, "trading", "SKILL.md"), "utf8");
+    const strategy = readFileSync(join(skillsRoot, "strategy", "SKILL.md"), "utf8");
+    for (const text of [trading, strategy]) {
+      assert.match(text, /effective `configSchema`/);
+      assert.match(text, /Do not[^\n]*(?:blanket|hardcoded)[^\n]*10/i);
+      assert.doesNotMatch(text, /Default \*\*10\*\*|Currently `common.execution.leverage` is `10`/);
+    }
+    assert.match(strategy, /start choice[^\n]*connector[^\n]*environment/);
+    assert.match(strategy, /preserve[^\n]*user[^\n]*leverage/i);
+  });
+
+  it("does not prefill leverage over the moving-average backtest exemption", () => {
+    const engine = readFileSync(join(skillsRoot, "engine-backtest", "SKILL.md"), "utf8");
+    assert.match(engine, /moving_average_breakout/);
+    assert.match(engine, /preserve[^\n]*omission/i);
+    assert.match(engine, /0\.3\.24[^\n]*does not include[^\n]*exception/);
+    assert.doesNotMatch(engine, /do not skip this key in the source file/);
+  });
+
+  it("discloses plaintext fallback and the opt-in keychain-only policy", () => {
+    for (const name of ["alphafox-shared", "auth"]) {
+      const text = readFileSync(join(skillsRoot, name, "SKILL.md"), "utf8");
+      assert.match(text, /plaintext/i);
+      assert.match(text, /ALPHAFOX_REQUIRE_OS_KEYCHAIN=1/);
+      assert.match(text, /ALPHAFOX_KEYCHAIN_DIR/);
+      assert.match(text, /does not[^\n]*(?:migrate|delete)/);
+      assert.doesNotMatch(text, /OS keychain only|Tokens: OS keychain only/);
+    }
   });
 
   it("teaches Passivbot paper acceptance config v2", () => {

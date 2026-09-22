@@ -1,12 +1,12 @@
 ---
 name: alphafox-engine-backtest
 description: Local Engine WASM backtest (alphafox engine-backtest run|sweep) vs catalog experiment CRUD. After a persisted run, include https://www.alphafox.app/zh/dashboard/traders/backtest/{experimentId}.
-version: 0.3.24
+version: 0.3.25
 ---
 
 # Engine Backtest
 
-Always `--format json --no-input` (or `--format jsonl` when you need progress). Never `--token`. Tokens live in the OS keychain via `alphafox auth login`.
+Always `--format json --no-input` (or `--format jsonl` when you need progress). Never `--token`. Use `alphafox auth login`; review the OS-keychain-first/plaintext-fallback policy in `alphafox-shared` before login.
 
 Human-mentioned tickers must be resolved with `alphafox resolve-symbols` (`skills/market`) before they go into `--config`. Use `data.queries[].resolved` only when `status` is `exact`, or `close` after confirming with the human, and only when `assetClass` matches the operator (美股 → `equity_perp`). Local Engine tape is Binance-style USDT-M perps (`binance|okx|bybit|bitget|hyperliquid`), which is the same catalog that lists equity perps. Aster is in the public catalog but is **not** an Engine tape source. Do not rewrite `NVDA/USDT:USDT` into a crypto coin to force a backtest.
 
@@ -54,7 +54,9 @@ alphafox engine-backtest run \
   --format jsonl --no-input
 ```
 
-`--config` is `{ common, strategy }` (the source file from skill `alphafox-strategy`). It is not the `validate_config` HTTP body `{ configSchemaVersion, config }`. Missing `common.execution.leverage` is filled to **10** before plan/run (same as the website form). An explicit leverage is kept. Engine runtime still treats a raw omitted field as 1x — do not skip this key in the source file.
+`--config` is `{ common, strategy }` (the source file from skill `alphafox-strategy`). It is not the `validate_config` HTTP body `{ configSchemaVersion, config }`. Local run/sweep normally fill missing `common.execution.leverage` to **10** for Web parity, but `moving_average_breakout` is exempt: preserve omission so the Engine's 1x schema default applies. Preserve an explicit valid leverage for either case. Do not prefill a supplied source config with 10 merely because the CLI has a Web-parity default.
+
+Published `0.3.24` does not include this exception (fixed on `main` in #36). Check the installed version before comparing historical CLI/Web results; use an explicitly approved leverage when reproducing results with an older release. A release-preparation PR is not proof that npm has been updated.
 
 Also valid: `--from` / `--to` instead of `--range`. `--create-experiment --name "..."` when there is no `--experiment` (needs `strategyDefinitionId` + `strategyDefinitionDisplay` `{zh,en}`; pass `--definition-label-zh` / `--definition-label-en` or the CLI falls back to the definition id). Persisted runs use the account tier from `subscriptions.me.get`; if `--tier` is supplied, it must match. With `--no-persist`, `runs.create` is skipped and `--tier` may simulate `free|pro|pro_max` (default `pro`). `--data-quality` defaults to `basic` (soft gaps finish the run and appear as `coverageNotice`; `prefix_gap` is less severe than `internal_gap`). `--data-quality strict` still fails on any gap. `--replay-timeframe` defaults to `1m` (allowed `1m|3m|5m|15m|30m|1h|4h`); this is the replay/download bar and is merged with plan indicator timeframes so a 4h RSI grid still replays on 1m. `runs.create` is `write`, not `high-risk-write` — do not add `--yes`. Do not update or delete experiments through this command.
 

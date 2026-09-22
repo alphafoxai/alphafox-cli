@@ -2,7 +2,25 @@
 
 Run only against the stable public facade `https://staging.alphafox.app`. Do not use Preview URLs, internal service tokens, or production.
 
-Staging CLI issuer: `https://staging.alphafox.app`. Test login (staging-only, gated on `ALPHAFOX_DEPLOY_ENV=staging`): `test@local.com` / `localtest`. Device Flow approve without a human click: `node scripts/e2e-staging-device-approve.mjs --user-code <code>`. Isolate credentials with `ALPHAFOX_CONFIG_DIR` and `ALPHAFOX_FORCE_FILE_KEYCHAIN=1`.
+Staging CLI issuer: `https://staging.alphafox.app`. Test login (staging-only, gated on `ALPHAFOX_DEPLOY_ENV=staging`): `test@local.com` / `localtest`. Device Flow approve without a human click: `node scripts/e2e-staging-device-approve.mjs --user-code <code>`. Isolate credentials with **both** `ALPHAFOX_CONFIG_DIR` and `ALPHAFOX_KEYCHAIN_DIR`, plus `ALPHAFOX_FORCE_FILE_KEYCHAIN=1` for intentional plaintext file storage.
+
+## Credential storage policy
+
+Default storage prefers the OS keychain but permits plaintext file fallback, with a warning when the OS backend fails. The fallback is `~/.config/alphafox/keychain/<profile>.tokens.json`; `ALPHAFOX_KEYCHAIN_DIR` overrides it. `ALPHAFOX_CONFIG_DIR` alone does not isolate tokens. POSIX writes set `0600` on the opened file before writing, including existing files; this is not encryption or a Windows ACL guarantee.
+
+For an explicitly approved file-backed staging run, use a fresh sandbox (POSIX shell):
+
+```sh
+sandbox=$(mktemp -d)
+export ALPHAFOX_CONFIG_DIR="$sandbox/config"
+export ALPHAFOX_KEYCHAIN_DIR="$sandbox/keychain"
+export ALPHAFOX_FORCE_FILE_KEYCHAIN=1
+unset ALPHAFOX_REQUIRE_OS_KEYCHAIN
+```
+
+Alternatively set `ALPHAFOX_REQUIRE_OS_KEYCHAIN=1` for every invocation to require OS-only storage. Do not combine it with force-file mode or `ALPHAFOX_TEST_ACCESS_TOKEN` / `ALPHAFOX_TEST_REFRESH_TOKEN`; those conflicts fail closed. OS save failures stop login/refresh, and strict loads never read plaintext. Enabling strict mode does not migrate or delete old credentials: with no readable OS entry and a legacy file present, even logout reports `plaintext_credentials_disallowed` without claiming revocation. Explicitly revoke the old session and remove its file; do not treat enabling the flag or deleting a local file alone as remote revocation. `doctor` probes helper availability, not remote authentication or a successful write.
+
+Offline regression tests must use fresh HOME/TMPDIR/config/keychain directories, synthetic tokens and fake OS helpers; they are not live staging evidence.
 
 ## Scenarios
 

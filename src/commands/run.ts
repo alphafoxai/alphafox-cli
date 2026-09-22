@@ -357,8 +357,11 @@ function cmdDoctor(flags: GlobalFlags, env: NodeJS.ProcessEnv): number {
   const profile = resolveProfile(flags.profile, env, {
     unsafeCustomEndpoint: flags.unsafeCustomEndpoint,
   });
-  // Avoid macOS `security` stderr noise when no item exists; file keychain is fine for doctor.
-  const doctorEnv = { ...env, ALPHAFOX_FORCE_FILE_KEYCHAIN: env.ALPHAFOX_FORCE_FILE_KEYCHAIN ?? "1" };
+  // Preserve legacy quiet probing unless the caller requires the OS keychain.
+  const requireOsKeychain = env.ALPHAFOX_REQUIRE_OS_KEYCHAIN === "1";
+  const doctorEnv = requireOsKeychain ? env : {
+    ...env, ALPHAFOX_FORCE_FILE_KEYCHAIN: env.ALPHAFOX_FORCE_FILE_KEYCHAIN ?? "1",
+  };
   const tokens = loadTokens(profile.name, doctorEnv);
   const probe = probeOsKeychain(env);
   const checks = [
@@ -391,10 +394,12 @@ function cmdDoctor(flags: GlobalFlags, env: NodeJS.ProcessEnv): number {
     },
     {
       name: "osKeychain",
-      ok: true,
+      ok: !requireOsKeychain || probe.available,
       detail: probe.available
         ? probe.kind
-        : `${probe.kind} unavailable; file fallback (0600) if tokens are saved`,
+        : requireOsKeychain
+          ? `${probe.kind} unavailable; OS keychain required; plaintext fallback disabled`
+          : `${probe.kind} unavailable; file fallback (0600) if tokens are saved`,
     },
     {
       name: "configHasNoTokens",

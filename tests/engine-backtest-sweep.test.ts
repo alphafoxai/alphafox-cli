@@ -766,6 +766,75 @@ describe("engine-backtest sweep persist payload", () => {
 });
 
 describe("engine-backtest sweep execute", () => {
+  for (const [definitionId, leverage, expected] of [
+    ["moving_average_breakout", undefined, undefined],
+    ["moving_average_breakout", 3, 3],
+    ["grid", undefined, 10],
+    ["grid", 3, 3],
+  ] as const) {
+    it(`preserves definition-specific leverage across sweep configs: ${definitionId}/${leverage}`, async () => {
+      const config = {
+        ...BASE_CONFIG,
+        common: { execution: leverage === undefined ? {} : { leverage } },
+      };
+      const expectedExecution = expected === undefined ? {} : { leverage: expected };
+      const seenPeriods = new Set<number>();
+      let executedVariants = 0;
+      function assertConfig(value: unknown): asserts value is typeof config {
+        const actual = value as typeof config;
+        assert.deepEqual(actual.common.execution, expectedExecution);
+        assert.equal(actual.strategy.spacing, BASE_CONFIG.strategy.spacing);
+        seenPeriods.add(actual.strategy.period);
+      }
+      const client = fakeClient({
+        strategyDefinitions: async () => ({
+          engineVersion: "test-engine",
+          definitions: [{ id: definitionId, configSchemaVersion: 4 }],
+        }),
+        planBacktest: async (request) => {
+          assert.equal(request.definitionId, definitionId);
+          assertConfig(request.config);
+          return { ...PLAN, definitionId, effectiveConfig: request.config };
+        },
+        runPreparedBacktestBatch: async (_handle, batch) => ({
+          batchId: batch.batchId,
+          status: "completed",
+          results: batch.variants.map((variant) => {
+            assert.equal(batch.baseScenario.trader.strategyDefinitionId, definitionId);
+            assertConfig(variant.config);
+            executedVariants += 1;
+            return { runId: variant.runId, status: "completed" as const, metrics: METRICS };
+          }),
+        }),
+      });
+      const args = {
+        ...parseEngineBacktestSweepArgs(sweepArgv(["--no-persist", "--mode", "range", "--concurrency", "1"])),
+        definitionId,
+        configRaw: JSON.stringify(config),
+      };
+      const result = await executeEngineBacktestSweep(args, FLAGS, isolatedEnv(), {
+        ...runnerDeps({
+          client,
+          apiRequest: async () => { throw new Error("no API requests expected"); },
+        }),
+        assembleScenario: (input) => ({
+          ...sampleScenario(input.runId),
+          trader: {
+            ...sampleScenario().trader,
+            strategyDefinitionId: input.definitionId,
+            config: input.config,
+          },
+        }),
+      });
+      assert.equal(result.persisted, false);
+      assert.equal(result.successfulCount, 3);
+      assert.equal(executedVariants, 3);
+      assertConfig(result.best?.config);
+      assert.deepEqual([...seenPeriods].sort((a, b) => a - b), [8, 10, 12]);
+      assert.deepEqual(config.common.execution, leverage === undefined ? {} : { leverage });
+    });
+  }
+
   it("persists once after every coordinate finishes and never creates a Run", async () => {
     const apiCalls: string[] = [];
     const bodies: unknown[] = [];

@@ -28,6 +28,7 @@ function filePath() {
 
 const action = args[0];
 if (action === "store") {
+  if (process.env.ALPHAFOX_FAKE_SECRET_FAIL_STORE === "1") process.exit(1);
   fs.writeFileSync(filePath(), fs.readFileSync(0));
   process.exit(0);
 }

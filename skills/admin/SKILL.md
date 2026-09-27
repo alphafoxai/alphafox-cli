@@ -16,7 +16,7 @@ High-risk cataloged admin writes: `alphafox schema <operationId>` first, then `-
 
 ## Passivbot paper acceptance
 
-This Stage 1 endpoint is intentionally absent from the public Operation Registry and typed CLI catalog. The only allowed uncataloged admin path is the exact direct route below. Its JSON body is strict: `name`, `exchangeConnectorId`, and `config` are required; `configSchemaVersion` accepts only `1` and `2`; `autoStart` is optional and defaults to `true`. Use `2` for new acceptance traders and `1` only when replaying an existing v1 config. The `config` object must match the selected version. Do not add server-owned fields.
+This Stage 1 endpoint is intentionally absent from the public Operation Registry and typed CLI catalog. The only allowed uncataloged admin path is the exact direct route below. Its JSON body is strict: `name`, `exchangeConnectorId`, and `config` are required; `configSchemaVersion` must be `3`; `autoStart` is optional and defaults to `true`. Use the complete v3 config envelope for new acceptance traders. Existing v1/v2 configs are not migrated automatically: first add the complete v3 envelope (at minimum `common.riskControl: {}`), then explicitly update the trader with `configSchemaVersion: 3` and confirm that update succeeded before starting or restoring it. Do not start an un-migrated trader, and do not add server-owned fields.
 
 Preview the exact raw request first. The unknown/high-risk gate must return `confirmation_required`; show the requested action and risk to the operator, wait for explicit confirmation, then rerun the same command with `--yes`.
 
@@ -31,8 +31,11 @@ The config file shape is:
 {
   "name": "Passivbot paper acceptance",
   "exchangeConnectorId": "<internal-paper-connector-id>",
-  "configSchemaVersion": 2,
-  "config": {},
+  "configSchemaVersion": 3,
+  "config": {
+    "common": { "riskControl": {} },
+    "strategy": {}
+  },
   "autoStart": true
 }
 ```

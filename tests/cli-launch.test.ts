@@ -247,7 +247,7 @@ describe("cli launch", () => {
     const body = JSON.stringify({
       name: "Passivbot paper acceptance",
       exchangeConnectorId: "connector-1",
-      configSchemaVersion: 1,
+      configSchemaVersion: 3,
       config: {},
       autoStart: true,
     });

@@ -177,11 +177,14 @@ describe("Skills surface", () => {
     assert.match(router, /autoStart: true/);
   });
 
-  it("teaches Passivbot paper acceptance config v2", () => {
+  it("teaches Passivbot paper acceptance config v3 and explicit legacy migration", () => {
     const admin = readFileSync(join(skillsRoot, "admin", "SKILL.md"), "utf8");
-    assert.match(admin, /configSchemaVersion.*`1` and `2`/);
-    assert.match(admin, /Use `2` for new acceptance traders/);
-    assert.match(admin, /"configSchemaVersion": 2/);
+    assert.match(admin, /configSchemaVersion.*must be `3`/);
+    assert.match(admin, /Existing v1\/v2 configs are not migrated automatically/);
+    assert.match(admin, /common\.riskControl: \{\}/);
+    assert.match(admin, /"configSchemaVersion": 3/);
+    assert.doesNotMatch(admin, /accepts only `1` and `2`/);
+    assert.doesNotMatch(admin, /Use `2` for new acceptance traders/);
   });
 
   it("does not teach chat product commands or paths", () => {

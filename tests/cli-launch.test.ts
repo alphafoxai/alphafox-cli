@@ -20,6 +20,59 @@ function run(args: string[], extraEnv: NodeJS.ProcessEnv = {}) {
   });
 }
 
+function passivbotSideFixture(nPositions: number) {
+  return {
+    n_positions: nPositions,
+    wallet_exposure_limit: 1,
+    total_wallet_exposure_limit: 1,
+    risk_entry_cooldown_minutes: 0,
+    risk_wel_enforcer_enabled: false,
+    risk_wel_enforcer_threshold: 1,
+    risk_twel_entry_gate_enabled: false,
+    risk_twel_enforcer_enabled: false,
+    risk_twel_enforcer_policy: "reduce_overweight",
+    risk_twel_enforcer_threshold: 1,
+    risk_we_excess_allowance_pct: 0,
+    risk_we_excess_allowance_mode: "bounded",
+    unstuck_enabled: false,
+    unstuck_ema_gating_enabled: false,
+    unstuck_close_pct: 0,
+    unstuck_ema_dist: 0,
+    unstuck_loss_allowance_pct: 0,
+    unstuck_threshold: 0,
+    trailing_martingale: {
+      ema_span_0: 3,
+      ema_span_1: 5,
+      volatility_ema_span_1h: 0,
+      volatility_ema_span_1m: 0,
+      entry: {
+        double_down_factor: 0,
+        ema_gate_mode: "disabled",
+        initial_ema_dist: 0,
+        initial_qty_pct: 0.1,
+        retracement_base_pct: 0,
+        retracement_volatility_1h_weight: 0,
+        retracement_volatility_1m_weight: 0,
+        retracement_we_weight: 0,
+        threshold_base_pct: 0,
+        threshold_volatility_1h_weight: 0,
+        threshold_volatility_1m_weight: 0,
+        threshold_we_weight: 0,
+      },
+      close: {
+        qty_pct: 0.1,
+        retracement_base_pct: 0,
+        retracement_volatility_1h_weight: 0,
+        retracement_volatility_1m_weight: 0,
+        threshold_base_pct: 0,
+        threshold_volatility_1h_weight: 0,
+        threshold_volatility_1m_weight: 0,
+        threshold_we_weight: 0,
+      },
+    },
+  };
+}
+
 describe("cli launch", () => {
   it("version exits 0 with stable envelope fields", () => {
     const r = run(["version"]);
@@ -247,8 +300,19 @@ describe("cli launch", () => {
     const body = JSON.stringify({
       name: "Passivbot paper acceptance",
       exchangeConnectorId: "connector-1",
-      configSchemaVersion: 1,
-      config: {},
+      configSchemaVersion: 3,
+      config: {
+        common: {
+          execution: { leverage: 1, openMinPosition: false },
+          riskControl: {},
+          orderExecution: {},
+        },
+        strategy: {
+          symbols: ["BTC/USDT:USDT"],
+          long: passivbotSideFixture(1),
+          short: passivbotSideFixture(0),
+        },
+      },
       autoStart: true,
     });
     const blocked = run(["api", "POST", path, "--body", body]);

@@ -251,6 +251,7 @@ describe("generated operation catalog", () => {
     const updateBody = update?.request.body as {
       properties?: Record<string, unknown>;
     };
+    assert.ok(updateBody.properties?.existingPositionOnlyFollowing);
     assert.equal(updateBody.properties?.strategyParamValues, undefined);
     assert.equal(updateBody.properties?.chatId, undefined);
     assert.equal(

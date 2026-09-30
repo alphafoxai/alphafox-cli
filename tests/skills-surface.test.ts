@@ -172,6 +172,10 @@ describe("Skills surface", () => {
     assert.match(trading, /autoStart.*true/);
     assert.match(trading, /autoStart: false/);
     assert.match(trading, /dashboard\/traders\/\{traderId\}/);
+    assert.match(trading, /existingPositionOnlyFollowing/);
+    assert.match(trading, /trigger_sync/);
+    assert.match(trading, /actions byAction run/);
+    assert.match(trading, /reduce_position/);
     assert.match(engine, /dashboard\/traders\/backtest\/\{experimentId\}/);
     assert.match(router, /dashboard\/leaderboard/);
     assert.match(router, /autoStart: true/);

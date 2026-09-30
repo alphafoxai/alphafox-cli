@@ -126,6 +126,42 @@ describe("catalog write-body validation", () => {
     assert.equal(closePositions.ok, true);
   });
 
+  it("accepts copy-trade update toggle and trigger_sync action payload", () => {
+    const enableExisting = validateCatalogWriteBody({
+      method: "PATCH",
+      operationId: "trading.traders.byId.update",
+      body: { existingPositionOnlyFollowing: true },
+    });
+    assert.equal(enableExisting.ok, true);
+    const disableExisting = validateCatalogWriteBody({
+      method: "PATCH",
+      operationId: "trading.traders.byId.update",
+      body: { existingPositionOnlyFollowing: false },
+    });
+    assert.equal(disableExisting.ok, true);
+    const inventedToggle = validateCatalogWriteBody({
+      method: "PATCH",
+      operationId: "trading.traders.byId.update",
+      body: { onlyTradeExistingPositions: true },
+    });
+    assert.equal(inventedToggle.ok, false);
+    if (!inventedToggle.ok) {
+      assert.equal(inventedToggle.error.subtype, "body_schema");
+    }
+    const sync = validateCatalogWriteBody({
+      method: "POST",
+      operationId: "trading.traders.byId.actions.byAction.run",
+      body: { payload: { ratioPercent: 100 } },
+    });
+    assert.equal(sync.ok, true);
+    const preview = validateCatalogWriteBody({
+      method: "POST",
+      operationId: "trading.traders.byId.actions.byAction.preview",
+      body: { payload: { ratioPercent: 100 } },
+    });
+    assert.equal(preview.ok, true);
+  });
+
   it("skips GET and allows empty uncataloged write bodies only", () => {
     const get = validateCatalogWriteBody({
       method: "GET",

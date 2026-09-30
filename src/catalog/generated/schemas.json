@@ -645,6 +645,9 @@
                 "shareParameters": {
                   "type": "boolean"
                 },
+                "existingPositionOnlyFollowing": {
+                  "type": "boolean"
+                },
                 "hiddenFromLeaderboard": {
                   "type": "boolean"
                 },
@@ -23122,6 +23125,9 @@
               "shareParameters": {
                 "type": "boolean"
               },
+              "existingPositionOnlyFollowing": {
+                "type": "boolean"
+              },
               "hiddenFromLeaderboard": {
                 "type": "boolean"
               },
@@ -24214,6 +24220,9 @@
               "shareParameters": {
                 "type": "boolean"
               },
+              "existingPositionOnlyFollowing": {
+                "type": "boolean"
+              },
               "hiddenFromLeaderboard": {
                 "type": "boolean"
               },
@@ -25025,6 +25034,9 @@
           "shareParameters": {
             "type": "boolean"
           },
+          "existingPositionOnlyFollowing": {
+            "type": "boolean"
+          },
           "hiddenFromLeaderboard": {
             "type": "boolean"
           },
@@ -25160,6 +25172,9 @@
                 "type": "number"
               },
               "shareParameters": {
+                "type": "boolean"
+              },
+              "existingPositionOnlyFollowing": {
                 "type": "boolean"
               },
               "hiddenFromLeaderboard": {
@@ -25597,6 +25612,9 @@
                 "type": "number"
               },
               "shareParameters": {
+                "type": "boolean"
+              },
+              "existingPositionOnlyFollowing": {
                 "type": "boolean"
               },
               "hiddenFromLeaderboard": {

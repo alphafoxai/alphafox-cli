@@ -1,0 +1,114 @@
+# Test-only CI for @alphafox/cli. Publishing is a separate concern: see
+# publish.yml, which releases from a protected v* tag via npm trusted publishing.
+#
+# This workflow runs `pnpm run test:release`, which executes every test in the
+# package with no sibling-repository dependency. It does not run `pnpm test`,
+# because that additionally runs `check:catalog-drift`, which needs a resolvable
+# @alphafoxai/contracts (ALPHAFOX_CONTRACTS_ROOT, a sibling checkout, or an
+# installed copy) and so cannot run in an isolated job yet.
+#
+# History: this package previously compiled a copy of alphafox-web's OAuth route
+# handlers into the test build and asserted against them. That structure could
+# never detect cross-repository drift — a change to the Web handler was copied
+# in and the test kept passing — and it asserted no CLI code. The slice is now
+# owned by alphafox-web's own suite (tests/cli-oauth-mvp-integration.test.ts,
+# tests/oauth-client-env-binding.test.ts, tests/oauth-scopes.test.ts), which
+# covers the same routes, grants, and error codes against the real
+# implementation.
+name: ci
+
+concurrency:
+  # A newer push to the same ref supersedes an older test run. Cancelling is
+  # safe here because this workflow only tests: it deploys nothing and publishes
+  # nothing, so there is no in-flight remote action to interrupt.
+  group: alphafox-cli-ci-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Fails fast on a type error over src/ and tests/ without emitting, so the
+      # signal is the type error itself rather than a build step that died.
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      # Builds, clears the stale test tree, compiles it, then runs every test in
+      # the package. The clear step matters: tsc writes but never deletes, so a
+      # removed test would otherwise survive as an orphan .js and still run.
+      - name: Test
+        run: pnpm run test:release
+
+  # The catalog is generated from @alphafoxai/contracts, so a contract change
+  # can invalidate it without touching this repository. Without this job,
+  # nothing mechanical stopped a drifted catalog from merging: `test:release`
+  # deliberately excludes `check:catalog-drift`, which needs a resolvable
+  # upstream checkout.
+  catalog-drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      # The upstream repository is private, and a checkout this token cannot
+      # read fails the job outright — which is the required behaviour. A token
+      # only readable by some runs would make a skipped drift check
+      # indistinguishable from a passing one in a green run.
+      - name: Checkout alphafox-contracts
+        uses: actions/checkout@v6
+        with:
+          repository: alphafoxai/alphafox-contracts
+          path: alphafox-contracts
+          token: ${{ secrets.ALPHAFOX_CONTRACTS_READ_TOKEN || secrets.ALPHAFOX_SCHEMAS_READ_TOKEN || github.token }}
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10.33.0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Install cli
+        run: pnpm install --frozen-lockfile
+
+      # The generator reads the upstream build, not its sources, and refuses to
+      # run when that build is older than the sources it came from. A fresh
+      # checkout has no dist/, so this step is required, not an optimization.
+      - name: Build contracts
+        working-directory: alphafox-contracts
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
+
+      # ALPHAFOX_CONTRACTS_ROOT is required here: the generator treats a sibling
+      # ../alphafox-contracts as authoritative, and a CI checkout is not a
+      # sibling. Without it the job would fail rather than silently pick a
+      # different contracts tree.
+      - name: Check catalog drift
+        env:
+          ALPHAFOX_CONTRACTS_ROOT: ${{ github.workspace }}/alphafox-contracts
+        run: pnpm run check:catalog-drift

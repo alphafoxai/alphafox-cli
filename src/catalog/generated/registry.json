@@ -2,8 +2,8 @@
   "source": {
     "package": "@alphafoxai/contracts",
     "export": "public-api",
-    "contractsSha": "41d62321a2f21ff5d356ea819780c073d9b0014e",
-    "registryVersion": "3.0.0",
+    "contractsSha": "79be45cce8a42090e509e1a2f2fbd09d4803a388",
+    "registryVersion": "4.0.0",
     "contractVersion": "2026-08-31",
     "scannedAt": "2026-08-31",
     "totalOperations": 268,
@@ -11,7 +11,7 @@
   },
   "compatibility": {
     "contractVersion": "2026-08-31",
-    "registryVersion": "3.0.0",
+    "registryVersion": "4.0.0",
     "minCliVersion": "0.0.0",
     "maxCliVersion": "0.99.99",
     "openapi": "3.1.0"

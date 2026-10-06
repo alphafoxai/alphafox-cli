@@ -20,7 +20,7 @@
     "sharedContractRef": "exchangeConnectionsResponseSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -262,7 +262,7 @@
     "sharedContractRef": "WhoamiResponse",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -370,7 +370,7 @@
     "sharedContractRef": "MetaResponse",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -490,7 +490,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -578,7 +578,7 @@
     "sharedContractRef": "tradersResponseSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -751,7 +751,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -841,7 +841,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -925,7 +925,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1014,7 +1014,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1108,7 +1108,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1205,7 +1205,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1293,7 +1293,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1382,7 +1382,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1480,7 +1480,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1577,7 +1577,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1665,7 +1665,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1754,7 +1754,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1843,7 +1843,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1932,7 +1932,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2020,7 +2020,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2109,7 +2109,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2198,7 +2198,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2286,7 +2286,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2375,7 +2375,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2463,7 +2463,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2552,7 +2552,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2641,7 +2641,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2734,7 +2734,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2832,7 +2832,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2930,7 +2930,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3018,7 +3018,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3107,7 +3107,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3200,7 +3200,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3298,7 +3298,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3396,7 +3396,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3484,7 +3484,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3572,7 +3572,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3660,7 +3660,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3749,7 +3749,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3837,7 +3837,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3925,7 +3925,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4014,7 +4014,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4108,7 +4108,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4196,7 +4196,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4285,7 +4285,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4374,7 +4374,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4471,7 +4471,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4559,7 +4559,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4648,7 +4648,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4746,7 +4746,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4839,7 +4839,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4937,7 +4937,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5035,7 +5035,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5133,7 +5133,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5221,7 +5221,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5309,7 +5309,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5398,7 +5398,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5496,7 +5496,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5593,7 +5593,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5681,7 +5681,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5770,7 +5770,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5863,7 +5863,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5961,7 +5961,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -6059,7 +6059,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -6147,7 +6147,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -6235,7 +6235,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -6324,7 +6324,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -6422,7 +6422,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -6520,7 +6520,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -6617,7 +6617,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -6714,7 +6714,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -6812,7 +6812,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -6910,7 +6910,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7008,7 +7008,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7106,7 +7106,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7204,7 +7204,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7301,7 +7301,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7390,7 +7390,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7487,7 +7487,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7575,7 +7575,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7663,7 +7663,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7748,7 +7748,7 @@
     "sharedContractRef": "OpenApiDocument",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7848,7 +7848,7 @@
     "sharedContractRef": "CapabilityManifest",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7957,7 +7957,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8050,7 +8050,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8147,7 +8147,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8235,7 +8235,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8324,7 +8324,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8417,7 +8417,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8505,7 +8505,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8593,7 +8593,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8682,7 +8682,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8776,7 +8776,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8873,7 +8873,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8961,7 +8961,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9050,7 +9050,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9144,7 +9144,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9241,7 +9241,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9329,7 +9329,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9418,7 +9418,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9512,7 +9512,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9609,7 +9609,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9697,7 +9697,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9786,7 +9786,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9880,7 +9880,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9977,7 +9977,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -10065,7 +10065,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -10154,7 +10154,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -10247,7 +10247,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -10345,7 +10345,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -10444,7 +10444,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -10541,7 +10541,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -10639,7 +10639,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -10738,7 +10738,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -10841,7 +10841,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -10938,7 +10938,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -11036,7 +11036,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -11133,7 +11133,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -11221,7 +11221,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -11310,7 +11310,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -11408,7 +11408,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -11502,7 +11502,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -11600,7 +11600,7 @@
     "sharedContractRef": "createExchangeConnectionRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -11653,53 +11653,6 @@
               "name",
               "exchangePlatform",
               "paperMargin"
-            ],
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "properties": {
-              "mode": {
-                "type": "string",
-                "const": "paper"
-              },
-              "executionVenue": {
-                "type": "string",
-                "const": "exchange_demo"
-              },
-              "name": {
-                "type": "string",
-                "minLength": 1
-              },
-              "exchangePlatform": {
-                "type": "string",
-                "const": "Binance"
-              },
-              "credentials": {
-                "type": "object",
-                "propertyNames": {
-                  "type": "string",
-                  "minLength": 1
-                },
-                "additionalProperties": {
-                  "type": "string",
-                  "minLength": 1
-                }
-              },
-              "positionSideDual": {
-                "type": "boolean"
-              },
-              "ipAddress": {
-                "type": "string",
-                "minLength": 1
-              }
-            },
-            "required": [
-              "mode",
-              "executionVenue",
-              "name",
-              "exchangePlatform",
-              "credentials"
             ],
             "additionalProperties": false
           },
@@ -11983,7 +11936,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -12080,7 +12033,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -12168,7 +12121,7 @@
     "sharedContractRef": "liveConnectionEquitiesResponseSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -12306,7 +12259,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -12403,7 +12356,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -12500,7 +12453,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -12588,7 +12541,7 @@
     "sharedContractRef": "testExchangeConnectionRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -12759,7 +12712,7 @@
     "sharedContractRef": "suggestedWhitelistIpResponseSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -12858,7 +12811,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -12946,7 +12899,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13034,7 +12987,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13122,7 +13075,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13210,7 +13163,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13298,7 +13251,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13386,7 +13339,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13474,7 +13427,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13562,7 +13515,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13659,7 +13612,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13756,7 +13709,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13854,7 +13807,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13952,7 +13905,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14050,7 +14003,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14138,7 +14091,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14226,7 +14179,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14314,7 +14267,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14402,7 +14355,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14490,7 +14443,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14578,7 +14531,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14666,7 +14619,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14754,7 +14707,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14842,7 +14795,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14939,7 +14892,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -15027,7 +14980,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -15115,7 +15068,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -15203,7 +15156,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -15300,7 +15253,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -15398,7 +15351,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -15492,7 +15445,7 @@
     "sharedContractRef": "upsertNotificationChannelRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -15691,7 +15644,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -15789,7 +15742,7 @@
     "sharedContractRef": "updateNotificationChannelEnabledRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -15960,7 +15913,7 @@
     "sharedContractRef": "notificationChannelsResponseSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16125,7 +16078,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16228,7 +16181,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16325,7 +16278,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16413,7 +16366,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16502,7 +16455,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16590,7 +16543,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16679,7 +16632,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16768,7 +16721,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16852,7 +16805,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16940,7 +16893,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -17028,7 +16981,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -17125,7 +17078,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -17213,7 +17166,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -17301,7 +17254,7 @@
     "sharedContractRef": "managedWalletDepositBonusClaimResponseSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -17541,7 +17494,7 @@
     "sharedContractRef": "managedWalletDepositBonusOfferSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -17803,7 +17756,7 @@
     "sharedContractRef": "subscriptionStatusSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -18011,7 +17964,7 @@
     "sharedContractRef": "subscriptionPlansResponseSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -18158,7 +18111,7 @@
     "sharedContractRef": "purchaseSubscriptionRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -18432,7 +18385,7 @@
     "sharedContractRef": "purchaseSubscriptionRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -18874,7 +18827,7 @@
     "sharedContractRef": "welcomeTrialClaimResponseSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -19114,7 +19067,7 @@
     "sharedContractRef": "welcomeTrialOfferSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -19366,7 +19319,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -19454,7 +19407,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -19551,7 +19504,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -19648,7 +19601,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -19745,7 +19698,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -19842,7 +19795,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -19939,7 +19892,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20036,7 +19989,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20133,7 +20086,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20230,7 +20183,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20327,7 +20280,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20424,7 +20377,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20521,7 +20474,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20618,7 +20571,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20715,7 +20668,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20812,7 +20765,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20909,7 +20862,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20997,7 +20950,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21085,7 +21038,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21173,7 +21126,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21261,7 +21214,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21358,7 +21311,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21446,7 +21399,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21534,7 +21487,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21622,7 +21575,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21710,7 +21663,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21798,7 +21751,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21886,7 +21839,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21974,7 +21927,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -22071,7 +22024,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -22168,7 +22121,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -22265,7 +22218,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -22369,7 +22322,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -22472,7 +22425,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -22569,7 +22522,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -22666,7 +22619,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -22764,7 +22717,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -22857,7 +22810,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -22954,7 +22907,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -23051,7 +23004,7 @@
     "sharedContractRef": "traderDetailResponseSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -23272,7 +23225,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -23369,7 +23322,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -23466,7 +23419,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -23563,7 +23516,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -23660,7 +23613,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -23758,7 +23711,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -23855,7 +23808,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -23952,7 +23905,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -24049,7 +24002,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -24146,7 +24099,7 @@
     "sharedContractRef": "traderRuntimeResponseSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -24367,7 +24320,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -24465,7 +24418,7 @@
     "sharedContractRef": "startTraderRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -24630,7 +24583,7 @@
     "sharedContractRef": "stopTraderRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -24789,7 +24742,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -24886,7 +24839,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -24984,7 +24937,7 @@
     "sharedContractRef": "updateTraderConfigRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -25320,7 +25273,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -25418,7 +25371,7 @@
     "sharedContractRef": "createTraderRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -25760,7 +25713,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -25848,7 +25801,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -25936,7 +25889,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -26024,7 +25977,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -26113,7 +26066,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -26201,7 +26154,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "3.0.0",
+      "registryVersion": "4.0.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"

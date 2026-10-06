@@ -1,6 +1,10 @@
 /**
- * Run package-local tests that do not need sibling alphafox-contracts /
- * alphafox-web checkouts. Used by the npm publish workflow.
+ * Run every compiled test in this package. Used by the npm publish workflow and
+ * by CI, because it skips `check:catalog-drift`, which needs a resolvable
+ * @alphafoxai/contracts (sibling checkout, ALPHAFOX_CONTRACTS_ROOT, or an
+ * installed copy). The Web OAuth vertical slice is not tested here or anywhere
+ * in this repository: it is owned by alphafox-web's own suite, which covers the
+ * same routes, grants, and error codes against the real implementation.
  */
 import { readdirSync } from "node:fs";
 import { spawnSync } from "node:child_process";
@@ -9,12 +13,8 @@ import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dir = join(root, "dist-test", "tests");
-const skip = new Set([
-  "mvp-oauth-web-handlers.test.js",
-  "oauth-client-scope.test.js",
-]);
 const files = readdirSync(dir)
-  .filter((name) => name.endsWith(".test.js") && !skip.has(name))
+  .filter((name) => name.endsWith(".test.js"))
   .map((name) => join(dir, name))
   .sort();
 

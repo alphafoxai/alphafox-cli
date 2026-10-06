@@ -20,6 +20,7 @@ Load `$ALPHAFOX_WORKSPACE/AGENTS.md`, or `~/Desktop/Projects/alphafox/AGENTS.md`
 
 ## Validation and tracker
 
-- Documentation/Skill changes: check frontmatter, references, command entry points, permission gates, and completion boundaries with fixtures or sandbox operations. CLI changes: run focused tests and typecheck, then `pnpm test:release`; use full `pnpm test` for catalog/Web-bundle seams.
+- Documentation/Skill changes: check frontmatter, references, command entry points, permission gates, and completion boundaries with fixtures or sandbox operations. CLI changes: run focused tests and typecheck, then `pnpm test:release`; use full `pnpm test` when the catalog contract must be re-verified, which needs a resolvable contracts checkout.
+- Do not re-add a compiled copy of alphafox-web's OAuth or public-API handlers to this test build. That seam was removed: copying the Web implementation into the test could not detect the drift it existed to catch, since a changed handler was copied in and the test kept passing. The vertical slice is owned by `alphafox-web` (`tests/cli-oauth-mvp-integration.test.ts`, `tests/oauth-client-env-binding.test.ts`, `tests/oauth-scopes.test.ts`). Test CLI-side behavior against its own request, PKCE, token-storage, and catalog code.
 - Use `package.json` commands, review the diff, and report verification plus remaining acceptance. Engineering tasks use GitHub Issues as declared in this revision's `docs/agents/issue-tracker.md`; read it before issue operations.
 - Triage mapping: `docs/agents/triage-labels.md`. Domain vocabulary and ADR pointers: `docs/agents/domain.md`.

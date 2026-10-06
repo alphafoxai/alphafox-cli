@@ -23,10 +23,9 @@
     "generate:catalog": "node scripts/generate-catalog.mjs",
     "check:catalog-drift": "node scripts/generate-catalog.mjs --check",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "npm run check:catalog-drift && npm run build && node scripts/build-mvp-web-bundle.mjs && tsc -p tsconfig.test.json && node --test dist-test/**/*.test.js",
-    "test:release": "npm run build && tsc -p tsconfig.test.json && node scripts/run-release-tests.mjs",
+    "test": "npm run check:catalog-drift && npm run build && node -e \"require('node:fs').rmSync('dist-test',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test dist-test/**/*.test.js",
+    "test:release": "npm run build && node -e \"require('node:fs').rmSync('dist-test',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node scripts/run-release-tests.mjs",
     "sbom": "node scripts/generate-sbom.mjs",
-    "test:mvp": "node scripts/build-mvp-web-bundle.mjs && tsc -p tsconfig.test.json && node --test dist-test/tests/mvp-oauth-web-handlers.test.js",
     "alphafox": "node dist/cli.js",
     "prepublishOnly": "npm run build"
   },

@@ -21,7 +21,9 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
+  readdirSync,
   realpathSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { createRequire } from "node:module";
@@ -159,6 +161,59 @@ function resolveContractsRoot() {
     }
   }
   return best;
+}
+
+/**
+ * Refuse to read a stale upstream build. The generator consumes
+ * `<contracts>/dist`, which `pnpm build` writes and nothing keeps in step with
+ * `src`, so an out-of-date build silently changes what the catalog is derived
+ * from — it has reported retired operations as newly added. Newest-file times
+ * are a heuristic (a checkout that restores older content still trips it); the
+ * error direction is toward refusing to run, which is the safe one.
+ *
+ * Only applies when both trees exist, so an installed upstream package (which
+ * ships no `src`) is unaffected.
+ */
+function assertContractsBuildIsCurrent(contractsRoot) {
+  const srcDir = join(contractsRoot, "src");
+  const distDir = join(contractsRoot, "dist");
+  if (!existsSync(srcDir) || !existsSync(distDir)) {
+    return;
+  }
+  const newest = (dir) => {
+    let newestTime = 0;
+    let newestFile = "";
+    const walk = (current) => {
+      for (const entry of readdirSync(current, { withFileTypes: true })) {
+        const full = join(current, entry.name);
+        if (entry.isDirectory()) {
+          walk(full);
+        } else if (entry.isFile()) {
+          const { mtimeMs } = statSync(full);
+          if (mtimeMs > newestTime) {
+            newestTime = mtimeMs;
+            newestFile = full;
+          }
+        }
+      }
+    };
+    walk(dir);
+    return { newestTime, newestFile };
+  };
+  const src = newest(srcDir);
+  const dist = newest(distDir);
+  if (src.newestTime > dist.newestTime) {
+    process.stderr.write(
+      `alphafox-contracts build is stale under ${contractsRoot}:\n` +
+        `  ${src.newestFile}\n` +
+        `  is newer than\n` +
+        `  ${dist.newestFile}\n` +
+        `Run pnpm build in alphafox-contracts first. Generating from a stale ` +
+        `build produces a catalog that does not describe the current contract ` +
+        `and has reported retired operations as newly added.\n`
+    );
+    process.exit(1);
+  }
 }
 
 function contractsSha(contractsRoot) {
@@ -322,7 +377,26 @@ function readIfExists(path) {
   return existsSync(path) ? readFileSync(path, "utf8") : null;
 }
 
+/**
+ * Reduce a registry artifact to the contract content it asserts, dropping the
+ * provenance fields that record when and from where it was generated.
+ *
+ * `source.contractsSha` records the upstream HEAD at generation time. It cannot
+ * be stable — any upstream commit moves it, including commits that touch no
+ * contract — and when upstream history is rewritten the recorded value names a
+ * commit that no longer exists, so gating on it fails forever for a reason no
+ * change can fix. Content, not the pointer, is what drift means.
+ */
+function contractContentOnly(registryText) {
+  const parsed = JSON.parse(registryText);
+  if (parsed?.source) {
+    delete parsed.source.contractsSha;
+  }
+  return stableStringify(parsed);
+}
+
 const contractsRoot = resolveContractsRoot();
+assertContractsBuildIsCurrent(contractsRoot);
 const publicApi = loadPublicApi(contractsRoot);
 const artifacts = buildArtifacts(
   publicApi,
@@ -336,8 +410,17 @@ if (checkOnly) {
   const registryOnDisk = readIfExists(registryPath);
   const schemasOnDisk = readIfExists(schemasPath);
   const drift = [];
+  let provenanceBehind = false;
   if (registryOnDisk !== artifacts.registryText) {
-    drift.push("src/catalog/generated/registry.json");
+    if (
+      registryOnDisk !== null &&
+      contractContentOnly(registryOnDisk) ===
+        contractContentOnly(artifacts.registryText)
+    ) {
+      provenanceBehind = true;
+    } else {
+      drift.push("src/catalog/generated/registry.json");
+    }
   }
   if (schemasOnDisk !== artifacts.schemasText) {
     drift.push("src/catalog/generated/schemas.json");
@@ -347,6 +430,14 @@ if (checkOnly) {
       `Catalog drift versus ${contractsRoot}:\n  ${drift.join("\n  ")}\nRe-run: node scripts/generate-catalog.mjs\n`
     );
     process.exit(1);
+  }
+  if (provenanceBehind) {
+    process.stdout.write(
+      "Catalog content matches @alphafoxai/contracts/public-api, but " +
+        "source.contractsSha is behind upstream HEAD; run " +
+        "node scripts/generate-catalog.mjs to refresh provenance.\n"
+    );
+    process.exit(0);
   }
   process.stdout.write("Catalog matches @alphafoxai/contracts/public-api.\n");
   process.exit(0);

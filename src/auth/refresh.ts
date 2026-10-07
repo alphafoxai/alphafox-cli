@@ -1,6 +1,6 @@
 /**
  * Access-token renewal via refresh_token grant.
- * Access tokens are short-lived (~10m); refresh tokens last ~30d (web ADR).
+ * Access tokens are short-lived (~10m); refresh tokens last ~30d (unified OAuth token model, web).
  *
  * Outcomes are explicit: callers must not treat a failed refresh as a healthy session.
  */

@@ -1,10 +1,6 @@
 # alphafox-cli
 
-Versioned CLI entry for the Public Application API on alphafox-web.
-
-## Workspace
-
-Load `$ALPHAFOX_WORKSPACE/AGENTS.md`, or `~/Desktop/Projects/alphafox/AGENTS.md` when unset; external worktrees do not inherit it. Keep CLI changes on this task worktree and authorize deployment, merge, production access, and credentials separately.
+Load the workspace guide [`../alphafox-workspace/AGENTS.md`](../alphafox-workspace/AGENTS.md), or `$ALPHAFOX_WORKSPACE/AGENTS.md` when a task worktree does not sit beside the workspace
 
 ## Catalog and create boundaries
 

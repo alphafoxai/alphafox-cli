@@ -1027,6 +1027,73 @@ describe("engine-backtest fetch-runtime", () => {
 });
 
 describe("engine-backtest orchestration", () => {
+  for (const [definitionId, leverage, expected] of [
+    ["moving_average_breakout", undefined, undefined],
+    ["moving_average_breakout", 3, 3],
+    ["grid", undefined, 10],
+    ["grid", 3, 3],
+  ] as const) {
+    it(`preserves definition-specific leverage in run: ${definitionId}/${leverage}`, async () => {
+      const config = { common: { execution: leverage === undefined ? {} : { leverage } } };
+      const expectedConfig = {
+        common: { execution: expected === undefined ? {} : { leverage: expected } },
+      };
+      let planned = false;
+      let executed = false;
+      const client = fakeClient({
+        strategyDefinitions: async () => ({
+          engineVersion: "test-engine",
+          definitions: [{ id: definitionId, configSchemaVersion: 4 }],
+        }),
+        planBacktest: async (request) => {
+          planned = true;
+          assert.equal(request.definitionId, definitionId);
+          assert.deepEqual(request.config, expectedConfig);
+          // The second preparation boundary must honor the definition too.
+          return { ...PLAN, definitionId, effectiveConfig: config };
+        },
+        runPreparedBacktest: async (_handle, scenario) => {
+          executed = true;
+          assert.equal(scenario.trader.strategyDefinitionId, definitionId);
+          assert.deepEqual(scenario.trader.config, expectedConfig);
+          return { runId: scenario.runId, status: "completed", metrics: METRICS };
+        },
+      });
+      const result = await executeEngineBacktestRun(
+        parseEngineBacktestRunArgs([
+          "--experiment", "11111111-1111-1111-1111-111111111111",
+          "--definition", definitionId, "--config", JSON.stringify(config),
+          "--exchange", "binance", "--range", "2026-08-01..2026-08-08",
+          "--initial-equity", "10000", "--no-persist",
+        ]),
+        FLAGS,
+        { ALPHAFOX_CONFIG_DIR: mkdtempSync(join(tmpdir(), "alphafox-leverage-")) },
+        {
+          createNodeBacktestClient: () => client,
+          loadTape: async () => sampleTape(),
+          assembleScenario: (input) => ({
+            ...sampleScenario(input.runId),
+            trader: {
+              ...sampleScenario().trader,
+              strategyDefinitionId: input.definitionId,
+              config: input.config,
+            },
+          }),
+          resolveTapeExchange: () => ({
+            id: "binance_perp_usdt", label: "Binance", ccxtId: "binanceusdm",
+            marketType: "swap", quoteAsset: "USDT",
+          }),
+          defaultExecutionModel: DEFAULT_EXECUTION_MODEL,
+          apiRequest: async () => { throw new Error("no API requests expected"); },
+        }
+      );
+      assert.equal(result.persisted, false);
+      assert.equal(planned, true);
+      assert.equal(executed, true);
+      assert.deepEqual(config.common.execution, leverage === undefined ? {} : { leverage });
+    });
+  }
+
   it("plans, loads tape, runs wasm, and POSTs persist body in order", async () => {
     const calls: string[] = [];
     const apiBodies: unknown[] = [];

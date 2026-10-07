@@ -14,7 +14,7 @@ Load `$ALPHAFOX_WORKSPACE/AGENTS.md`, or `~/Desktop/Projects/alphafox/AGENTS.md`
 
 ## Safe command sequence
 
-- Run `alphafox auth login` and keep tokens in the OS keychain. Use `--format json --no-input` (or `--format jsonl` for progress); for each cataloged write, read `alphafox schema <operationId>`, validate the body (`--config @file` for large input), preview with `--dry-run`, then use `--yes` after matching explicit approval.
+- Run `alphafox auth login`; default storage prefers the OS keychain but permits plaintext file fallback. Set `ALPHAFOX_REQUIRE_OS_KEYCHAIN=1` for every invocation when OS-only storage is required; it rejects force-file/test-token overrides and does not migrate or delete legacy files. Use `--format json --no-input` (or `--format jsonl` for progress); for each cataloged write, read `alphafox schema <operationId>`, validate the body (`--config @file` for large input), preview with `--dry-run`, then use `--yes` after matching explicit approval.
 - Resolve symbols with `alphafox resolve-symbols` before strategy, backtest, or write input; carry the returned `assetClass` into the operation.
 - Run local backtests with `alphafox engine-backtest run|sweep`; use `--no-persist` for zero-write work, let a requested sweep persist one completed summary, surface `coverageNotice` (`basic` stops missing/corrupt tape; `strict` stops any gap), preserve the requested range/data-quality mode, include `https://www.alphafox.app/zh/dashboard/traders/backtest/{experimentId}` after persistence, and keep live trader creation separately approved. Read `skills/engine-backtest/SKILL.md` for runtime, cache, and dashboard gates.
 

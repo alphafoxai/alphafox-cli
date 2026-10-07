@@ -92,9 +92,14 @@ OIDC-provenance release.
 
 | Platform | Install | Update | Uninstall | Secrets |
 |----------|---------|--------|-----------|---------|
-| macOS | `npm install -g @alphafox/cli` or `npx @alphafox/cli` | `npm update -g @alphafox/cli` or pin `@<version>` | `scripts/uninstall.cjs` (or `npm uninstall -g @alphafox/cli` plus local Skills/config/cache) | Keychain Access |
+| macOS | `npm install -g @alphafox/cli` or `npx @alphafox/cli` | `npm update -g @alphafox/cli` or pin `@<version>` | `scripts/uninstall.cjs` (or `npm uninstall -g @alphafox/cli` plus local Skills/config/cache) | Keychain Access, or plaintext file fallback (`0600`) |
 | Linux | same | same | same (`scripts/uninstall.cjs`) | Secret Service, or file fallback mode `0600` |
-| Windows | same | same | same (`scripts/uninstall.cjs`) | Credential Manager (`CredWrite`/`CredRead`); file fallback mode `0600` if unavailable |
+| Windows | same | same | same (`scripts/uninstall.cjs`) | Credential Manager (`CredWrite`/`CredRead`); plaintext file fallback if unavailable (POSIX mode is not a Windows ACL guarantee) |
+
+Set `ALPHAFOX_REQUIRE_OS_KEYCHAIN=1` to refuse plaintext fallback; retain it for
+all subsequent commands. It conflicts with forced-file/test-token modes and
+does not migrate or delete legacy files. `ALPHAFOX_KEYCHAIN_DIR`, not
+`ALPHAFOX_CONFIG_DIR`, controls the fallback directory.
 
 Fresh-machine acceptance (release checklist, not optional):
 

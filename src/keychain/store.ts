@@ -6,8 +6,15 @@
 
 import { createHash } from "node:crypto";
 import {
+  closeSync,
+  constants,
   existsSync,
+  fchmodSync,
+  fstatSync,
+  ftruncateSync,
+  lstatSync,
   mkdirSync,
+  openSync,
   readFileSync,
   unlinkSync,
   writeFileSync,
@@ -120,11 +127,26 @@ function fileFallbackPath(profile: string, env: NodeJS.ProcessEnv): string {
   return join(base, `${profile}.tokens.json`);
 }
 
+function assertKeychainPolicy(env: NodeJS.ProcessEnv): void {
+  if (env.ALPHAFOX_REQUIRE_OS_KEYCHAIN !== "1") return;
+  if (
+    env.ALPHAFOX_FORCE_FILE_KEYCHAIN === "1" ||
+    env.ALPHAFOX_TEST_ACCESS_TOKEN?.trim() ||
+    env.ALPHAFOX_TEST_REFRESH_TOKEN?.trim()
+  ) {
+    throw Object.assign(new Error(
+      "ALPHAFOX_REQUIRE_OS_KEYCHAIN=1 conflicts with ALPHAFOX_FORCE_FILE_KEYCHAIN=1 and test token injection. Unset the conflicting override."
+    ), { type: "credential_storage", subtype: "keychain_policy_conflict" });
+  }
+}
+
 export function saveTokens(
   profile: string,
   tokens: StoredTokens,
   env: NodeJS.ProcessEnv = process.env
 ): TokenStorageResult {
+  lastSaveResult = null;
+  assertKeychainPolicy(env);
   const payload = JSON.stringify(tokens);
   if (tryKeychainWrite(profile, payload, env)) {
     lastSaveResult = {
@@ -134,9 +156,14 @@ export function saveTokens(
     };
     return lastSaveResult;
   }
+  if (env.ALPHAFOX_REQUIRE_OS_KEYCHAIN === "1") {
+    throw Object.assign(new Error(
+      "OS keychain save failed; ALPHAFOX_REQUIRE_OS_KEYCHAIN=1 forbids plaintext fallback. Unlock/configure the OS keychain and retry login."
+    ), { type: "credential_storage", subtype: "os_keychain_required" });
+  }
   const path = fileFallbackPath(profile, env);
   mkdirSync(join(path, ".."), { recursive: true });
-  writeFileSync(path, payload, { mode: 0o600 });
+  writeFileFallback(path, payload);
   const intentionalFile = env.ALPHAFOX_FORCE_FILE_KEYCHAIN === "1";
   lastSaveResult = {
     backend: "file",
@@ -157,10 +184,32 @@ export function saveTokens(
   return lastSaveResult;
 }
 
+function writeFileFallback(path: string, payload: string): void {
+  const notRegular = () => Object.assign(new Error(
+    "Refusing to store credentials in a symlink or non-regular file."
+  ), { type: "credential_storage", subtype: "unsafe_fallback_file" });
+  const existing = lstatSync(path, { throwIfNoEntry: false });
+  if (existing && !existing.isFile()) throw notRegular();
+  // Do not truncate on open: existing permissions must be repaired first.
+  // O_NOFOLLOW closes the final-component symlink race on POSIX; O_NONBLOCK
+  // avoids blocking on a raced FIFO before fstat can reject it.
+  const fd = openSync(path, constants.O_WRONLY | constants.O_CREAT |
+    (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0), 0o600);
+  try {
+    if (!fstatSync(fd).isFile()) throw notRegular();
+    if (process.platform !== "win32") fchmodSync(fd, 0o600);
+    ftruncateSync(fd, 0);
+    writeFileSync(fd, payload);
+  } finally {
+    closeSync(fd);
+  }
+}
+
 export function loadTokens(
   profile: string,
   env: NodeJS.ProcessEnv = process.env
 ): StoredTokens | null {
+  assertKeychainPolicy(env);
   // Controlled test injection — never document as prod automation.
   if (env.ALPHAFOX_TEST_ACCESS_TOKEN?.trim()) {
     const expiresAtRaw = env.ALPHAFOX_TEST_EXPIRES_AT?.trim();
@@ -184,6 +233,13 @@ export function loadTokens(
     return JSON.parse(fromKc) as StoredTokens;
   }
   const path = fileFallbackPath(profile, env);
+  if (env.ALPHAFOX_REQUIRE_OS_KEYCHAIN === "1") {
+    // Inspect metadata only, including dangling links; never read plaintext.
+    if (!lstatSync(path, { throwIfNoEntry: false })) return null;
+    throw Object.assign(new Error(
+      `Legacy plaintext credentials exist at ${path}; ALPHAFOX_REQUIRE_OS_KEYCHAIN=1 refuses to read them. Revoke the old session and remove the file explicitly; strict mode does not migrate or delete it.`
+    ), { type: "credential_storage", subtype: "plaintext_credentials_disallowed" });
+  }
   if (!existsSync(path)) {
     return null;
   }

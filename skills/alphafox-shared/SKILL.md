@@ -1,7 +1,7 @@
 ---
 name: alphafox-shared
 description: Shared AlphaFox CLI rules for Agents — auth, profiles, envelopes, risk gates, public operationIds, and dashboard links after 回测 / 运行策略 / 排行榜.
-version: 0.3.24
+version: 0.3.25
 ---
 
 # AlphaFox shared Agent contract
@@ -54,7 +54,8 @@ reports local modifications, stop and ask before using
 `alphafox skills sync --force --yes`; the CLI backs up replaced files.
 
 - Default profile: `production`. Use `--profile staging|local` explicitly.
-- Tokens: OS keychain only (macOS Keychain, Linux Secret Service, Windows Credential Manager). Never pass `--token`. Never read tokens from config JSON.
+- Tokens prefer the OS keychain (macOS Keychain, Linux Secret Service, Windows Credential Manager). By default, an unavailable/failed keychain falls back with a warning to plaintext `~/.config/alphafox/keychain/<profile>.tokens.json` (POSIX `0600`, not encryption; Windows ACL protection is separate). `ALPHAFOX_KEYCHAIN_DIR` changes that directory; `ALPHAFOX_CONFIG_DIR` does not. Never pass `--token` or read token files into an Agent conversation.
+- For a keychain-only requirement, set `ALPHAFOX_REQUIRE_OS_KEYCHAIN=1` for every CLI invocation, including login/refresh. It rejects plaintext fallback and conflicts with `ALPHAFOX_FORCE_FILE_KEYCHAIN=1` or test-token injection. It does not migrate or delete previously saved plaintext credentials. Do not silently disable this policy to recover from an error; see `alphafox-auth`.
 - Automation tokens are **not supported in v1** (interactive Device Flow / PKCE only).
 
 ## Output

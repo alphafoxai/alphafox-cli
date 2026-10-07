@@ -1,7 +1,7 @@
 ---
 name: alphafox
 description: "Route AlphaFox product CLI requests: installation/auth, market data, strategy configuration, backtests, traders, connectors, accounts and notifications. Repository development or AGENTS/Skills maintenance uses repository instructions, not product CLI operations."
-version: 0.3.24
+version: 0.3.25
 ---
 
 # AlphaFox
@@ -33,7 +33,7 @@ A **trader** is a running strategy instance (paper or live), not a person. Creat
 
 Load only rows needed for the requested operation, reusing Skills already read in this task (typical: shared + market when resolving a ticker + the operation Skill).
 
-- “帮我配/建一个网格/DCA/跟单策略” → `alphafox-strategy` (pick definition, ask knobs, validate `{common, strategy}`) **and** `alphafox-market` (resolve tickers) **and** `alphafox-trading` (create the trader, default `autoStart: true`). Hidden copy variants still create through `alphafox-trading`. After create, include the trader URL from `alphafox-shared`.
+- “帮我配/建一个网格/DCA/跟单策略” → `alphafox-strategy` (pick definition, ask knobs, validate `{common, strategy}`) **and** `alphafox-market` (resolve tickers) **and** `alphafox-trading` (Engine create: default `autoStart: false`; explicit approval is required for immediate start). Hidden copy variants still create through `alphafox-trading` using their own operation contracts, not assumed Engine fields. After create, include the trader URL from `alphafox-shared`.
 - “帮我回测这个配置” → `alphafox-strategy` (definition + config) **and** `alphafox-engine-backtest`. After a persisted run, include the backtest URL from `alphafox-shared`.
 - “排行榜” → `trader_leaderboard` as below, **and** include `https://www.alphafox.app/zh/dashboard/leaderboard`.
 

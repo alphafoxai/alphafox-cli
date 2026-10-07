@@ -1,7 +1,7 @@
 /**
  * OS keychain token storage. Config files never receive tokens.
  * Test injection: ALPHAFOX_TEST_ACCESS_TOKEN / ALPHAFOX_TEST_REFRESH_TOKEN
- * (local unit tests only; not a production automation path — ADR 0004).
+ * (local unit tests only; not a production automation path).
  */
 
 import { createHash } from "node:crypto";

@@ -2,9 +2,35 @@
 
 Versioned CLI entry for the Public Application API on alphafox-web.
 
-## Workspace
+<!-- BEGIN alphafox-workspace pointer -->
+## AlphaFox workspace
 
-Load `$ALPHAFOX_WORKSPACE/AGENTS.md`, or `~/Desktop/Projects/alphafox/AGENTS.md` when unset; external worktrees do not inherit it. Keep CLI changes on this task worktree and authorize deployment, merge, production access, and credentials separately.
+This repository is one of the AlphaFox repositories that sit beside
+[`alphafox-workspace`](../alphafox-workspace/AGENTS.md). Read that file once per session
+before changing anything here; it holds the rules that bind every repository, the project
+map, and the development and documentation skills. In a worktree outside the parent
+directory, read `$ALPHAFOX_WORKSPACE/AGENTS.md` instead. When neither resolves, say so,
+follow this file, and ask for the shared settings an operation needs rather than guessing
+tracker IDs, release permissions, or deployment facts.
+
+- **Documents:** every document added or changed here follows the workspace
+  [documentation standard](../alphafox-workspace/docs/documentation-standard.md); load its
+  `alphafox-doc` skill before writing.
+- **Decisions:** a non-trivial change records its rationale as an Agent Note in this
+  repository's `.agents/notes/` in the same change. A decision that binds other
+  repositories goes in the workspace `notes/workspace/` instead.
+- **Cross-repository changes:** a change that reaches another repository, a schema, a
+  contract, an external resource, or `alphafox-infra` also gets a workspace Change Set.
+- **Other repositories:** find the owner in the workspace
+  [project map](../alphafox-workspace/docs/projects.md) and read it from `../<repository>`.
+
+Where `.alphafox/workspace.yaml` exists, it pins the workspace revision this repository was
+last reconciled with, and CI checks governance against that revision.
+<!-- END alphafox-workspace pointer -->
+
+## Delivery
+
+Keep CLI changes on a task worktree and authorize deployment, merge, production access, and credentials separately.
 
 ## Catalog and create boundaries
 

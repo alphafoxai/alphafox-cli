@@ -1,0 +1,10 @@
+schemaVersion: 1
+workspace:
+  repository: alphafoxai/alphafox-workspace
+  revision: 5d3efbbed67cb96bc3e4d044a89acd4423a177b0
+project: cli
+kind: component
+
+# This repository consumes shared governance at an exact revision. A local
+# $ALPHAFOX_WORKSPACE checkout is navigation convenience, not a replacement for
+# this committed pin.

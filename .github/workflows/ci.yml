@@ -35,10 +35,25 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, gcp-org, org-shared]
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
+
+      - name: Require the organization runner and cache disk
+        run: |
+          set -euo pipefail
+          case "${RUNNER_NAME}" in
+            gcp-spot-org-*) ;;
+            *)
+              echo "::error::expected an organization gcp-spot runner, got ${RUNNER_NAME:-unset}"
+              exit 1
+              ;;
+          esac
+          if [ ! -d /var/cache/ci ]; then
+            echo "::error::missing /var/cache/ci; refuse to fall back to home caches"
+            exit 1
+          fi
 
       - uses: pnpm/action-setup@v6
         with:
@@ -49,7 +64,7 @@ jobs:
           node-version: "24"
 
       - name: Install
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --store-dir /var/cache/ci/pnpm-store
 
       # Fails fast on a type error over src/ and tests/ without emitting, so the
       # signal is the type error itself rather than a build step that died.
@@ -68,7 +83,7 @@ jobs:
   # deliberately excludes `check:catalog-drift`, which needs a resolvable
   # upstream checkout.
   catalog-drift:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, gcp-org, org-shared]
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
@@ -84,6 +99,21 @@ jobs:
           path: alphafox-contracts
           token: ${{ secrets.ALPHAFOX_CONTRACTS_READ_TOKEN || secrets.ALPHAFOX_SCHEMAS_READ_TOKEN || github.token }}
 
+      - name: Require the organization runner and cache disk
+        run: |
+          set -euo pipefail
+          case "${RUNNER_NAME}" in
+            gcp-spot-org-*) ;;
+            *)
+              echo "::error::expected an organization gcp-spot runner, got ${RUNNER_NAME:-unset}"
+              exit 1
+              ;;
+          esac
+          if [ ! -d /var/cache/ci ]; then
+            echo "::error::missing /var/cache/ci; refuse to fall back to home caches"
+            exit 1
+          fi
+
       - uses: pnpm/action-setup@v6
         with:
           version: 10.33.0
@@ -93,7 +123,7 @@ jobs:
           node-version: "24"
 
       - name: Install cli
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --store-dir /var/cache/ci/pnpm-store
 
       # The generator reads the upstream build, not its sources, and refuses to
       # run when that build is older than the sources it came from. A fresh

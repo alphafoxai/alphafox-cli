@@ -1,0 +1,79 @@
+name: workspace-governance
+
+# Governance-only checks. This workflow does not install CLI dependencies,
+# compile product code, run product tests, package artifacts, publish releases,
+# deploy, or access data.
+on:
+  pull_request:
+    paths:
+      - '.alphafox/**'
+      - 'AGENTS.md'
+      - 'CONTRIBUTING.md'
+      - '.agents/notes/**'
+      - 'docs/adr/**'
+      - '.github/workflows/workspace-governance.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - '.alphafox/**'
+      - 'AGENTS.md'
+      - 'CONTRIBUTING.md'
+      - '.agents/notes/**'
+      - 'docs/adr/**'
+      - '.github/workflows/workspace-governance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: alphafox-cli-governance-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  governance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Verify workspace read credential is configured
+        env:
+          WORKSPACE_READ_TOKEN: ${{ secrets.ALPHAFOX_WORKSPACE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "$WORKSPACE_READ_TOKEN" ]; then
+            echo "::error::workspace governance unavailable: read credential is not configured"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          repository: alphafoxai/alphafox-workspace
+          ref: 5d3efbbed67cb96bc3e4d044a89acd4423a177b0
+          path: .alphafox/workspace
+          token: ${{ secrets.ALPHAFOX_WORKSPACE_READ_TOKEN }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Verify workspace pin and CLI registry identity
+        run: |
+          set -euo pipefail
+          test "$(git -C .alphafox/workspace rev-parse HEAD)" = 5d3efbbed67cb96bc3e4d044a89acd4423a177b0
+          grep -Fqx '  revision: 5d3efbbed67cb96bc3e4d044a89acd4423a177b0' .alphafox/workspace.yaml
+          grep -Fqx 'project: cli' .alphafox/workspace.yaml
+          grep -Fqx '  repository: alphafoxai/alphafox-workspace' .alphafox/workspace.yaml
+          test -f .alphafox/workspace.yaml
+
+      - name: Verify shared workspace governance
+        run: node .alphafox/workspace/scripts/verify-workspace.mjs --self-contained
+
+      - name: Verify CLI Agent Notes
+        if: hashFiles('.agents/notes/**') != ''
+        run: node .alphafox/workspace/scripts/verify-agent-notes.mjs --component .agents/notes

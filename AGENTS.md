@@ -12,12 +12,12 @@ map, the development workflow (sync with `origin/main`, work in a `~/.worktrees/
 worktree, clean up after the merge), and the development and documentation skills. In a
 worktree outside the parent directory, read `$ALPHAFOX_WORKSPACE/AGENTS.md` instead.
 
-When neither resolves, the workspace is not set up yet. Clone only it, beside this
-repository's main checkout: from that checkout, run
-`gh repo clone alphafoxai/alphafox-workspace ../alphafox-workspace`, then read it before
-continuing. Other repositories are not required; clone one only when a task
-needs it. If the clone is not possible, say so and ask before working without the shared
-rules.
+When neither resolves, the workspace is not set up yet. Follow this repository's
+[`setup-workspace`](.agents/skills/setup-workspace/SKILL.md) skill: it clones only the
+workspace beside this repository's main checkout and exports `ALPHAFOX_WORKSPACE`, then
+read the workspace before continuing. Other repositories are not required; clone one only
+when a task needs it. If the clone is not possible, say so and ask before working without
+the shared rules.
 
 - **Documents:** every document added or changed here follows the workspace
   [documentation standard](../alphafox-workspace/docs/documentation-standard.md); load its

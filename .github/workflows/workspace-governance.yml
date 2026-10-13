@@ -53,7 +53,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: alphafoxai/alphafox-workspace
-          ref: 102c371d833da8ddb2e7ba120c6357aac1d3fee3
+          ref: 6c2ff2e26978666d3d2a0b1be00d15ca9ac7921c
           path: .alphafox/workspace
           token: ${{ secrets.ALPHAFOX_WORKSPACE_READ_TOKEN }}
           persist-credentials: false
@@ -65,8 +65,8 @@ jobs:
       - name: Verify workspace pin and CLI registry identity
         run: |
           set -euo pipefail
-          test "$(git -C .alphafox/workspace rev-parse HEAD)" = 102c371d833da8ddb2e7ba120c6357aac1d3fee3
-          grep -Fqx '  revision: 102c371d833da8ddb2e7ba120c6357aac1d3fee3' .alphafox/workspace.yaml
+          test "$(git -C .alphafox/workspace rev-parse HEAD)" = 6c2ff2e26978666d3d2a0b1be00d15ca9ac7921c
+          grep -Fqx '  revision: 6c2ff2e26978666d3d2a0b1be00d15ca9ac7921c' .alphafox/workspace.yaml
           grep -Fqx 'project: cli' .alphafox/workspace.yaml
           grep -Fqx '  repository: alphafoxai/alphafox-workspace' .alphafox/workspace.yaml
           test -f .alphafox/workspace.yaml

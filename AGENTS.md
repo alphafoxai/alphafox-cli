@@ -50,6 +50,10 @@ Keep CLI changes on a task worktree and authorize deployment, merge, production 
 - Resolve symbols with `alphafox resolve-symbols` before strategy, backtest, or write input; carry the returned `assetClass` into the operation.
 - Run local backtests with `alphafox engine-backtest run|sweep`; use `--no-persist` for zero-write work, let a requested sweep persist one completed summary, surface `coverageNotice` (`basic` stops missing/corrupt tape; `strict` stops any gap), preserve the requested range/data-quality mode, include `https://www.alphafox.app/zh/dashboard/traders/backtest/{experimentId}` after persistence, and keep live trader creation separately approved. Read `skills/engine-backtest/SKILL.md` for runtime, cache, and dashboard gates.
 
+## Runtime discovery
+
+- Current source reading (2026-10-13): [`docs/gcs-runtime-migration.md`](docs/gcs-runtime-migration.md). Keep the GCS / CDN / no-Blob-fallback promises. Local sibling lookup is independent-repo `../alphafox-engine` only when `ALPHAFOX_USE_LOCAL_BACKTEST=1`. Do not restore a monorepo `apps/engine` preference.
+
 ## Validation and tracker
 
 - Documentation/Skill changes: check frontmatter, references, command entry points, permission gates, and completion boundaries with fixtures or sandbox operations. CLI changes: run focused tests and typecheck, then `pnpm test:release`; use full `pnpm test` when the catalog contract must be re-verified, which needs a resolvable contracts checkout.

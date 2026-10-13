@@ -1,7 +1,7 @@
 schemaVersion: 1
 workspace:
   repository: alphafoxai/alphafox-workspace
-  revision: 5d3efbbed67cb96bc3e4d044a89acd4423a177b0
+  revision: 102c371d833da8ddb2e7ba120c6357aac1d3fee3
 project: cli
 kind: component
 

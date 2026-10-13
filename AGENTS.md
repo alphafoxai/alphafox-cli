@@ -8,10 +8,16 @@ Versioned CLI entry for the Public Application API on alphafox-web.
 This repository is one of the AlphaFox repositories that sit beside
 [`alphafox-workspace`](../alphafox-workspace/AGENTS.md). Read that file once per session
 before changing anything here; it holds the rules that bind every repository, the project
-map, and the development and documentation skills. In a worktree outside the parent
-directory, read `$ALPHAFOX_WORKSPACE/AGENTS.md` instead. When neither resolves, say so,
-follow this file, and ask for the shared settings an operation needs rather than guessing
-tracker IDs, release permissions, or deployment facts.
+map, the development workflow (sync with `origin/main`, work in a `~/.worktrees/`
+worktree, clean up after the merge), and the development and documentation skills. In a
+worktree outside the parent directory, read `$ALPHAFOX_WORKSPACE/AGENTS.md` instead.
+
+When neither resolves, the workspace is not set up yet. Clone only it, beside this
+repository's main checkout: from that checkout, run
+`gh repo clone alphafoxai/alphafox-workspace ../alphafox-workspace`, then read it before
+continuing. Other repositories are not required; clone one only when a task
+needs it. If the clone is not possible, say so and ask before working without the shared
+rules.
 
 - **Documents:** every document added or changed here follows the workspace
   [documentation standard](../alphafox-workspace/docs/documentation-standard.md); load its

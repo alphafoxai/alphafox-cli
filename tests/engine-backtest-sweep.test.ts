@@ -766,6 +766,260 @@ describe("engine-backtest sweep persist payload", () => {
 });
 
 describe("engine-backtest sweep execute", () => {
+  for (const persist of [true, false]) {
+    for (const searchMode of ["standard", "fast"] as const) {
+      for (const dynamicScope of ["all coordinates", "a later coordinate"]) {
+        it(`rejects dynamic selection in ${dynamicScope} before tape, execution, or writes (${searchMode}, persist=${persist})`, async () => {
+          const reason = {
+            code: "dynamic_selection_not_supported",
+            message:
+              "Dynamic Forager symbol selection is not supported for backtesting.",
+          };
+          const plannedPeriods: number[] = [];
+          const executionCalls: string[] = [];
+          const apiCalls: string[] = [];
+          let terminated = false;
+          await assert.rejects(
+            () => executeEngineBacktestSweep(
+              parseEngineBacktestSweepArgs([
+                ...sweepArgv().slice(2),
+                "--create-experiment",
+                "--name",
+                "must-not-exist",
+                "--mode",
+                "range",
+                "--search-mode",
+                searchMode,
+                "--concurrency",
+                "1",
+                "--axes",
+                JSON.stringify({
+                  axes: [
+                    {
+                      path: ["strategy", "period"],
+                      min: 8,
+                      max: 12,
+                      step: 1,
+                    },
+                    {
+                      path: ["strategy", "spacing"],
+                      values: [0.4, 0.5, 0.6, 0.7, 0.8],
+                    },
+                  ],
+                }),
+                ...(persist ? [] : ["--no-persist"]),
+              ]),
+              FLAGS,
+              isolatedEnv(),
+              runnerDeps({
+                client: fakeClient({
+                  planBacktest: async ({ config }) => {
+                    const { period, spacing } = (config as typeof BASE_CONFIG)
+                      .strategy;
+                    plannedPeriods.push(period);
+                    // Period 9 is outside the fast coarse sample, but is still preflighted.
+                    if (dynamicScope === "all coordinates" || period === 9) {
+                      return {
+                        definitionId: PLAN.definitionId,
+                        configSchemaVersion: PLAN.configSchemaVersion,
+                        support: { status: "unsupported", reason },
+                        needsFunding: false,
+                      };
+                    }
+                    if (spacing === 0.4) {
+                      return {
+                        status: "failed",
+                        errors: [
+                          {
+                            code: "invalid_config",
+                            message: "Invalid candidate spacing",
+                          },
+                        ],
+                      };
+                    }
+                    return PLAN;
+                  },
+                  prepareTape: async () => {
+                    executionCalls.push("prepareTape");
+                    return { handle: "tape-1", fingerprint: "fp-1" };
+                  },
+                  runPreparedBacktestBatch: async (_handle, batch) => {
+                    executionCalls.push("runPreparedBacktestBatch");
+                    return {
+                      batchId: batch.batchId,
+                      status: "completed",
+                      results: batch.variants.map((variant) => ({
+                        runId: variant.runId,
+                        status: "completed",
+                        metrics: METRICS,
+                      })),
+                    };
+                  },
+                  terminate: () => {
+                    terminated = true;
+                  },
+                }),
+                loadTape: async () => {
+                  executionCalls.push("loadTape");
+                  return sampleTape();
+                },
+                loadTokens: authedTokens,
+                apiRequest: async (options) => {
+                  apiCalls.push(`${options.method} ${options.path}`);
+                  return options.method === "GET"
+                    ? jsonResponse(200, { subscriptionTier: "pro" })
+                    : jsonResponse(201, { id: "must-not-exist" });
+                },
+              })
+            ),
+            (err: unknown) => {
+              assert.ok(err instanceof EngineBacktestError);
+              assert.equal(err.subtype, "plan_unsupported");
+              assert.equal(err.code, reason.code);
+              assert.equal(err.message, reason.message);
+              assert.deepEqual(
+                (err.details as { reason: unknown }).reason,
+                reason
+              );
+              return true;
+            }
+          );
+          assert.deepEqual(
+            plannedPeriods,
+            dynamicScope === "all coordinates" ? [8] : [8, 8, 8, 8, 8, 9]
+          );
+          assert.deepEqual(executionCalls, []);
+          assert.deepEqual(
+            apiCalls,
+            persist ? ["GET /api/v1/subscriptions/me"] : []
+          );
+          assert.equal(terminated, true);
+        });
+      }
+    }
+  }
+
+  it("continues scanning ordinary unsupported and invalid candidates", async () => {
+    const executedPeriods: number[] = [];
+    const result = await executeEngineBacktestSweep(
+      parseEngineBacktestSweepArgs(
+        sweepArgv([
+          "--no-persist",
+          "--mode",
+          "range",
+          "--concurrency",
+          "1",
+          "--axes",
+          JSON.stringify({
+            axes: [
+              { path: ["strategy", "period"], min: 8, max: 14, step: 2 },
+            ],
+          }),
+        ])
+      ),
+      FLAGS,
+      isolatedEnv(),
+      runnerDeps({
+        client: fakeClient({
+          planBacktest: async ({ config }) => {
+            const { period } = (config as typeof BASE_CONFIG).strategy;
+            if (period === 8) {
+              return {
+                definitionId: PLAN.definitionId,
+                configSchemaVersion: PLAN.configSchemaVersion,
+                support: {
+                  status: "unsupported",
+                  reason: {
+                    code: "not_supported",
+                    message: "Unsupported candidate parameters",
+                  },
+                },
+                needsFunding: false,
+              };
+            }
+            if (period === 10) {
+              return {
+                status: "failed",
+                errors: [{ code: "invalid_config", message: "Invalid period" }],
+              };
+            }
+            if (period === 12) throw new Error("Invalid candidate config");
+            return PLAN;
+          },
+          runPreparedBacktestBatch: async (_handle, batch) => ({
+            batchId: batch.batchId,
+            status: "completed",
+            results: batch.variants.map((variant) => {
+              executedPeriods.push(
+                (variant.config as typeof BASE_CONFIG).strategy.period
+              );
+              return { runId: variant.runId, status: "completed", metrics: METRICS };
+            }),
+          }),
+        }),
+      })
+    );
+    assert.equal(result.successfulCount, 1);
+    assert.equal(result.failedCount, 3);
+    assert.deepEqual(
+      result.points
+        .filter((point) => point.status === "failed")
+        .map((point) => point.coordinate.values),
+      [[8], [10], [12]]
+    );
+    assert.deepEqual(executedPeriods, [14]);
+    assert.deepEqual(result.best?.coordinate.values, [14]);
+  });
+
+  it("reports dynamic selection as a CLI error with a nonzero exit code", () => {
+    const commandPath = join(
+      __dirname,
+      "..",
+      "src",
+      "engine-backtest",
+      "run-command.js"
+    );
+    const argv = [
+      "sweep",
+      ...sweepArgv(["--no-persist", "--config-schema-version", "4"]),
+    ];
+    const reason = {
+      code: "dynamic_selection_not_supported",
+      message:
+        "Dynamic Forager symbol selection is not supported for backtesting.",
+    };
+    const plan = {
+      definitionId: PLAN.definitionId,
+      configSchemaVersion: PLAN.configSchemaVersion,
+      support: { status: "unsupported", reason },
+      needsFunding: false,
+    };
+    const script = `
+      const { cmdEngineBacktest } = require(${JSON.stringify(commandPath)});
+      const unexpected = () => { throw new Error("execution must not start"); };
+      cmdEngineBacktest(${JSON.stringify(argv)}, ${JSON.stringify(FLAGS)}, ${JSON.stringify(isolatedEnv())}, {
+        createNodeBacktestClient: () => ({
+          planBacktest: async () => (${JSON.stringify(plan)}),
+          terminate: () => {},
+        }),
+        loadTape: unexpected,
+        assembleScenario: unexpected,
+        resolveTapeExchange: unexpected,
+      });
+    `;
+    const launched = spawnSync(process.execPath, ["-e", script], {
+      encoding: "utf8",
+      timeout: 10_000,
+    });
+    assert.equal(launched.status, 1, launched.stderr + launched.stdout);
+    assert.equal(launched.stdout, "");
+    const output = JSON.parse(launched.stderr);
+    assert.equal(output.ok, false);
+    assert.equal(output.error.subtype, "plan_unsupported");
+    assert.equal(output.error.code, reason.code);
+    assert.equal(output.error.message, reason.message);
+  });
+
   it("persists once after every coordinate finishes and never creates a Run", async () => {
     const apiCalls: string[] = [];
     const bodies: unknown[] = [];

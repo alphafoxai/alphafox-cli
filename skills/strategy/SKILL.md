@@ -1,7 +1,7 @@
 ---
 name: alphafox-strategy
 description: Strategy definitions — list types, read a definition's contract, and validate config. Creating a running strategy is creating a trader; use alphafox-trading for that. Local Engine backtest is alphafox-engine-backtest.
-version: 0.3.24
+version: 0.3.25
 ---
 
 # Strategy definitions
@@ -57,12 +57,14 @@ For the execution proposal, the human confirms the complete parameter set. Reuse
 
    1. **user override** — any value the operator explicitly supplied, including values already present in a provided config;
    2. **schema default** — the field's JSON Schema `default`;
-   3. **product default** — only a default explicitly documented by this skill or the live product contract. Currently `common.execution.leverage` is `10`, matching the website form; raw Engine omission means 1x;
+   3. **product default** — only a definition-specific default explicitly documented by the live product contract; never infer it from another strategy or from a backtest CLI fallback;
    4. **no default** — required fields remain unresolved and must be answered; optional fields are proposed as “不设置 / omit”. Do not guess a value or describe omission as a default.
 
    A user override always wins, even when it equals neither default. Preserve explicit `false`, `0`, empty arrays, and empty strings when the schema allows them; they are not missing values.
 
-6. When there are many parameters, present them in logical groups or numbered chunks so the review remains readable. After all groups are visible, ask the operator to reply **confirm all** / “全部确认”, or override paths/numbers. One overall confirmation is sufficient, but it must cover every displayed parameter. Apply overrides, show the affected rows again, and repeat until no required value is unresolved and the operator explicitly confirms the final proposal.
+   For `common.execution.leverage`, preserve valid user-supplied leverage; otherwise use the effective `configSchema` default with its source shown in the review. Do not inject a blanket 10x (or 1x) default. If there is no schema default, explain the definition's documented omission semantics or ask for a value; do not invent one.
+
+6. When there are many parameters, present them in logical groups or numbered chunks so the review remains readable. Include the start choice (Engine create defaults to `autoStart: false`), connector, environment and all execution settings. After all groups are visible, ask the operator to reply **confirm all** / “全部确认”, or override paths/numbers. One overall confirmation is sufficient, but it must cover every displayed parameter and explicitly include immediate start if requested. Apply overrides, show the affected rows again, and repeat until no required value is unresolved and the operator explicitly confirms the final proposal.
 7. A generic creation request is not approval of undisclosed execution settings. Obtain final approval before creating/starting a trader. Inspection, config validation and requested local backtests may proceed without this execution review; changing the approved execution parameters or environment requires renewed approval.
 8. Write `strategy-config.json` as the trader object:
 

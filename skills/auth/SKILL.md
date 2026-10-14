@@ -1,7 +1,7 @@
 ---
 name: alphafox-auth
 description: Login, status, logout, whoami, and environment isolation for AlphaFox CLI.
-version: 0.3.24
+version: 0.3.25
 ---
 
 # Auth Skill
@@ -43,6 +43,9 @@ Always `--format json --no-input`. Never `--token`.
 
 ## Safety
 
+- Storage is OS-keychain-first, with a warning and plaintext file fallback by default. The file is `~/.config/alphafox/keychain/<profile>.tokens.json`; `ALPHAFOX_KEYCHAIN_DIR` overrides this directory, but `ALPHAFOX_CONFIG_DIR` does not. POSIX `0600` permissions are not encryption or a Windows ACL guarantee. Explain this before a headless login.
+- `ALPHAFOX_REQUIRE_OS_KEYCHAIN=1` enforces keychain-only reads/writes and must remain set for subsequent commands/refreshes. It conflicts with forced-file mode and test-token injection. It does not migrate or delete existing plaintext credentials. If an existing fallback prevents a strict-mode operation, report it rather than claiming logout/revocation; any cleanup under the old storage policy needs the operator's explicit approval.
+- Never disable a requested strict policy or switch to `ALPHAFOX_FORCE_FILE_KEYCHAIN=1` just to make login succeed. Fix/provision the OS keychain first. Never print or manually copy stored access/refresh tokens.
 - Fail closed on cross-environment tokens (prod token never hits staging).
 - Do not copy refresh tokens into CI (automation deferred — ADR 0004).
 - Scopes: `openid` `profile` `offline_access` at grant time.

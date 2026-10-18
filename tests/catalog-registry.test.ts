@@ -22,11 +22,10 @@ describe("generated operation catalog", () => {
   it("is generated from the public-api registry, not a handwritten 24-op list", () => {
     assert.equal(CATALOG_SOURCE.package, "@alphafoxai/contracts");
     // Pinned to the contracts release the catalog was generated from. Bumped
-    // with the Binance Demo venue retirement (registry 3.0.0 -> 4.0.0, an input
-    // tightening: the create-connector union lost its exchange_demo member).
-    // contractVersion stays 2026-08-31 on purpose, so installed CLIs are not
-    // failed closed by the version gate.
-    assert.equal(CATALOG_SOURCE.registryVersion, "4.0.0");
+    // with the Hyperliquid wallet history reads (registry 4.0.0 -> 4.1.0,
+    // additive). contractVersion stays 2026-08-31 on purpose, so installed CLIs
+    // are not failed closed by the version gate.
+    assert.equal(CATALOG_SOURCE.registryVersion, "4.1.0");
     assert.equal(CATALOG_VERSION, "2026-08-31");
     assert.ok(
       CATALOG_OPERATIONS.length >= 200,

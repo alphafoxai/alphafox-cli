@@ -20,7 +20,7 @@
     "sharedContractRef": "exchangeConnectionsResponseSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -262,7 +262,7 @@
     "sharedContractRef": "WhoamiResponse",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -370,7 +370,7 @@
     "sharedContractRef": "MetaResponse",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -490,7 +490,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -578,7 +578,7 @@
     "sharedContractRef": "tradersResponseSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -751,7 +751,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -841,7 +841,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -925,7 +925,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1014,7 +1014,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1108,7 +1108,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1205,7 +1205,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1293,7 +1293,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1382,7 +1382,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1480,7 +1480,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1577,7 +1577,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1665,7 +1665,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1754,7 +1754,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1843,7 +1843,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -1932,7 +1932,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2020,7 +2020,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2109,7 +2109,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2198,7 +2198,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2286,7 +2286,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2375,7 +2375,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2463,7 +2463,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2552,7 +2552,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2641,7 +2641,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2734,7 +2734,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2832,7 +2832,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -2930,7 +2930,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3018,7 +3018,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3107,7 +3107,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3200,7 +3200,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3298,7 +3298,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3396,7 +3396,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3484,7 +3484,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3572,7 +3572,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3660,7 +3660,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3749,7 +3749,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3837,7 +3837,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -3925,7 +3925,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4014,7 +4014,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4108,7 +4108,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4196,7 +4196,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4285,7 +4285,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4374,7 +4374,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4471,7 +4471,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4559,7 +4559,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4648,7 +4648,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4746,7 +4746,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4839,7 +4839,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -4937,7 +4937,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5035,7 +5035,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5133,7 +5133,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5221,7 +5221,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5309,7 +5309,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5398,7 +5398,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5496,7 +5496,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5593,7 +5593,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5681,7 +5681,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5770,7 +5770,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5863,7 +5863,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -5961,7 +5961,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -6059,7 +6059,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -6147,7 +6147,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -6235,7 +6235,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -6324,7 +6324,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -6422,7 +6422,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -6520,7 +6520,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -6617,7 +6617,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -6714,7 +6714,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -6812,7 +6812,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -6910,7 +6910,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7008,7 +7008,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7106,7 +7106,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7204,7 +7204,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7301,7 +7301,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7390,7 +7390,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7487,7 +7487,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7575,7 +7575,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7663,7 +7663,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7748,7 +7748,7 @@
     "sharedContractRef": "OpenApiDocument",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7848,7 +7848,7 @@
     "sharedContractRef": "CapabilityManifest",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -7957,7 +7957,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8050,7 +8050,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8147,7 +8147,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8235,7 +8235,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8324,7 +8324,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8417,7 +8417,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8505,7 +8505,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8593,7 +8593,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8682,7 +8682,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8776,7 +8776,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8873,7 +8873,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -8961,7 +8961,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9050,7 +9050,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9144,7 +9144,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9241,7 +9241,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9329,7 +9329,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9418,7 +9418,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9512,7 +9512,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9609,7 +9609,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9697,7 +9697,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9786,7 +9786,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9880,7 +9880,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -9977,7 +9977,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -10065,7 +10065,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -10154,7 +10154,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -10247,7 +10247,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -10345,7 +10345,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -10444,7 +10444,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -10541,7 +10541,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -10639,7 +10639,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -10738,7 +10738,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -10841,7 +10841,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -10938,7 +10938,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -11036,7 +11036,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -11133,7 +11133,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -11221,7 +11221,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -11310,7 +11310,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -11408,7 +11408,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -11502,7 +11502,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -11600,7 +11600,7 @@
     "sharedContractRef": "createExchangeConnectionRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -11936,7 +11936,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -12033,7 +12033,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -12121,7 +12121,7 @@
     "sharedContractRef": "liveConnectionEquitiesResponseSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -12259,7 +12259,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -12356,7 +12356,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -12453,7 +12453,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -12541,7 +12541,7 @@
     "sharedContractRef": "testExchangeConnectionRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -12712,7 +12712,7 @@
     "sharedContractRef": "suggestedWhitelistIpResponseSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -12811,7 +12811,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -12899,7 +12899,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -12966,6 +12966,2343 @@
       }
     }
   },
+  "hl_wallet.activity.get": {
+    "operationId": "hl_wallet.activity.get",
+    "method": "GET",
+    "path": "/api/v1/hl-wallet/activity",
+    "role": "user",
+    "risk": "read",
+    "auth": "bearer",
+    "scopes": [
+      "openid",
+      "profile",
+      "hl-wallet:read"
+    ],
+    "idempotent": true,
+    "pagination": false,
+    "stream": false,
+    "file": false,
+    "contractStatus": "envelope",
+    "webZodContract": "",
+    "sharedContractRef": "",
+    "compatibility": {
+      "contractVersion": "2026-08-31",
+      "registryVersion": "4.1.0",
+      "minCliVersion": "0.0.0",
+      "maxCliVersion": "0.99.99",
+      "openapi": "3.1.0"
+    },
+    "request": {
+      "contentType": null,
+      "path": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {},
+        "required": []
+      },
+      "query": {
+        "title": "JsonObject",
+        "type": "object",
+        "additionalProperties": true
+      },
+      "body": null,
+      "pathParamNames": []
+    },
+    "response": {
+      "contentType": "application/json",
+      "success": {
+        "title": "JsonValue",
+        "description": "Any JSON value. Domain shape may be refined by web-local Zod."
+      }
+    },
+    "error": {
+      "contentType": "application/problem+json",
+      "schema": {
+        "$id": "https://alphafox.app/schemas/problem-details.json",
+        "title": "ProblemDetails",
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "type",
+          "title",
+          "status",
+          "detail",
+          "requestId"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 599
+          },
+          "detail": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "hl_wallet.equity.get": {
+    "operationId": "hl_wallet.equity.get",
+    "method": "GET",
+    "path": "/api/v1/hl-wallet/equity",
+    "role": "user",
+    "risk": "read",
+    "auth": "bearer",
+    "scopes": [
+      "openid",
+      "profile",
+      "hl-wallet:read"
+    ],
+    "idempotent": true,
+    "pagination": false,
+    "stream": false,
+    "file": false,
+    "contractStatus": "shared",
+    "webZodContract": "",
+    "sharedContractRef": "hlAnalyticsWalletEquityResponseSchema",
+    "compatibility": {
+      "contractVersion": "2026-08-31",
+      "registryVersion": "4.1.0",
+      "minCliVersion": "0.0.0",
+      "maxCliVersion": "0.99.99",
+      "openapi": "3.1.0"
+    },
+    "request": {
+      "contentType": null,
+      "path": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {},
+        "required": []
+      },
+      "query": {
+        "title": "JsonObject",
+        "type": "object",
+        "additionalProperties": true
+      },
+      "body": null,
+      "pathParamNames": []
+    },
+    "response": {
+      "contentType": "application/json",
+      "success": {
+        "title": "hlAnalyticsWalletEquityResponseSchema",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "partial"
+            ]
+          },
+          "coverage": {
+            "type": "object",
+            "properties": {
+              "reservoir_account_values": {
+                "type": "object",
+                "properties": {
+                  "generated_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "stale": {
+                    "type": "boolean"
+                  },
+                  "complete": {
+                    "type": "boolean"
+                  },
+                  "applied": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "partial": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "provisional": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "missing": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "error": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "review": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "waiting": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  }
+                },
+                "required": [
+                  "generated_at",
+                  "stale",
+                  "complete",
+                  "applied",
+                  "partial",
+                  "provisional",
+                  "missing",
+                  "error",
+                  "review",
+                  "waiting"
+                ],
+                "additionalProperties": false
+              },
+              "reservoir_perp_snapshots": {
+                "type": "object",
+                "properties": {
+                  "generated_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "stale": {
+                    "type": "boolean"
+                  },
+                  "complete": {
+                    "type": "boolean"
+                  },
+                  "applied": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "partial": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "provisional": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "missing": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "error": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "review": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "waiting": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  }
+                },
+                "required": [
+                  "generated_at",
+                  "stale",
+                  "complete",
+                  "applied",
+                  "partial",
+                  "provisional",
+                  "missing",
+                  "error",
+                  "review",
+                  "waiting"
+                ],
+                "additionalProperties": false
+              },
+              "reservoir_spot_snapshots": {
+                "type": "object",
+                "properties": {
+                  "generated_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "stale": {
+                    "type": "boolean"
+                  },
+                  "complete": {
+                    "type": "boolean"
+                  },
+                  "applied": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "partial": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "provisional": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "missing": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "error": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "review": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "waiting": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  }
+                },
+                "required": [
+                  "generated_at",
+                  "stale",
+                  "complete",
+                  "applied",
+                  "partial",
+                  "provisional",
+                  "missing",
+                  "error",
+                  "review",
+                  "waiting"
+                ],
+                "additionalProperties": false
+              },
+              "reservoir_fills": {
+                "type": "object",
+                "properties": {
+                  "generated_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "stale": {
+                    "type": "boolean"
+                  },
+                  "complete": {
+                    "type": "boolean"
+                  },
+                  "applied": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "partial": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "provisional": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "missing": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "error": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "review": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "waiting": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  }
+                },
+                "required": [
+                  "generated_at",
+                  "stale",
+                  "complete",
+                  "applied",
+                  "partial",
+                  "provisional",
+                  "missing",
+                  "error",
+                  "review",
+                  "waiting"
+                ],
+                "additionalProperties": false
+              },
+              "hl_misc_events": {
+                "type": "object",
+                "properties": {
+                  "generated_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "stale": {
+                    "type": "boolean"
+                  },
+                  "complete": {
+                    "type": "boolean"
+                  },
+                  "applied": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "partial": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "provisional": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "missing": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "error": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "review": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "waiting": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  }
+                },
+                "required": [
+                  "generated_at",
+                  "stale",
+                  "complete",
+                  "applied",
+                  "partial",
+                  "provisional",
+                  "missing",
+                  "error",
+                  "review",
+                  "waiting"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "reservoir_account_values",
+              "reservoir_perp_snapshots",
+              "reservoir_spot_snapshots",
+              "reservoir_fills",
+              "hl_misc_events"
+            ],
+            "additionalProperties": false
+          },
+          "address": {
+            "type": "string",
+            "pattern": "^0x[0-9a-f]{40}$"
+          },
+          "from": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "snapshot_time": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "day": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                },
+                "account_mode": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "equity_usdc": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                },
+                "perp_value_usdc": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "spot_usdc": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                },
+                "pm_total_account_value": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "unrealized_pnl": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                },
+                "positions": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "long_notional": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                },
+                "short_notional": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                },
+                "spot_tokens": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "spot_cost_basis": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                },
+                "non_usdc_dex_rows": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "snapshot_time",
+                "day",
+                "account_mode",
+                "equity_usdc",
+                "perp_value_usdc",
+                "spot_usdc",
+                "pm_total_account_value",
+                "unrealized_pnl",
+                "positions",
+                "long_notional",
+                "short_notional",
+                "spot_tokens",
+                "spot_cost_basis",
+                "non_usdc_dex_rows"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "intervals": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "from": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "to": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "equity_change": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                },
+                "external_flow": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                },
+                "spot_cash_flow": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                },
+                "net_pnl": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                },
+                "realized_pnl": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                },
+                "fees_usdc": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                },
+                "funding": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                },
+                "ledger_pnl": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                },
+                "unrealized_change": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                },
+                "attributed": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                },
+                "unexplained": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                },
+                "fills": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "non_usdc_fee_fills": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "funding_events": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "ledger_events": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "unvalued_ledger_events": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "complete": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "from",
+                "to",
+                "equity_change",
+                "external_flow",
+                "spot_cash_flow",
+                "net_pnl",
+                "realized_pnl",
+                "fees_usdc",
+                "funding",
+                "ledger_pnl",
+                "unrealized_change",
+                "attributed",
+                "unexplained",
+                "fills",
+                "non_usdc_fee_fills",
+                "funding_events",
+                "ledger_events",
+                "unvalued_ledger_events",
+                "complete"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "totals": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "intervals": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "incomplete_intervals": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "equity_start": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                  },
+                  "equity_end": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                  },
+                  "net_pnl": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                  },
+                  "external_flow": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                  },
+                  "spot_cash_flow": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                  },
+                  "realized_pnl": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                  },
+                  "fees_usdc": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                  },
+                  "funding": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                  },
+                  "ledger_pnl": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                  },
+                  "unrealized_change": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                  },
+                  "unexplained": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                  },
+                  "unvalued_ledger_events": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "intervals",
+                  "incomplete_intervals",
+                  "equity_start",
+                  "equity_end",
+                  "net_pnl",
+                  "external_flow",
+                  "spot_cash_flow",
+                  "realized_pnl",
+                  "fees_usdc",
+                  "funding",
+                  "ledger_pnl",
+                  "unrealized_change",
+                  "unexplained",
+                  "unvalued_ledger_events"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "coverage",
+          "address",
+          "from",
+          "to",
+          "points",
+          "intervals",
+          "totals"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "error": {
+      "contentType": "application/problem+json",
+      "schema": {
+        "$id": "https://alphafox.app/schemas/problem-details.json",
+        "title": "ProblemDetails",
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "type",
+          "title",
+          "status",
+          "detail",
+          "requestId"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 599
+          },
+          "detail": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "hl_wallet.ledger.get": {
+    "operationId": "hl_wallet.ledger.get",
+    "method": "GET",
+    "path": "/api/v1/hl-wallet/ledger",
+    "role": "user",
+    "risk": "read",
+    "auth": "bearer",
+    "scopes": [
+      "openid",
+      "profile",
+      "hl-wallet:read"
+    ],
+    "idempotent": true,
+    "pagination": false,
+    "stream": false,
+    "file": false,
+    "contractStatus": "shared",
+    "webZodContract": "",
+    "sharedContractRef": "hlAnalyticsWalletLedgerResponseSchema",
+    "compatibility": {
+      "contractVersion": "2026-08-31",
+      "registryVersion": "4.1.0",
+      "minCliVersion": "0.0.0",
+      "maxCliVersion": "0.99.99",
+      "openapi": "3.1.0"
+    },
+    "request": {
+      "contentType": null,
+      "path": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {},
+        "required": []
+      },
+      "query": {
+        "title": "JsonObject",
+        "type": "object",
+        "additionalProperties": true
+      },
+      "body": null,
+      "pathParamNames": []
+    },
+    "response": {
+      "contentType": "application/json",
+      "success": {
+        "title": "hlAnalyticsWalletLedgerResponseSchema",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "partial"
+            ]
+          },
+          "coverage": {
+            "type": "object",
+            "properties": {
+              "generated_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              "stale": {
+                "type": "boolean"
+              },
+              "complete": {
+                "type": "boolean"
+              },
+              "applied": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                }
+              },
+              "partial": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                }
+              },
+              "provisional": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                }
+              },
+              "missing": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                }
+              },
+              "error": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                }
+              },
+              "review": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                }
+              },
+              "waiting": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                }
+              }
+            },
+            "required": [
+              "generated_at",
+              "stale",
+              "complete",
+              "applied",
+              "partial",
+              "provisional",
+              "missing",
+              "error",
+              "review",
+              "waiting"
+            ],
+            "additionalProperties": false
+          },
+          "address": {
+            "type": "string",
+            "pattern": "^0x[0-9a-f]{40}$"
+          },
+          "from": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "event_time": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "hash": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "kind": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "category": {
+                  "type": "string",
+                  "enum": [
+                    "deposit",
+                    "withdrawal",
+                    "transfer",
+                    "internal",
+                    "vault",
+                    "income",
+                    "fee",
+                    "lending",
+                    "staking",
+                    "liquidation",
+                    "genesis",
+                    "unknown"
+                  ]
+                },
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "out",
+                    "in",
+                    "self",
+                    "single",
+                    "party"
+                  ]
+                },
+                "counterparty": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^0x[0-9a-f]{40}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "token": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "amount": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "flow_usdc": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                },
+                "pnl_usdc": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                },
+                "valued": {
+                  "type": "boolean"
+                },
+                "source_dex": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "destination_dex": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "event_time",
+                "hash",
+                "kind",
+                "category",
+                "role",
+                "counterparty",
+                "token",
+                "amount",
+                "flow_usdc",
+                "pnl_usdc",
+                "valued",
+                "source_dex",
+                "destination_dex"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "category": {
+                  "type": "string",
+                  "enum": [
+                    "deposit",
+                    "withdrawal",
+                    "transfer",
+                    "internal",
+                    "vault",
+                    "income",
+                    "fee",
+                    "lending",
+                    "staking",
+                    "liquidation",
+                    "genesis",
+                    "unknown"
+                  ]
+                },
+                "events": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "unvalued": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "flow_usdc": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                },
+                "pnl_usdc": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                }
+              },
+              "required": [
+                "category",
+                "events",
+                "unvalued",
+                "flow_usdc",
+                "pnl_usdc"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "status",
+          "coverage",
+          "address",
+          "from",
+          "to",
+          "rows",
+          "truncated",
+          "categories"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "error": {
+      "contentType": "application/problem+json",
+      "schema": {
+        "$id": "https://alphafox.app/schemas/problem-details.json",
+        "title": "ProblemDetails",
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "type",
+          "title",
+          "status",
+          "detail",
+          "requestId"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 599
+          },
+          "detail": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "hl_wallet.positions.get": {
+    "operationId": "hl_wallet.positions.get",
+    "method": "GET",
+    "path": "/api/v1/hl-wallet/positions",
+    "role": "user",
+    "risk": "read",
+    "auth": "bearer",
+    "scopes": [
+      "openid",
+      "profile",
+      "hl-wallet:read"
+    ],
+    "idempotent": true,
+    "pagination": false,
+    "stream": false,
+    "file": false,
+    "contractStatus": "shared",
+    "webZodContract": "",
+    "sharedContractRef": "hlAnalyticsWalletPositionsResponseSchema",
+    "compatibility": {
+      "contractVersion": "2026-08-31",
+      "registryVersion": "4.1.0",
+      "minCliVersion": "0.0.0",
+      "maxCliVersion": "0.99.99",
+      "openapi": "3.1.0"
+    },
+    "request": {
+      "contentType": null,
+      "path": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {},
+        "required": []
+      },
+      "query": {
+        "title": "JsonObject",
+        "type": "object",
+        "additionalProperties": true
+      },
+      "body": null,
+      "pathParamNames": []
+    },
+    "response": {
+      "contentType": "application/json",
+      "success": {
+        "title": "hlAnalyticsWalletPositionsResponseSchema",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "partial"
+            ]
+          },
+          "coverage": {
+            "type": "object",
+            "properties": {
+              "reservoir_account_values": {
+                "type": "object",
+                "properties": {
+                  "generated_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "stale": {
+                    "type": "boolean"
+                  },
+                  "complete": {
+                    "type": "boolean"
+                  },
+                  "applied": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "partial": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "provisional": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "missing": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "error": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "review": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "waiting": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  }
+                },
+                "required": [
+                  "generated_at",
+                  "stale",
+                  "complete",
+                  "applied",
+                  "partial",
+                  "provisional",
+                  "missing",
+                  "error",
+                  "review",
+                  "waiting"
+                ],
+                "additionalProperties": false
+              },
+              "reservoir_perp_snapshots": {
+                "type": "object",
+                "properties": {
+                  "generated_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "stale": {
+                    "type": "boolean"
+                  },
+                  "complete": {
+                    "type": "boolean"
+                  },
+                  "applied": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "partial": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "provisional": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "missing": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "error": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "review": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "waiting": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  }
+                },
+                "required": [
+                  "generated_at",
+                  "stale",
+                  "complete",
+                  "applied",
+                  "partial",
+                  "provisional",
+                  "missing",
+                  "error",
+                  "review",
+                  "waiting"
+                ],
+                "additionalProperties": false
+              },
+              "reservoir_spot_snapshots": {
+                "type": "object",
+                "properties": {
+                  "generated_at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "stale": {
+                    "type": "boolean"
+                  },
+                  "complete": {
+                    "type": "boolean"
+                  },
+                  "applied": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "partial": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "provisional": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "missing": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "error": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "review": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  },
+                  "waiting": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    }
+                  }
+                },
+                "required": [
+                  "generated_at",
+                  "stale",
+                  "complete",
+                  "applied",
+                  "partial",
+                  "provisional",
+                  "missing",
+                  "error",
+                  "review",
+                  "waiting"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "reservoir_account_values",
+              "reservoir_perp_snapshots",
+              "reservoir_spot_snapshots"
+            ],
+            "additionalProperties": false
+          },
+          "address": {
+            "type": "string",
+            "pattern": "^0x[0-9a-f]{40}$"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "snapshot_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "account_mode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "perp": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "market": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "size": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "notional": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "entry_price": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "unrealized_pnl": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                },
+                "liquidation_price": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "leverage_type": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "leverage": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "funding_pnl": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "market",
+                "size",
+                "notional",
+                "entry_price",
+                "unrealized_pnl",
+                "liquidation_price",
+                "leverage_type",
+                "leverage",
+                "funding_pnl"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "spot": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "token": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "balance": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "entry_value": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "token",
+                "balance",
+                "entry_value"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "dexes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "dex": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "collateral_token": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "account_value": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "long_notional": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "short_notional": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^-?\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "dex",
+                "collateral_token",
+                "account_value",
+                "long_notional",
+                "short_notional"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "truncated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "status",
+          "coverage",
+          "address",
+          "at",
+          "snapshot_time",
+          "account_mode",
+          "perp",
+          "spot",
+          "dexes",
+          "truncated"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "error": {
+      "contentType": "application/problem+json",
+      "schema": {
+        "$id": "https://alphafox.app/schemas/problem-details.json",
+        "title": "ProblemDetails",
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "type",
+          "title",
+          "status",
+          "detail",
+          "requestId"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 599
+          },
+          "detail": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "hl_wallet.summary.get": {
+    "operationId": "hl_wallet.summary.get",
+    "method": "GET",
+    "path": "/api/v1/hl-wallet/summary",
+    "role": "user",
+    "risk": "read",
+    "auth": "bearer",
+    "scopes": [
+      "openid",
+      "profile",
+      "hl-wallet:read"
+    ],
+    "idempotent": true,
+    "pagination": false,
+    "stream": false,
+    "file": false,
+    "contractStatus": "shared",
+    "webZodContract": "",
+    "sharedContractRef": "hlAnalyticsWalletSummaryResponseSchema",
+    "compatibility": {
+      "contractVersion": "2026-08-31",
+      "registryVersion": "4.1.0",
+      "minCliVersion": "0.0.0",
+      "maxCliVersion": "0.99.99",
+      "openapi": "3.1.0"
+    },
+    "request": {
+      "contentType": null,
+      "path": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {},
+        "required": []
+      },
+      "query": {
+        "title": "JsonObject",
+        "type": "object",
+        "additionalProperties": true
+      },
+      "body": null,
+      "pathParamNames": []
+    },
+    "response": {
+      "contentType": "application/json",
+      "success": {
+        "title": "hlAnalyticsWalletSummaryResponseSchema",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "partial"
+            ]
+          },
+          "coverage": {
+            "type": "object",
+            "properties": {
+              "generated_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+              },
+              "stale": {
+                "type": "boolean"
+              },
+              "complete": {
+                "type": "boolean"
+              },
+              "applied": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                }
+              },
+              "partial": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                }
+              },
+              "provisional": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                }
+              },
+              "missing": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                }
+              },
+              "error": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                }
+              },
+              "review": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                }
+              },
+              "waiting": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                }
+              }
+            },
+            "required": [
+              "generated_at",
+              "stale",
+              "complete",
+              "applied",
+              "partial",
+              "provisional",
+              "missing",
+              "error",
+              "review",
+              "waiting"
+            ],
+            "additionalProperties": false
+          },
+          "address": {
+            "type": "string",
+            "pattern": "^0x[0-9a-f]{40}$"
+          },
+          "from": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+          },
+          "asset_class": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "perp",
+                  "spot"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "day": {
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                },
+                "coins": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "fills": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "orders": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "notional": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                },
+                "realized_pnl": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                },
+                "fees_usdc": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                },
+                "profitable_closes": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "losing_closes": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "liquidations": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "unknown_pnl_fills": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "non_usdc_fee_fills": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "first_fill": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "last_fill": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                }
+              },
+              "required": [
+                "day",
+                "coins",
+                "fills",
+                "orders",
+                "notional",
+                "realized_pnl",
+                "fees_usdc",
+                "profitable_closes",
+                "losing_closes",
+                "liquidations",
+                "unknown_pnl_fills",
+                "non_usdc_fee_fills",
+                "first_fill",
+                "last_fill"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "coins": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "coin": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "asset_class": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "dex": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "fills": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "orders": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "notional": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                },
+                "realized_pnl": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                },
+                "fees_usdc": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(?:\\.\\d+)?$"
+                },
+                "profitable_closes": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "losing_closes": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "liquidations": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "unknown_pnl_fills": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "non_usdc_fee_fills": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "first_fill": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "last_fill": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                }
+              },
+              "required": [
+                "coin",
+                "asset_class",
+                "dex",
+                "fills",
+                "orders",
+                "notional",
+                "realized_pnl",
+                "fees_usdc",
+                "profitable_closes",
+                "losing_closes",
+                "liquidations",
+                "unknown_pnl_fills",
+                "non_usdc_fee_fills",
+                "first_fill",
+                "last_fill"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "coins_truncated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "status",
+          "coverage",
+          "address",
+          "from",
+          "to",
+          "asset_class",
+          "days",
+          "coins",
+          "coins_truncated"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "error": {
+      "contentType": "application/problem+json",
+      "schema": {
+        "$id": "https://alphafox.app/schemas/problem-details.json",
+        "title": "ProblemDetails",
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "type",
+          "title",
+          "status",
+          "detail",
+          "requestId"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 599
+          },
+          "detail": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
   "lite.catalog_config.get": {
     "operationId": "lite.catalog_config.get",
     "method": "GET",
@@ -12987,7 +15324,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13075,7 +15412,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13163,7 +15500,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13251,7 +15588,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13339,7 +15676,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13427,7 +15764,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13515,7 +15852,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13612,7 +15949,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13709,7 +16046,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13807,7 +16144,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -13905,7 +16242,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14003,7 +16340,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14091,7 +16428,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14179,7 +16516,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14267,7 +16604,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14355,7 +16692,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14443,7 +16780,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14531,7 +16868,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14619,7 +16956,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14707,7 +17044,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14795,7 +17132,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14892,7 +17229,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -14980,7 +17317,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -15068,7 +17405,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -15156,7 +17493,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -15253,7 +17590,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -15351,7 +17688,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -15445,7 +17782,7 @@
     "sharedContractRef": "upsertNotificationChannelRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -15644,7 +17981,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -15742,7 +18079,7 @@
     "sharedContractRef": "updateNotificationChannelEnabledRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -15913,7 +18250,7 @@
     "sharedContractRef": "notificationChannelsResponseSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16078,7 +18415,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16181,7 +18518,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16278,7 +18615,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16366,7 +18703,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16455,7 +18792,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16543,7 +18880,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16632,7 +18969,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16721,7 +19058,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16805,7 +19142,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16893,7 +19230,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -16981,7 +19318,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -17078,7 +19415,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -17166,7 +19503,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -17254,7 +19591,7 @@
     "sharedContractRef": "managedWalletDepositBonusClaimResponseSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -17494,7 +19831,7 @@
     "sharedContractRef": "managedWalletDepositBonusOfferSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -17756,7 +20093,7 @@
     "sharedContractRef": "subscriptionStatusSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -17964,7 +20301,7 @@
     "sharedContractRef": "subscriptionPlansResponseSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -18111,7 +20448,7 @@
     "sharedContractRef": "purchaseSubscriptionRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -18385,7 +20722,7 @@
     "sharedContractRef": "purchaseSubscriptionRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -18827,7 +21164,7 @@
     "sharedContractRef": "welcomeTrialClaimResponseSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -19067,7 +21404,7 @@
     "sharedContractRef": "welcomeTrialOfferSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -19319,7 +21656,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -19407,7 +21744,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -19504,7 +21841,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -19601,7 +21938,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -19698,7 +22035,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -19795,7 +22132,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -19892,7 +22229,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -19989,7 +22326,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20086,7 +22423,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20183,7 +22520,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20280,7 +22617,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20377,7 +22714,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20474,7 +22811,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20571,7 +22908,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20668,7 +23005,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20765,7 +23102,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20862,7 +23199,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -20950,7 +23287,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21038,7 +23375,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21126,7 +23463,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21214,7 +23551,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21311,7 +23648,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21399,7 +23736,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21487,7 +23824,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21575,7 +23912,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21663,7 +24000,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21751,7 +24088,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21839,7 +24176,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -21927,7 +24264,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -22024,7 +24361,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -22121,7 +24458,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -22218,7 +24555,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -22322,7 +24659,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -22425,7 +24762,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -22522,7 +24859,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -22619,7 +24956,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -22717,7 +25054,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -22810,7 +25147,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -22907,7 +25244,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -23004,7 +25341,7 @@
     "sharedContractRef": "traderDetailResponseSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -23225,7 +25562,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -23322,7 +25659,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -23419,7 +25756,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -23516,7 +25853,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -23613,7 +25950,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -23711,7 +26048,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -23808,7 +26145,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -23905,7 +26242,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -24002,7 +26339,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -24099,7 +26436,7 @@
     "sharedContractRef": "traderRuntimeResponseSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -24320,7 +26657,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -24418,7 +26755,7 @@
     "sharedContractRef": "startTraderRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -24583,7 +26920,7 @@
     "sharedContractRef": "stopTraderRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -24742,7 +27079,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -24839,7 +27176,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -24937,7 +27274,7 @@
     "sharedContractRef": "updateTraderConfigRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -25273,7 +27610,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -25371,7 +27708,7 @@
     "sharedContractRef": "createTraderRequestSchema",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -25713,7 +28050,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -25801,7 +28138,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -25889,7 +28226,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -25977,7 +28314,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -26066,7 +28403,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"
@@ -26154,7 +28491,7 @@
     "sharedContractRef": "",
     "compatibility": {
       "contractVersion": "2026-08-31",
-      "registryVersion": "4.0.0",
+      "registryVersion": "4.1.0",
       "minCliVersion": "0.0.0",
       "maxCliVersion": "0.99.99",
       "openapi": "3.1.0"

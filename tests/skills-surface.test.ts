@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
+import { resolveTypedCommand } from "../src/catalog/command-tree";
+import { findCatalogOperation } from "../src/catalog/operations";
 
 const skillsRoot = join(__dirname, "..", "..", "skills");
 
@@ -189,6 +191,27 @@ describe("Skills surface", () => {
     assert.match(admin, /"configSchemaVersion": 3/);
     assert.doesNotMatch(admin, /accepts only `1` and `2`/);
     assert.doesNotMatch(admin, /Use `2` for new acceptance traders/);
+  });
+
+  it("teaches Hyperliquid wallet history as coverage-first, read-only catalog calls", () => {
+    const wallet = readFileSync(join(skillsRoot, "hl-wallet", "SKILL.md"), "utf8");
+    const router = readFileSync(join(skillsRoot, "alphafox", "SKILL.md"), "utf8");
+    assert.match(router, /`alphafox-hl-wallet`/);
+    assert.match(wallet, /Never treat a missing day as zero/);
+    assert.match(wallet, /equity_change − external_flow − spot_cash_flow/);
+    assert.match(wallet, /admin-only/);
+    const ids = [...wallet.matchAll(/^- `(hl_wallet\.[a-z_.]+)`$/gm)].map((m) => m[1]);
+    assert.equal(ids.length, 5);
+    for (const id of ids) {
+      const op = findCatalogOperation(id);
+      assert.equal(op?.risk, "read", id);
+    }
+    const commands = [...wallet.matchAll(/^alphafox (hl_wallet [a-z]+ get) /gm)].map((m) => m[1]);
+    assert.equal(commands.length, 5);
+    for (const words of commands) {
+      const resolved = resolveTypedCommand(words.split(" "));
+      assert.equal(resolved.kind, "operation", words);
+    }
   });
 
   it("does not teach chat product commands or paths", () => {

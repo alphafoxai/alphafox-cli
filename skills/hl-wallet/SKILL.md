@@ -1,7 +1,7 @@
 ---
 name: alphafox-hl-wallet
 description: Read-only Hyperliquid wallet history for one address — PnL and fills by day and coin, USDC equity curve with net PnL and external flows, ledger movements, positions at the latest snapshot, orders and round trips. Use when the user gives a 0x Hyperliquid address or asks how a Hyperliquid wallet / 钱包 / 交易员 traded, earned, or what it holds.
-version: 0.3.24
+version: 0.3.25
 ---
 
 # Hyperliquid wallet history

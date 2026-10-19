@@ -1,7 +1,7 @@
 ---
 name: alphafox
 description: "Route AlphaFox product CLI requests: installation/auth, market data, strategy configuration, backtests, traders, connectors, accounts, notifications and Hyperliquid wallet history. Repository development or AGENTS/Skills maintenance uses repository instructions, not product CLI operations."
-version: 0.3.24
+version: 0.3.25
 ---
 
 # AlphaFox

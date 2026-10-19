@@ -198,6 +198,7 @@ describe("Skills surface", () => {
     const router = readFileSync(join(skillsRoot, "alphafox", "SKILL.md"), "utf8");
     assert.match(router, /`alphafox-hl-wallet`/);
     assert.match(wallet, /Never treat a missing day as zero/);
+    assert.match(wallet, /fully covered/);
     assert.match(wallet, /equity_change − external_flow − spot_cash_flow/);
     assert.match(wallet, /admin-only/);
     const ids = [...wallet.matchAll(/^- `(hl_wallet\.[a-z_.]+)`$/gm)].map((m) => m[1]);

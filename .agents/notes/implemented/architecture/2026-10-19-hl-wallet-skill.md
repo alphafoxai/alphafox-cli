@@ -22,6 +22,10 @@ activity}.get`. The regenerated catalog exposes them as typed commands such as
 A new `alphafox-hl-wallet` Skill, routed from `alphafox`, carries the domain rules:
 
 - read `status` and `coverage` before any number, and never treat an unavailable day as zero;
+- judge a window by its own day lists, not by `status` alone. `status` is `partial` while the
+  source is incomplete anywhere, so during the backfill a fully applied window still reports
+  it. On 2026-10-19 production returned `partial` for a one-day activity window with that
+  day applied;
 - compute net PnL and its attribution with the analytics definitions, and keep `unexplained`
   as its own number;
 - compute drawdown from cumulative net PnL, not raw equity;
@@ -56,7 +60,7 @@ service work first.
 `tests/skills-surface.test.ts` checks:
 
 - the router row;
-- the coverage, net PnL and admin rules;
+- the coverage (including the fully covered window), net PnL and admin rules;
 - that each listed operationId is a catalog read;
 - that each example command resolves through `resolveTypedCommand`.
 

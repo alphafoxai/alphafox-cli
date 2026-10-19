@@ -38,9 +38,10 @@ Start with `summary` + `equity` for "how did this wallet do". Add the others onl
 
 ## Coverage first
 
-Every response carries `status` (`ok | partial`) and `coverage`. Read them before any number.
+Every response carries `status` (`ok | partial`) and `coverage` (one day list per status; `equity` and `positions` have one per source). Read them before any number.
 
-- `partial` means some days in the window are not available (`missing`, `waiting`, `error`) or not final (`partial`, `provisional`). Report the result as partial and name the affected dates. Never treat a missing day as zero activity or zero PnL.
+- Days listed under `missing`, `waiting` or `error` are not available; days under `partial` or `provisional` are not final. Report the result as partial and name those dates. Never treat a missing day as zero activity or zero PnL.
+- `status` is `partial` whenever the source is incomplete anywhere, including days outside the window that are still being backfilled, or when `coverage.stale` is `true`. If every day of the window is in `applied` and the other lists are empty, the window's figures are final: say the window is fully covered, and add that the data may lag when `stale` is `true`.
 - In `summary`, a day absent from `days[]` had no fills **only** if `coverage.applied` lists it. Otherwise its activity is unknown.
 - In `equity`, points are snapshots, not days. A day without a snapshot is a gap; the next interval spans it and its net PnL is still computed from the snapshots on either side. `intervals[].complete: false` means a component (fills or ledger) may be missing for that interval; count them from `totals.incomplete_intervals`.
 - Some upstream days were never published and stay missing. Say "no data for these dates", not "the wallet was inactive".

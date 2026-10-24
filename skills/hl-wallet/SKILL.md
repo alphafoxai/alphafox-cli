@@ -1,6 +1,6 @@
 ---
 name: alphafox-hl-wallet
-description: Read-only Hyperliquid wallet history for one address — PnL and fills by day and coin, USDC equity curve with net PnL and external flows, ledger movements, positions at the latest snapshot, orders and round trips. Use when the user gives a 0x Hyperliquid address or asks how a Hyperliquid wallet / 钱包 / 交易员 traded, earned, or what it holds.
+description: Read-only Hyperliquid wallet history for one address — PnL and fills by day and coin, USDC equity curve with net PnL and external flows, ledger movements, positions at the latest snapshot, orders and round trips — plus, on request, live account state, open orders and fills since the archive. Use when the user gives a 0x Hyperliquid address or asks how a Hyperliquid wallet / 钱包 / 交易员 traded, earned, or what it holds.
 version: 0.3.25
 ---
 
@@ -14,7 +14,8 @@ Any signed-in AlphaFox account can use these reads. A `401` means the CLI is not
 
 - `--address`: a full Hyperliquid address, lowercase `0x` + 40 hex. Lowercase what the operator pasted; ask for the full address if it is shortened (`0x0a50…956a`). Do not guess one from a name.
 - `--range`: `7d | 30d | 90d | 180d | 365d` (default `30d`). The window ends at the next UTC midnight, so it includes today, which is still incomplete.
-- Data is daily history (T+1), not live. For a live view, say the latest snapshot time instead of calling it current.
+- History is the daily archive (T+1). Call the live reads, or add `--live true`, only when the operator asks for current state, open orders or activity since the archive; otherwise answer from history and give the latest snapshot time instead of calling it current.
+- `--live true` on `summary`, `equity` or `ledger` adds a `live_tail` beside the unchanged archive answer. Without it the answer is archive-only and reproducible.
 
 ## Calls
 
@@ -24,6 +25,9 @@ alphafox hl_wallet equity get --address 0x… --range 90d --format json --no-inp
 alphafox hl_wallet ledger get --address 0x… --range 90d --format json --no-input
 alphafox hl_wallet positions get --address 0x… --format json --no-input
 alphafox hl_wallet activity get --address 0x… --end 2026-10-17 --days 7 --format json --no-input
+alphafox hl_wallet live get --address 0x… --format json --no-input
+alphafox hl_wallet live_orders get --address 0x… --format json --no-input
+alphafox hl_wallet live_recent get --address 0x… --format json --no-input
 ```
 
 | Question | Call | Read |
@@ -33,6 +37,11 @@ alphafox hl_wallet activity get --address 0x… --end 2026-10-17 --days 7 --form
 | Deposits, withdrawals, transfers, vault moves | `ledger` | `categories[]` (whole range), `rows[]` (newest 500) |
 | What it holds | `positions` | `perp[]`, `spot[]`, `dexes[]`, `snapshot_time` |
 | Orders and position round trips | `activity` (`--end` UTC day ≤ today, `--days 1\|3\|7`) | `orders[]`, `roundTrips[]` |
+| Account value, leverage, positions now | `live` | `live.equity_usdc`, `live.positions[]`, `live.as_of` |
+| Open orders now | `live_orders` | `orders[]`, `as_of` |
+| Fills, funding and ledger since the archive | `live_recent` | `archive_through`, `live.fills[]`, `live.funding[]`, `live.fills_tail` |
+| Net PnL and equity up to now | `equity --live true` | `totals`, then `live_tail.net_pnl_to_as_of`, `live_tail.point`, `live_tail.interval` |
+| Ledger rows or fills by coin since the archive, classified like history | `ledger --live true`, `summary --live true` | `live_tail.rows[]`, `live_tail.days[]`, `live_tail.coins[]` |
 
 Start with `summary` + `equity` for "how did this wallet do". Add the others only when the question needs them.
 
@@ -45,6 +54,19 @@ Every response carries `status` (`ok | partial`) and `coverage` (one day list pe
 - In `summary`, a day absent from `days[]` had no fills **only** if `coverage.applied` lists it. Otherwise its activity is unknown.
 - In `equity`, points are snapshots, not days. A day without a snapshot is a gap; the next interval spans it and its net PnL is still computed from the snapshots on either side. `intervals[].complete: false` means a component (fills or ledger) may be missing for that interval; count them from `totals.incomplete_intervals`.
 - Some upstream days were never published and stay missing. Say "no data for these dates", not "the wallet was inactive".
+
+## Live reads
+
+`live`, `live_orders` and `live_recent` read Hyperliquid now, not the archive. Label every live figure "live, as of `as_of` UTC" and keep it apart from archive figures.
+
+- Do not add live figures into archive totals. `live_recent` covers the time after `archive_through`, so report it as a separate "since the archive" section: realized PnL and fees from `live.fills[]` (fees in another token are not USDC), funding from `live.funding[]`.
+- `live.equity_usdc` follows the archive's equity rule for the account mode (`equity_basis`), so it continues the equity curve. It excludes spot tokens, staking and vaults, so it is lower than Hyperliquid's own account value. `best_effort: true` means the rule is not exact for this mode; say so.
+- In `unified` and `portfolio_margin` mode, report one account value. `dexes[]` values do not add up to it.
+- `fills_tail.truncated` or `events_tail.truncated` means rows after `through` were not read yet: say the tail is partial. `unavailable[]` names parts that were not read; never report them as zero.
+- A position's `funding_since_open` is funding paid since it opened: positive means paid.
+- `live_tail` is either `{status: "unavailable", reason}` (answer from the archive and give the reason) or `ok`/`partial`, with `notes[]` naming what is missing. Report each note; `partial` live figures are not final.
+- `equity --live true`: `live_tail.net_pnl_to_as_of` is `totals.net_pnl` plus the live interval from the last archived snapshot to `as_of`. Each fill is counted once, so report it as "net PnL to `as_of` (live)" next to the archive's `totals.net_pnl`, never added to it again.
+- `as_of` can be about 30 seconds old (up to about two minutes for `live_recent` and a `live_tail`), because both the web service and analytics cache it. Do not poll; one call answers the question.
 
 ## Metric definitions
 
@@ -71,7 +93,8 @@ A failed call prints `ok: false` with `error.status` and `error.message`. Act on
 | `403` | The account cannot use wallet history | Stop and say so |
 | `409` | History was republished during the query | Retry once |
 | `422` | The wallet is too active for this window | Use a shorter `--range` or fewer `--days` |
-| `429`, or `503` with "busy" | Too many requests | Wait about a minute, then retry once |
+| `429`, or `503` with "busy" | Too many requests, or the live weight budget is spent | Wait about a minute, then retry once |
+| `503` with "Live Hyperliquid data is not enabled" | Live reads are off | Say live data is unavailable and answer from history |
 | `502`, `503`, `504` | Service unavailable or timed out | Report it with `requestId`. A `504` may succeed on a shorter range. Do not substitute other data |
 
 `truncated` flags (`coins_truncated`, ledger `truncated`, activity `truncated` / `ordersTruncated` / `roundTripsTruncated`) mean a list was capped. Say so; range totals in `categories` and `totals` still cover the whole range.
@@ -91,3 +114,6 @@ Lead with the window, `status`, and any missing or partial dates. Then net PnL w
 - `hl_wallet.ledger.get`
 - `hl_wallet.positions.get`
 - `hl_wallet.activity.get`
+- `hl_wallet.live.get`
+- `hl_wallet.live_orders.get`
+- `hl_wallet.live_recent.get`

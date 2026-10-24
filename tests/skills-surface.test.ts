@@ -202,14 +202,15 @@ describe("Skills surface", () => {
     assert.match(wallet, /equity_change − external_flow − spot_cash_flow/);
     assert.match(wallet, /Any signed-in AlphaFox account/);
     assert.doesNotMatch(wallet, /admin-only/);
+    assert.match(wallet, /Do not add live figures into archive totals/);
     const ids = [...wallet.matchAll(/^- `(hl_wallet\.[a-z_.]+)`$/gm)].map((m) => m[1]);
-    assert.equal(ids.length, 5);
+    assert.equal(ids.length, 8);
     for (const id of ids) {
       const op = findCatalogOperation(id);
       assert.equal(op?.risk, "read", id);
     }
-    const commands = [...wallet.matchAll(/^alphafox (hl_wallet [a-z]+ get) /gm)].map((m) => m[1]);
-    assert.equal(commands.length, 5);
+    const commands = [...wallet.matchAll(/^alphafox (hl_wallet [a-z_]+ get) /gm)].map((m) => m[1]);
+    assert.equal(commands.length, 8);
     for (const words of commands) {
       const resolved = resolveTypedCommand(words.split(" "));
       assert.equal(resolved.kind, "operation", words);

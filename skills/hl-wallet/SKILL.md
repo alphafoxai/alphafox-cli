@@ -8,7 +8,7 @@ version: 0.3.25
 
 Always `--format json --no-input`. Every call is a read; there is no write and no trading in this Skill. Analyzing a wallet never implies copying it — copy trading goes through `alphafox-trading` with its own approval.
 
-Access is admin-only while the history backfill is in progress. A `403` with `forbidden` means the signed-in account is not an admin: say so and stop. Do not retry with another profile unless the operator asks.
+Any signed-in AlphaFox account can use these reads. A `401` means the CLI is not signed in: ask the operator to run `alphafox auth login` and stop. Do not retry with another profile unless the operator asks.
 
 ## Inputs
 
@@ -67,7 +67,8 @@ A failed call prints `ok: false` with `error.status` and `error.message`. Act on
 | `status` | Meaning | Action |
 |---|---|---|
 | `400` | Bad address, range, `end` or `days` | Fix the input; do not loop |
-| `403` | Not an admin | Stop and say so |
+| `401` | Not signed in | Ask the operator to sign in, then stop |
+| `403` | The account cannot use wallet history | Stop and say so |
 | `409` | History was republished during the query | Retry once |
 | `422` | The wallet is too active for this window | Use a shorter `--range` or fewer `--days` |
 | `429`, or `503` with "busy" | Too many requests | Wait about a minute, then retry once |

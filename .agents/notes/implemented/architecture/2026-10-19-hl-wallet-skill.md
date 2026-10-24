@@ -31,8 +31,10 @@ A new `alphafox-hl-wallet` Skill, routed from `alphafox`, carries the domain rul
 - compute drawdown from cumulative net PnL, not raw equity;
 - act on errors by HTTP status, because the CLI envelope keeps the status and message but not
   the route's `error` string;
-- say that the access is admin-only while the history backfill runs, and that analyzing a
-  wallet never implies copying it.
+- say who may use the reads, and that analyzing a wallet never implies copying it. Access was
+  admin-only while the history backfill ran. On 2026-10-24, with the backfill finished, the
+  owner opened it to every signed-in user (alphafox-web #1177), and the access line changed to
+  match.
 
 The Skill names no internal service, host or credential. The repository is public.
 
@@ -60,7 +62,7 @@ service work first.
 `tests/skills-surface.test.ts` checks:
 
 - the router row;
-- the coverage (including the fully covered window), net PnL and admin rules;
+- the coverage (including the fully covered window), net PnL and access rules;
 - that each listed operationId is a catalog read;
 - that each example command resolves through `resolveTypedCommand`.
 

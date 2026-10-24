@@ -200,7 +200,8 @@ describe("Skills surface", () => {
     assert.match(wallet, /Never treat a missing day as zero/);
     assert.match(wallet, /fully covered/);
     assert.match(wallet, /equity_change − external_flow − spot_cash_flow/);
-    assert.match(wallet, /admin-only/);
+    assert.match(wallet, /Any signed-in AlphaFox account/);
+    assert.doesNotMatch(wallet, /admin-only/);
     const ids = [...wallet.matchAll(/^- `(hl_wallet\.[a-z_.]+)`$/gm)].map((m) => m[1]);
     assert.equal(ids.length, 5);
     for (const id of ids) {

@@ -14,7 +14,8 @@ Any signed-in AlphaFox account can use these reads. A `401` means the CLI is not
 
 - `--address`: a full Hyperliquid address, lowercase `0x` + 40 hex. Lowercase what the operator pasted; ask for the full address if it is shortened (`0x0a50…956a`). Do not guess one from a name.
 - `--range`: `7d | 30d | 90d | 180d | 365d` (default `30d`). The window ends at the next UTC midnight, so it includes today, which is still incomplete.
-- History is the daily archive (T+1). Call the live reads only when the operator asks for current state, open orders or activity since the archive; otherwise answer from history and give the latest snapshot time instead of calling it current.
+- History is the daily archive (T+1). Call the live reads, or add `--live true`, only when the operator asks for current state, open orders or activity since the archive; otherwise answer from history and give the latest snapshot time instead of calling it current.
+- `--live true` on `summary`, `equity` or `ledger` adds a `live_tail` beside the unchanged archive answer. Without it the answer is archive-only and reproducible.
 
 ## Calls
 
@@ -39,6 +40,8 @@ alphafox hl_wallet live_recent get --address 0x… --format json --no-input
 | Account value, leverage, positions now | `live` | `live.equity_usdc`, `live.positions[]`, `live.as_of` |
 | Open orders now | `live_orders` | `orders[]`, `as_of` |
 | Fills, funding and ledger since the archive | `live_recent` | `archive_through`, `live.fills[]`, `live.funding[]`, `live.fills_tail` |
+| Net PnL and equity up to now | `equity --live true` | `totals`, then `live_tail.net_pnl_to_as_of`, `live_tail.point`, `live_tail.interval` |
+| Ledger rows or fills by coin since the archive, classified like history | `ledger --live true`, `summary --live true` | `live_tail.rows[]`, `live_tail.days[]`, `live_tail.coins[]` |
 
 Start with `summary` + `equity` for "how did this wallet do". Add the others only when the question needs them.
 
@@ -61,7 +64,9 @@ Every response carries `status` (`ok | partial`) and `coverage` (one day list pe
 - In `unified` and `portfolio_margin` mode, report one account value. `dexes[]` values do not add up to it.
 - `fills_tail.truncated` or `events_tail.truncated` means rows after `through` were not read yet: say the tail is partial. `unavailable[]` names parts that were not read; never report them as zero.
 - A position's `funding_since_open` is funding paid since it opened: positive means paid.
-- `as_of` can be about 30 seconds old (about two minutes for `live_recent`), because both the web service and analytics cache it. Do not poll; one call answers the question.
+- `live_tail` is either `{status: "unavailable", reason}` (answer from the archive and give the reason) or `ok`/`partial`, with `notes[]` naming what is missing. Report each note; `partial` live figures are not final.
+- `equity --live true`: `live_tail.net_pnl_to_as_of` is `totals.net_pnl` plus the live interval from the last archived snapshot to `as_of`. Each fill is counted once, so report it as "net PnL to `as_of` (live)" next to the archive's `totals.net_pnl`, never added to it again.
+- `as_of` can be about 30 seconds old (up to about two minutes for `live_recent` and a `live_tail`), because both the web service and analytics cache it. Do not poll; one call answers the question.
 
 ## Metric definitions
 

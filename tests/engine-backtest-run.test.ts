@@ -1631,89 +1631,111 @@ describe("engine-backtest orchestration", () => {
     assert.equal(result.persisted, false);
   });
 
-  it("does not create an experiment when planning fails", async () => {
-    let tapeCalls = 0;
-    const apiCalls: string[] = [];
-    await assert.rejects(
-      () =>
-        executeEngineBacktestRun(
-          parseEngineBacktestRunArgs([
-            "--create-experiment",
-            "--name",
-            "must-not-exist",
-            "--definition",
-            "grid",
-            "--config",
-            "{}",
-            "--exchange",
-            "binance",
-            "--range",
-            "2026-08-01..2026-08-08",
-            "--initial-equity",
-            "10000",
-            "--no-persist",
-          ]),
-          FLAGS,
-          { ALPHAFOX_CONFIG_DIR: mkdtempSync(join(tmpdir(), "alphafox-cfg-")) },
-          {
-            createNodeBacktestClient: () =>
-              fakeClient({
-                planBacktest: async () => ({
-                  definitionId: "grid",
-                  configSchemaVersion: 4,
-                  support: {
-                    status: "unsupported",
-                    reason: {
-                      code: "not_supported",
-                      message: "grid config cannot be planned",
+  for (const reason of [
+    { code: "not_supported", message: "grid config cannot be planned" },
+    {
+      code: "dynamic_selection_not_supported",
+      message:
+        "Dynamic Forager symbol selection is not supported for backtesting.",
+    },
+  ]) {
+    for (const persist of [true, false]) {
+      it(`rejects ${reason.code} before tape, execution, or writes (persist=${persist})`, async () => {
+        const executionCalls: string[] = [];
+        const apiCalls: string[] = [];
+        let terminated = false;
+        await assert.rejects(
+          () =>
+            executeEngineBacktestRun(
+              parseEngineBacktestRunArgs([
+                "--create-experiment",
+                "--name",
+                "must-not-exist",
+                "--definition",
+                "grid",
+                "--config",
+                "{}",
+                "--exchange",
+                "binance",
+                "--range",
+                "2026-08-01..2026-08-08",
+                "--initial-equity",
+                "10000",
+                ...(persist ? [] : ["--no-persist"]),
+              ]),
+              FLAGS,
+              { ALPHAFOX_CONFIG_DIR: mkdtempSync(join(tmpdir(), "alphafox-cfg-")) },
+              {
+                createNodeBacktestClient: () =>
+                  fakeClient({
+                    planBacktest: async () => ({
+                      definitionId: "grid",
+                      configSchemaVersion: 4,
+                      support: { status: "unsupported", reason },
+                      needsFunding: false,
+                    }),
+                    prepareTape: async () => {
+                      executionCalls.push("prepareTape");
+                      return { handle: "tape-1", fingerprint: "fp-1" };
                     },
-                  },
-                  needsFunding: false,
-                  auxiliaryDataRequirements: [],
+                    runPreparedBacktest: async (_handle, scenario) => {
+                      executionCalls.push("runPreparedBacktest");
+                      return {
+                        runId: scenario.runId,
+                        status: "completed",
+                        metrics: METRICS,
+                      };
+                    },
+                    terminate: () => {
+                      terminated = true;
+                    },
+                  }),
+                loadTape: async () => {
+                  executionCalls.push("loadTape");
+                  return sampleTape();
+                },
+                assembleScenario: (input) => sampleScenario(input.runId),
+                resolveTapeExchange: () => ({
+                  id: "binance_perp_usdt",
+                  label: "Binance",
+                  ccxtId: "binanceusdm",
+                  marketType: "swap",
+                  quoteAsset: "USDT",
                 }),
-              }),
-            loadTape: async () => {
-              tapeCalls += 1;
-              return sampleTape();
-            },
-            assembleScenario: (input) => sampleScenario(input.runId),
-            resolveTapeExchange: () => ({
-              id: "binance_perp_usdt",
-              label: "Binance",
-              ccxtId: "binanceusdm",
-              marketType: "swap",
-              quoteAsset: "USDT",
-            }),
-            loadTokens: () => ({
-              accessToken: "test-access",
-              refreshToken: "",
-              expiresAt: Date.now() + 60_000,
-              environment: "local",
-              issuer: localProfile.issuer,
-              audience: localProfile.audience,
-              clientId: localProfile.clientId,
-              scopes: ["openid"],
-            }),
-            apiRequest: async (options) => {
-              apiCalls.push(`${options.method} ${options.path}`);
-              return jsonResponse(500, { message: "must not create" });
-            },
+                loadTokens: () => ({
+                  accessToken: "test-access",
+                  refreshToken: "",
+                  expiresAt: Date.now() + 60_000,
+                  environment: "local",
+                  issuer: localProfile.issuer,
+                  audience: localProfile.audience,
+                  clientId: localProfile.clientId,
+                  scopes: ["openid"],
+                }),
+                apiRequest: async (options) => {
+                  apiCalls.push(`${options.method} ${options.path}`);
+                  return jsonResponse(500, { message: "must not create" });
+                },
+              }
+            ),
+          (err: unknown) => {
+            assert.ok(err instanceof EngineBacktestError);
+            assert.equal(err.subtype, "plan_unsupported");
+            assert.equal(err.code, reason.code);
+            assert.equal(err.message, reason.message);
+            assert.deepEqual(
+              (err.details as { reason: unknown }).reason,
+              reason
+            );
+            return true;
           }
-        ),
-      (err: unknown) => {
-        assert.ok(err instanceof EngineBacktestError);
-        assert.equal(err.subtype, "plan_unsupported");
-        assert.match(err.message, /cannot be planned/);
-        assert.equal(
-          (err.details as { reason?: { code?: string } }).reason?.code,
-          "not_supported"
         );
-        return true;
-      }
-    );
-    assert.equal(tapeCalls, 0);
-    assert.deepEqual(apiCalls, []);
-  });
+        assert.deepEqual(executionCalls, []);
+        assert.deepEqual(apiCalls, []);
+        assert.equal(terminated, true);
+      });
+    }
+  }
 
   it("does not create an experiment when packages are unresolved", async () => {
     const apiCalls: string[] = [];

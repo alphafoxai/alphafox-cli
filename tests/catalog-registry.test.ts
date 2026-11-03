@@ -22,14 +22,22 @@ describe("generated operation catalog", () => {
   it("is generated from the public-api registry, not a handwritten 24-op list", () => {
     assert.equal(CATALOG_SOURCE.package, "@alphafoxai/contracts");
     // Pinned to the contracts release the catalog was generated from. Bumped
-    // with the Hyperliquid wallet live reads (registry 4.1.0 -> 4.2.0,
-    // additive). contractVersion stays 2026-08-31 on purpose, so installed CLIs
+    // when contracts 0.12.0 removed the admin operations (registry 4.2.0 ->
+    // 5.0.0). contractVersion stays 2026-08-31 on purpose, so installed CLIs
     // are not failed closed by the version gate.
-    assert.equal(CATALOG_SOURCE.registryVersion, "4.2.0");
+    assert.equal(CATALOG_SOURCE.registryVersion, "5.0.0");
     assert.equal(CATALOG_VERSION, "2026-08-31");
+    // A floor well above the old handwritten 24-op list. Registry 5.0.0
+    // removed the 63 admin operations, leaving 194.
     assert.ok(
-      CATALOG_OPERATIONS.length >= 200,
-      `expected >= 200 operations, got ${CATALOG_OPERATIONS.length}`
+      CATALOG_OPERATIONS.length >= 150,
+      `expected >= 150 operations, got ${CATALOG_OPERATIONS.length}`
+    );
+    assert.deepEqual(
+      CATALOG_OPERATIONS.filter((op) => op.operationId.startsWith("admin.")).map(
+        (op) => op.operationId
+      ),
+      []
     );
     const generatedIds = (
       registryJson as { operations: readonly { operationId: string }[] }

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 import { resolveTypedCommand } from "../src/catalog/command-tree";
@@ -183,14 +183,10 @@ describe("Skills surface", () => {
     assert.match(router, /autoStart: true/);
   });
 
-  it("teaches Passivbot paper acceptance config v3 and explicit legacy migration", () => {
-    const admin = readFileSync(join(skillsRoot, "admin", "SKILL.md"), "utf8");
-    assert.match(admin, /configSchemaVersion.*must be `3`/);
-    assert.match(admin, /Existing v1\/v2 configs are not migrated automatically/);
-    assert.match(admin, /common\.riskControl: \{\}/);
-    assert.match(admin, /"configSchemaVersion": 3/);
-    assert.doesNotMatch(admin, /accepts only `1` and `2`/);
-    assert.doesNotMatch(admin, /Use `2` for new acceptance traders/);
+  it("ships no admin Skill or route to one", () => {
+    const router = readFileSync(join(skillsRoot, "alphafox", "SKILL.md"), "utf8");
+    assert.equal(existsSync(join(skillsRoot, "admin")), false);
+    assert.doesNotMatch(router, /alphafox-admin/);
   });
 
   it("teaches Hyperliquid wallet history as coverage-first, read-only catalog calls", () => {

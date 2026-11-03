@@ -114,7 +114,7 @@ Uncataloged writes cannot carry a non-empty body. Find the `operationId` first.
 ## Risk
 
 - `high-risk-write` and uncataloged mutations (`unknown`) require `--yes` (exit code `10` if missing).
-- Prefer `--dry-run` first for trader create/start/stop, withdrawals, admin writes.
+- Prefer `--dry-run` first for trader create/start/stop and withdrawals.
 - Never auto-retry unknown write outcomes.
 - CLI `--yes` is UX only; the server still enforces role, ownership, and scopes.
 

@@ -52,24 +52,18 @@ describe("raw API allowlist", () => {
       true
     );
     assert.equal(isFacadeAllowlistedPath("/api/v1/backtests/bt-1/cancel"), false);
-    assert.equal(
-      isFacadeAllowlistedPath(
-        "/api/admin/passivbot-paper-acceptance-traders"
-      ),
-      true
-    );
-    assert.equal(
-      isFacadeAllowlistedPath(
-        "/api/v1/admin/passivbot-paper-acceptance-traders"
-      ),
-      false
-    );
-    assert.equal(
-      isFacadeAllowlistedPath(
-        "/api/admin/passivbot-paper-acceptance-traders/extra"
-      ),
-      false
-    );
+  });
+
+  it("allows no admin path, direct or facade", () => {
+    for (const path of [
+      "/api/admin/passivbot-paper-acceptance-traders",
+      "/api/admin/passivbot-paper-acceptance-traders/extra",
+      "/api/v1/admin/passivbot-paper-acceptance-traders",
+      "/api/v1/admin/users",
+      "/api/admin/users",
+    ]) {
+      assert.equal(isFacadeAllowlistedPath(path), false, path);
+    }
   });
 
   it("rejects arbitrary unknown /api/v1 paths", () => {

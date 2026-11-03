@@ -20,59 +20,6 @@ function run(args: string[], extraEnv: NodeJS.ProcessEnv = {}) {
   });
 }
 
-function passivbotSideFixture(nPositions: number) {
-  return {
-    n_positions: nPositions,
-    wallet_exposure_limit: 1,
-    total_wallet_exposure_limit: 1,
-    risk_entry_cooldown_minutes: 0,
-    risk_wel_enforcer_enabled: false,
-    risk_wel_enforcer_threshold: 1,
-    risk_twel_entry_gate_enabled: false,
-    risk_twel_enforcer_enabled: false,
-    risk_twel_enforcer_policy: "reduce_overweight",
-    risk_twel_enforcer_threshold: 1,
-    risk_we_excess_allowance_pct: 0,
-    risk_we_excess_allowance_mode: "bounded",
-    unstuck_enabled: false,
-    unstuck_ema_gating_enabled: false,
-    unstuck_close_pct: 0,
-    unstuck_ema_dist: 0,
-    unstuck_loss_allowance_pct: 0,
-    unstuck_threshold: 0,
-    trailing_martingale: {
-      ema_span_0: 3,
-      ema_span_1: 5,
-      volatility_ema_span_1h: 0,
-      volatility_ema_span_1m: 0,
-      entry: {
-        double_down_factor: 0,
-        ema_gate_mode: "disabled",
-        initial_ema_dist: 0,
-        initial_qty_pct: 0.1,
-        retracement_base_pct: 0,
-        retracement_volatility_1h_weight: 0,
-        retracement_volatility_1m_weight: 0,
-        retracement_we_weight: 0,
-        threshold_base_pct: 0,
-        threshold_volatility_1h_weight: 0,
-        threshold_volatility_1m_weight: 0,
-        threshold_we_weight: 0,
-      },
-      close: {
-        qty_pct: 0.1,
-        retracement_base_pct: 0,
-        retracement_volatility_1h_weight: 0,
-        retracement_volatility_1m_weight: 0,
-        threshold_base_pct: 0,
-        threshold_volatility_1h_weight: 0,
-        threshold_volatility_1m_weight: 0,
-        threshold_we_weight: 0,
-      },
-    },
-  };
-}
-
 describe("cli launch", () => {
   it("version exits 0 with stable envelope fields", () => {
     const r = run(["version"]);
@@ -295,52 +242,15 @@ describe("cli launch", () => {
     assert.equal(err.error.type, "confirmation");
   });
 
-  it("direct Passivbot admin write stays uncataloged and high-risk", () => {
-    const path = "/api/admin/passivbot-paper-acceptance-traders";
-    const body = JSON.stringify({
-      name: "Passivbot paper acceptance",
-      exchangeConnectorId: "connector-1",
-      configSchemaVersion: 3,
-      config: {
-        common: {
-          execution: { leverage: 1, openMinPosition: false },
-          riskControl: {},
-          orderExecution: {},
-        },
-        strategy: {
-          symbols: ["BTC/USDT:USDT"],
-          long: passivbotSideFixture(1),
-          short: passivbotSideFixture(0),
-        },
-      },
-      autoStart: true,
-    });
-    const blocked = run(["api", "POST", path, "--body", body]);
-    assert.equal(blocked.status, 10, blocked.stderr + blocked.stdout);
-    assert.equal(JSON.parse(blocked.stderr).error.type, "confirmation");
-
-    const preview = run([
-      "api",
-      "POST",
-      path,
-      "--body",
-      body,
-      "--dry-run",
-    ]);
-    assert.equal(preview.status, 0, preview.stderr + preview.stdout);
-    const result = JSON.parse(preview.stdout);
-    assert.equal(result.data.path, path);
-    assert.deepEqual(result.data.body, JSON.parse(body));
-
-    const facade = run([
-      "api",
-      "POST",
+  it("raw api refuses admin paths, even in dry-run", () => {
+    for (const path of [
+      "/api/admin/passivbot-paper-acceptance-traders",
       "/api/v1/admin/passivbot-paper-acceptance-traders",
-      "--body",
-      body,
-      "--dry-run",
-    ]);
-    assert.equal(facade.status, 77, facade.stderr + facade.stdout);
+    ]) {
+      const r = run(["api", "POST", path, "--body", "{}", "--dry-run"]);
+      assert.equal(r.status, 77, r.stderr + r.stdout);
+      assert.equal(JSON.parse(r.stderr).error.subtype, "facade_only");
+    }
   });
 
   it("auth login --browser fails closed without leaking a verifier", () => {

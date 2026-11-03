@@ -14,7 +14,6 @@ import {
 } from "../catalog/operations";
 import { resolveTypedCommand, typedCommandExample } from "../catalog/command-tree";
 import {
-  isDirectAdminAllowlistedPath,
   isFacadeAllowlistedPath,
   isInternalDisallowedPath,
   normalizeApiPath,
@@ -1009,19 +1008,15 @@ async function cmdApi(
     unsafeCustomEndpoint: flags.unsafeCustomEndpoint,
   });
 
-  // Infer risk from catalog; the documented direct admin route stays
-  // uncataloged and therefore uses the unknown/high-risk confirmation gate.
+  // Infer risk from catalog; an uncataloged path uses the unknown/high-risk
+  // confirmation gate.
   const normalizedPath = normalizeApiPath(path);
   const catalogHit = findCatalogOperationByRoute(method, normalizedPath);
-  const directAdminWrite =
-    method === "POST" && isDirectAdminAllowlistedPath(normalizedPath);
-  const validated = directAdminWrite
-    ? { ok: true as const, body: body === undefined ? {} : body }
-    : validateCatalogWriteBody({
-        method,
-        operationId: catalogHit?.operationId,
-        body,
-      });
+  const validated = validateCatalogWriteBody({
+    method,
+    operationId: catalogHit?.operationId,
+    body,
+  });
   if (!validated.ok) {
     writeError(validated.error);
   }

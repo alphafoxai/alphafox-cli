@@ -30,7 +30,6 @@ A **trader** is a running strategy instance (paper or live), not a person. Creat
 | Account, wallet, subscription | `alphafox-account` |
 | Notification channels | `alphafox-notification` |
 | Hyperliquid wallet / 0x address history, PnL, equity, positions, live state and open orders (read-only) | `alphafox-hl-wallet` |
-| Admin-only operations | `alphafox-admin` |
 
 Load only rows needed for the requested operation, reusing Skills already read in this task (typical: shared + market when resolving a ticker + the operation Skill).
 

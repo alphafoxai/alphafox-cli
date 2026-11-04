@@ -38,18 +38,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6
         with:
           version: 10.33.0
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: "24"
 
       - name: Install
         run: pnpm install --frozen-lockfile
+
+      - name: Audit runtime dependencies (high and critical)
+        run: pnpm audit --prod --audit-level high
 
       # Fails fast on a type error over src/ and tests/ without emitting, so the
       # signal is the type error itself rather than a build step that died.
@@ -71,24 +74,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       # The upstream repository is private, and a checkout this token cannot
       # read fails the job outright — which is the required behaviour. A token
       # only readable by some runs would make a skipped drift check
       # indistinguishable from a passing one in a green run.
       - name: Checkout alphafox-contracts
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           repository: alphafoxai/alphafox-contracts
           path: alphafox-contracts
           token: ${{ secrets.ALPHAFOX_CONTRACTS_READ_TOKEN || secrets.ALPHAFOX_SCHEMAS_READ_TOKEN || github.token }}
 
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6
         with:
           version: 10.33.0
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: "24"
 

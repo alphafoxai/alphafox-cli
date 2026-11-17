@@ -116,7 +116,8 @@ Uncataloged writes cannot carry a non-empty body. Find the `operationId` first.
 - `high-risk-write` and uncataloged mutations (`unknown`) require `--yes` (exit code `10` if missing).
 - Prefer `--dry-run` first for trader create/start/stop and withdrawals.
 - Never auto-retry unknown write outcomes.
-- CLI `--yes` is UX only; the server still enforces role, ownership, and scopes.
+- CLI `--yes` is a client-side confirmation. The server enforces role, ownership, plan, and wallet-security checks, not per-operation scopes.
+- Catalog `scopes` are informational (Web ADR 0002). The default login (`openid profile offline_access`) covers every user operation; requesting any other scope fails with `invalid_scope`.
 
 ## Dashboard links
 

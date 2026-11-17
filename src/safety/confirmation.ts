@@ -40,7 +40,8 @@ export function requiresHighRiskConfirmation(
 
 /**
  * High-risk writes (and uncataloged/unknown mutations) require explicit --yes.
- * Server still enforces scopes/roles; this is CLI UX only.
+ * This is client-side only. The server enforces role, ownership, plan, and
+ * wallet-security checks; it does not check per-operation scopes (Web ADR 0002).
  */
 export function assertHighRiskConfirmation(input: {
   readonly risk: RiskLevel | string;

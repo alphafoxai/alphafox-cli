@@ -6,7 +6,7 @@ version: 0.3.26
 
 # Strategy definitions
 
-Always `--format json --no-input`. Read scopes `trading:read`; validate is `trading:write`.
+Always `--format json --no-input`. Listing and reading definitions are reads; `validate` is a write.
 
 A **definition** is a strategy type. A **trader** is one running instance. Instantiating is `alphafox-trading`. Local wasm backtest is `alphafox-engine-backtest`. This skill only discovers types and checks config.
 

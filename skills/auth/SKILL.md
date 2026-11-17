@@ -45,7 +45,7 @@ Always `--format json --no-input`. Never `--token`.
 
 - Fail closed on cross-environment tokens (prod token never hits staging).
 - Do not copy refresh tokens into CI (automation deferred — ADR 0004).
-- Scopes: `openid` `profile` `offline_access` at grant time.
+- Scopes: `openid` `profile` `offline_access` at grant time. Do not request catalog scopes; they are informational and fail with `invalid_scope`.
 
 ## operationIds
 

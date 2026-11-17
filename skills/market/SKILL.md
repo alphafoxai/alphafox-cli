@@ -6,7 +6,7 @@ version: 0.3.26
 
 # Market
 
-Always `--format json --no-input`. Prefer readonly scopes. No mock success if upstream fails.
+Always `--format json --no-input`. Prefer read-only operations. No mock success if upstream fails.
 
 ## Asset class first
 

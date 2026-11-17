@@ -98,7 +98,7 @@ alphafox trading traders byId actions byAction run --traderId <id> --action trig
 
 ## Recovery
 
-- `403`: missing scope or not owner — stop, do not retry `--yes`.
+- `403`: not the owner, or the account lacks the role or plan — stop, do not retry with `--yes`. It never means a missing OAuth scope; do not log in again with extra scopes.
 - `409`: trader already in the requested state — report, do not loop start/stop.
 - Unknown HTTP after a write: do not auto-retry.
 

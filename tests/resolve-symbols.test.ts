@@ -153,6 +153,33 @@ describe("resolve-symbols match", () => {
     assert.equal(base.needsConfirmation, false);
   });
 
+  it("does not silently substitute another quote", () => {
+    const usdt = "BTC/USDT:USDT";
+    const usdc = "BTC/USDC:USDC";
+    const single = indexCatalogSymbols([usdt]);
+    const both = indexCatalogSymbols([usdt, usdc]);
+    for (const query of [usdc, "BTC/USDC", "BTCUSDC"]) {
+      const alternative = resolveQueryAgainstCatalog(query, single);
+      assert.equal(alternative.status, "close");
+      assert.equal(alternative.needsConfirmation, true);
+      assert.equal(alternative.resolved, usdt);
+      const requested = resolveQueryAgainstCatalog(query, both);
+      assert.equal(requested.status, "exact");
+      assert.equal(requested.resolved, usdc);
+      assert.equal(requested.needsConfirmation, false);
+    }
+    const base = resolveQueryAgainstCatalog("BTC", both);
+    assert.equal(base.status, "ambiguous");
+    assert.equal(base.resolved, null);
+    const collision = resolveQueryAgainstCatalog("BTC/USDC", indexCatalogSymbols(["BTCUSDC/USDT:USDT"]));
+    assert.notEqual(collision.status, "exact");
+    assert.equal(collision.needsConfirmation, true);
+    const literal = resolveQueryAgainstCatalog("BTCUSDC", indexCatalogSymbols(["BTCUSDC/USDT:USDT"]));
+    assert.equal(literal.status, "exact");
+    assert.equal(literal.resolved, "BTCUSDC/USDT:USDT");
+    assert.equal(literal.needsConfirmation, false);
+  });
+
   it("keeps CJK bases exact", () => {
     const result = resolveQueryAgainstCatalog("龙虾", CATALOG);
     assert.equal(result.status, "exact");

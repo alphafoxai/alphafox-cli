@@ -117,6 +117,10 @@ export function resolveQueryAgainstCatalog(
     catalogMatchesAssetClass(item, assetClass)
   );
   const matches = rankMatches(trimmed, scoped);
+  const canonical = matches.find((item) => item.reason === "exact_canonical");
+  if (canonical) {
+    return result("exact", canonical.symbol, false, [canonical], 1);
+  }
   const exact = matches.filter((item) => EXACT_REASONS.has(item.reason));
   const close = matches.filter((item) => !EXACT_REASONS.has(item.reason));
   const capped = (items: readonly ResolveSymbolsMatch[]) =>
@@ -193,10 +197,11 @@ function rankCatalogSymbol(
   if (item.pair === canonicalQuery) {
     return match(item, "exact_pair", 96);
   }
-  if (item.compactKey === queryKey || item.searchKey === queryKey) {
+  const qualified = canonicalQuery.includes("/") || canonicalQuery.includes(":");
+  if (!qualified && (item.compactKey === queryKey || item.searchKey === queryKey)) {
     return match(item, "exact_compact", 98);
   }
-  if (item.baseKey === queryKey || item.baseKey === queryBaseKey) {
+  if (!qualified && item.baseKey === queryKey) {
     return match(item, "exact_base", 95);
   }
 
